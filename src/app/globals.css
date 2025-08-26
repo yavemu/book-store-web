@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafafa;
+  --foreground: #262626;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom component classes for Tailwind v4 */
+.btn-primary {
+  background-color: rgb(79 70 229);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: rgb(67 56 202);
+}
+
+.btn-secondary {
+  background-color: rgb(16 185 129);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgb(5 150 105);
+}
+
+.card-base {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid rgb(229 229 229);
+}
+
+.card-book {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-book:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid rgb(229 229 229);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(38 38 38);
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  color: rgb(115 115 115);
+  margin-top: 0.25rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+.card-status-active {
+  border-left: 4px solid rgb(16 185 129);
+}
+
+.card-status-inactive {
+  border-left: 4px solid rgb(163 163 163);
+}
+
+.card-status-warning {
+  border-left: 4px solid rgb(245 158 11);
+}
+
+.page-container {
+  min-height: 100vh;
+  background-color: rgb(250 250 250);
+}
+
+.content-wrapper {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.layout-main {
+  min-height: 100vh;
+  background-color: rgb(250 250 250);
+}
+
+.layout-header {
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-bottom: 1px solid rgb(229 229 229);
+}
+
+.layout-header-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.layout-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.layout-footer {
+  background-color: white;
+  border-top: 1px solid rgb(229 229 229);
+  margin-top: auto;
+}
+
+.layout-footer-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.layout-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.layout-section {
+  margin-bottom: 2rem;
+}
+
+.layout-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(38 38 38);
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(38 38 38);
+  margin-bottom: 1rem;
+}
+
+.text-muted {
+  color: rgb(115 115 115);
+}
+
+.text-subtle {
+  color: rgb(163 163 163);
+}
+
+.input-base {
+  border-radius: 0.5rem;
+  border: 1px solid rgb(212 212 212);
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.input-base:focus {
+  outline: 2px solid rgb(79 70 229);
+  outline-offset: 2px;
+  border-color: rgb(79 70 229);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(64 64 64);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: rgb(245 245 245);
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+}
+
+.upload-box {
+  border: 2px dashed rgb(212 212 212);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.upload-box:hover {
+  border-color: rgb(79 70 229);
+}
