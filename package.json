@@ -6,7 +6,20 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker:build": "docker-compose build",
+    "docker:dev": "docker-compose up",
+    "docker:dev:build": "docker-compose down && docker-compose up --build -d",
+    "docker:dev:detached": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:down:clean": "docker-compose down -v --remove-orphans",
+    "docker:logs": "docker-compose logs -f web",
+    "docker:status": "docker-compose ps",
+    "docker:restart": "docker-compose restart web",
+    "docker:clean": "docker-compose down && docker network prune -f && docker system prune -f",
+    "docker:shell": "docker-compose exec web sh",
+    "docker:exec:build": "docker-compose exec web npm run build",
+    "docker:exec:lint": "docker-compose exec web npm run lint"
   },
   "dependencies": {
     "react": "19.1.0",
