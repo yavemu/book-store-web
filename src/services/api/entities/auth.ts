@@ -43,14 +43,20 @@ class AuthService {
 
   async login(loginData: LoginDto): Promise<LoginResponseDto> {
     try {
+      console.log('🔄 AuthService: Enviando login request a /auth/login con:', loginData);
       const response = await apiClient.post<LoginResponseDto>('/auth/login', loginData);
+      console.log('📡 AuthService: Respuesta recibida:', response);
       
       if (response.access_token) {
+        console.log('🔑 AuthService: Guardando token en localStorage');
         this.setAuthToken(response.access_token);
+      } else {
+        console.warn('⚠️ AuthService: No se recibió access_token en la respuesta');
       }
       
       return response;
     } catch (error) {
+      console.error('❌ AuthService: Error en login:', error);
       throw error;
     }
   }

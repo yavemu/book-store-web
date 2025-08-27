@@ -6,6 +6,7 @@ class ApiClient {
 
   constructor() {
     this.baseURL = environment.apiUrl;
+    console.log('🏗️ ApiClient: Inicializando con baseURL:', this.baseURL);
   }
 
   private async request<T>(
@@ -22,10 +23,14 @@ class ApiClient {
       ...options,
     };
 
+    console.log('🌐 ApiClient: Haciendo request a:', url, 'con config:', config);
+
     try {
       const response = await fetch(url, config);
+      console.log('📨 ApiClient: Respuesta recibida, status:', response.status);
       
       if (!response.ok) {
+        console.error('❌ ApiClient: Response no ok, status:', response.status);
         const errorData: ApiError = {
           message: `HTTP ${response.status}: ${response.statusText}`,
           status: response.status,
@@ -34,6 +39,7 @@ class ApiClient {
       }
 
       const data = await response.json();
+      console.log('✅ ApiClient: Data parseada:', data);
       return data;
     } catch (error) {
       if (error instanceof Error) {

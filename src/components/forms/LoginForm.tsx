@@ -13,24 +13,33 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSuccess, showTitle = true, compact = false }: LoginFormProps) {
-  const { login, loading } = useAuth();
+  const { login, loading, error } = useAuth();
 
   const handleLogin = async (data: LoginFormData) => {
+    console.log('🚀 LoginForm: Iniciando login con datos:', data);
     try {
-      await login(data);
+      const result = await login(data);
+      console.log('✅ LoginForm: Login exitoso, resultado:', result);
 
       if (onSuccess) {
+        console.log('📋 LoginForm: Llamando onSuccess callback');
         onSuccess();
       }
     } catch (error) {
       // Error is handled by useAuth hook
-      console.error("Error en login:", error);
+      console.error("❌ LoginForm: Error en login:", error);
     }
   };
 
   return (
     <div className={`border rounded-lg shadow-md ${compact ? "p-3 space-y-3" : "p-6 space-y-6"}`}>
       {showTitle && <h2 className="text-xl font-bold text-center">Iniciar sesión</h2>}
+
+      {error && (
+        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+          {error}
+        </div>
+      )}
 
       <Form<LoginFormData> onSubmit={handleLogin} className="space-y-4">
         <Input label="Correo electrónico" id="email" name="email" type="email" required />

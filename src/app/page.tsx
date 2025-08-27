@@ -1,9 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Layout, LoadingSpinner, ErrorMessage, UserDashboard, AuthForm } from "@/components";
 import { useHealthCheck, useAuthState } from "@/hooks";
 
 export default function Home() {
+  const router = useRouter();
   const { data, loading, error, refetch } = useHealthCheck();
   const { isAuthenticated, user, loading: authLoading, checkAuth, logout } = useAuthState();
 
@@ -27,8 +29,11 @@ export default function Home() {
     );
   }
 
-  const handleLoginSuccess = () => {
-    checkAuth();
+  const handleLoginSuccess = async () => {
+    // Update auth state after successful login
+    await checkAuth();
+    // Redirect to dashboard after successful login
+    router.push('/dashboard');
   };
 
   const handleLogout = () => {

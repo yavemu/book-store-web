@@ -3,8 +3,6 @@
 import { useState } from "react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
-import { useAuth } from "@/hooks";
-import { ErrorMessage } from "@/components/ui";
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -15,16 +13,15 @@ export default function AuthForm({ onSuccess, defaultMode = "login" }: AuthFormP
   const [mode, setMode] = useState<"login" | "register">(defaultMode);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const { error, clearError } = useAuth();
 
   const handleToggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
-    clearError();
     setShowSuccessMessage(false);
   };
 
   const handleLoginSuccess = () => {
     setShowSuccessMessage(false);
+
     if (onSuccess) {
       onSuccess();
     }
@@ -44,17 +41,9 @@ export default function AuthForm({ onSuccess, defaultMode = "login" }: AuthFormP
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Form content */}
         <div className="p-6">
           {/* Success message */}
           {showSuccessMessage && <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{successMessage}</div>}
-
-          {/* Error message */}
-          {error && (
-            <div className="mb-4">
-              <ErrorMessage error={error} />
-            </div>
-          )}
 
           {/* Form based on current mode */}
           {mode === "login" ? (

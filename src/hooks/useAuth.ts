@@ -23,20 +23,27 @@ export function useAuth(): UseAuthReturn {
 
   const login = useCallback(async (data: LoginDto): Promise<LoginResponseDto> => {
     try {
+      console.log('🔧 useAuth: Iniciando login, loading = true');
       setLoading(true);
       setError(null);
       
+      console.log('🌐 useAuth: Llamando authService.login con:', data);
       const response = await authService.login(data);
+      console.log('✅ useAuth: Respuesta del authService:', response);
       return response;
     } catch (err) {
+      console.error('❌ useAuth: Error en login:', err);
       const apiError = err as ApiError;
       
       // Handle specific error status codes
       if (apiError.status === 401) {
+        console.log('🚫 useAuth: Error 401 - Credenciales inválidas');
         setError('Credenciales inválidas');
       } else if (apiError.status === 400) {
+        console.log('🚫 useAuth: Error 400 - Datos inválidos');
         setError('Datos de entrada inválidos');
       } else {
+        console.log('🚫 useAuth: Error genérico:', apiError.message);
         setError(apiError.message || 'Error al iniciar sesión');
       }
       
