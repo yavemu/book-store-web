@@ -11,6 +11,10 @@ export * from "./elements/Output";
 export * from "./elements/Option";
 export * from "./elements/Optgroup";
 
+export { default as LoginForm } from "./LoginForm";
+export { default as RegisterForm } from "./RegisterForm";
+export { default as AuthForm } from "./AuthForm";
+
 export * from "./types/FormProps";
 export * from "./types/InputProps";
 export * from "./types/LabelProps";

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RegisterForm, LoadingSpinner } from '@/components';
+import { AuthForm, LoadingSpinner } from '@/components';
 import { useAuthState } from '@/hooks';
 
 export default function RegisterPage() {
@@ -24,12 +24,16 @@ export default function RegisterPage() {
     );
   }
 
-  // Only render register form if not authenticated
+  const handleAuthSuccess = () => {
+    router.push('/');
+  };
+
+  // Only render auth form if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="layout-flex-center bg-gray-50">
         <div className="w-full max-w-md mx-auto p-4">
-          <RegisterForm />
+          <AuthForm onSuccess={handleAuthSuccess} defaultMode="register" />
         </div>
       </div>
     );

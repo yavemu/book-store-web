@@ -6,7 +6,7 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ user, onLogout }: UserDashboardProps) {
-  const isAdmin = user.role === 'ADMIN';
+  const isAdmin = user.role.name.toLowerCase() === 'admin';
 
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ export function UserDashboard({ user, onLogout }: UserDashboardProps) {
                   ? 'bg-purple-100 text-purple-800' 
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {user.role}
+                {user.role.name.toUpperCase()}
               </span>
             </p>
           </div>

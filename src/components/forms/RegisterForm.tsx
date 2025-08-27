@@ -1,37 +1,37 @@
 "use client";
 
-import { useState } from "react";
 import { Form, Input, Button } from "../forms";
+import { useAuth } from "@/hooks";
+import { RegisterUserDto } from "@/types/auth";
 
-type RegisterFormData = {
-  name: string;
-  email: string;
-  password: string;
-};
+export type RegisterFormData = RegisterUserDto;
 
 type RegisterFormProps = {
-  onSuccess?: (data: RegisterFormData) => void;
+  onSuccess?: () => void;
   showTitle?: boolean;
   compact?: boolean;
 };
 
 export default function RegisterForm({ onSuccess, showTitle = false, compact = false }: RegisterFormProps) {
-  const [loading, setLoading] = useState(false);
+  const { register, loading } = useAuth();
 
   const handleRegister = async (data: RegisterFormData) => {
-    setLoading(true);
     try {
-      await new Promise((res) => setTimeout(res, 900));
-      console.log("✅ Registro OK", data);
-    } finally {
-      setLoading(false);
+      await register(data);
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      // Error is handled by useAuth hook
+      console.error("Error en registro:", error);
     }
   };
 
   return (
     <div className={`border rounded-lg shadow-md ${compact ? "p-3 space-y-3" : "p-6 space-y-6"}`}>
       <Form<RegisterFormData> onSubmit={handleRegister} onSuccess={onSuccess} title={showTitle ? "Registro" : undefined} className="space-y-4">
-        <Input label="Nombre" id="name" name="name" type="text" required />
+        <Input label="Nombre de usuario" id="username" name="username" type="text" required />
 
         <Input label="Correo electrónico" id="email" name="email" type="email" required />
 
@@ -41,7 +41,6 @@ export default function RegisterForm({ onSuccess, showTitle = false, compact = f
           {loading ? "Registrando..." : "Registrarse"}
         </Button>
       </Form>
-      <p className="text-center text-sm text-muted">Ya tienes una cuenta? </p>
     </div>
   );
 }

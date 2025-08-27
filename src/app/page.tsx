@@ -1,7 +1,6 @@
 'use client';
 
-import { Layout, LoadingSpinner, ErrorMessage, UserDashboard } from "@/components";
-import LoginForm from "@/components/forms/LoginForm";
+import { Layout, LoadingSpinner, ErrorMessage, UserDashboard, AuthForm } from "@/components";
 import { useHealthCheck, useAuthState } from "@/hooks";
 
 export default function Home() {
@@ -37,7 +36,7 @@ export default function Home() {
   };
 
   return (
-    <Layout>
+    <Layout user={user} onLogout={handleLogout}>
       <div className="space-y-8">
         <div className="layout-page-header">
           <div className="text-center mx-auto">
@@ -54,7 +53,7 @@ export default function Home() {
           ) : (
             <div className="space-y-8">
               <div className="max-w-md mx-auto">
-                <LoginForm onSuccess={handleLoginSuccess} showTitle={true} compact={false} />
+                <AuthForm onSuccess={handleLoginSuccess} defaultMode="login" />
               </div>
             </div>
           )}

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Form, Input, Button } from "../forms";
+import { useAuth } from "@/hooks";
+import { LoginDto } from "@/types/auth";
 
-export interface LoginFormData {
-  email: string;
-  password: string;
-}
+export type LoginFormData = LoginDto;
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -15,20 +13,18 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSuccess, showTitle = true, compact = false }: LoginFormProps) {
-  const [loading, setLoading] = useState(false);
+  const { login, loading } = useAuth();
 
   const handleLogin = async (data: LoginFormData) => {
-    setLoading(true);
     try {
-      // 👉 lógica original (simulación de petición)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Usuario logueado:", data);
+      await login(data);
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
+      // Error is handled by useAuth hook
       console.error("Error en login:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -45,7 +41,6 @@ export default function LoginForm({ onSuccess, showTitle = true, compact = false
           {loading ? "Ingresando..." : "Iniciar sesión"}
         </Button>
       </Form>
-      <p className="text-center text-sm text-muted">No tienes una cuenta? </p>
     </div>
   );
 }

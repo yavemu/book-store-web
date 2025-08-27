@@ -1,10 +1,20 @@
 export type UserRole = 'ADMIN' | 'USER';
 
+export interface RoleDto {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export interface UserProfileDto {
   id: string;
   username: string;
   email: string;
-  role: UserRole;
+  role: RoleDto;
 }
 
 export interface UserProfileResponseDto extends UserProfileDto {

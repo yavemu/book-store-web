@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoginForm, LoadingSpinner } from '@/components';
+import { AuthForm, LoadingSpinner } from '@/components';
 import { useAuthState } from '@/hooks';
 
 export default function LoginPage() {
@@ -29,12 +29,12 @@ export default function LoginPage() {
     );
   }
 
-  // Only render login form if not authenticated
+  // Only render auth form if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="layout-flex-center bg-gray-50">
         <div className="w-full max-w-md mx-auto p-4">
-          <LoginForm onSuccess={handleLoginSuccess} showTitle={true} compact={false} />
+          <AuthForm onSuccess={handleLoginSuccess} defaultMode="login" />
         </div>
       </div>
     );
