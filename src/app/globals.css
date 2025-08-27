@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
+/* 🎨 Variables */
 :root {
   --background: #fafafa;
   --foreground: #262626;
+
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-secondary: #10b981;
+  --color-secondary-hover: #059669;
+  --color-border: #e5e5e5;
+  --color-border-muted: #d4d4d4;
+  --color-border-light: #f3f4f6;
+  --color-muted: #737373;
+  --color-subtle: #a3a3a3;
+  --color-header: #262626;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
+  --color-inactive: #a3a3a3;
+  --color-card: #ffffff;
+  --color-surface: #f9fafb;
 }
 
 @theme inline {
@@ -12,22 +29,127 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ----------------- Estilos base para formularios ----------------- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: var(--color-card);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+form h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: var(--color-header);
+}
+
+/* Labels */
+label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-header);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border-muted);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background-color: var(--color-card);
+  color: var(--foreground);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+/* Buttons */
+button {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+button:disabled {
+  background-color: var(--color-inactive);
+  cursor: not-allowed;
+}
+
+/* Fieldset & legend */
+fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+  color: var(--color-header);
+}
+
+/* Datalist, Option, Optgroup */
+datalist,
+option,
+optgroup {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  background-color: var(--color-card);
+}
+
+/* Output */
+output {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* ----------------- Mantengo todo lo que ya tenías ----------------- */
+
 /* Custom component classes for Tailwind v4 */
 .btn-primary {
-  background-color: rgb(79 70 229);
+  background-color: var(--color-primary);
   color: white;
   font-weight: 600;
   border-radius: 0.75rem;
@@ -36,11 +158,11 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: rgb(67 56 202);
+  background-color: var(--color-primary-hover);
 }
 
 .btn-secondary {
-  background-color: rgb(16 185 129);
+  background-color: var(--color-secondary);
   color: white;
   font-weight: 600;
   border-radius: 0.75rem;
@@ -49,18 +171,18 @@ body {
 }
 
 .btn-secondary:hover {
-  background-color: rgb(5 150 105);
+  background-color: var(--color-secondary-hover);
 }
 
 .card-base {
-  background-color: white;
+  background-color: var(--color-card);
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid rgb(229 229 229);
+  border: 1px solid var(--color-border);
 }
 
 .card-book {
-  background-color: white;
+  background-color: var(--color-card);
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   transition: all 0.2s ease;
@@ -74,18 +196,18 @@ body {
 
 .card-header {
   padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 1px solid rgb(229 229 229);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: rgb(38 38 38);
+  color: var(--color-header);
 }
 
 .card-subtitle {
   font-size: 0.875rem;
-  color: rgb(115 115 115);
+  color: var(--color-muted);
   margin-top: 0.25rem;
 }
 
@@ -103,20 +225,20 @@ body {
 }
 
 .card-status-active {
-  border-left: 4px solid rgb(16 185 129);
+  border-left: 4px solid var(--color-success);
 }
 
 .card-status-inactive {
-  border-left: 4px solid rgb(163 163 163);
+  border-left: 4px solid var(--color-inactive);
 }
 
 .card-status-warning {
-  border-left: 4px solid rgb(245 158 11);
+  border-left: 4px solid var(--color-warning);
 }
 
 .page-container {
   min-height: 100vh;
-  background-color: rgb(250 250 250);
+  background-color: var(--color-surface);
 }
 
 .content-wrapper {
@@ -127,13 +249,13 @@ body {
 
 .layout-main {
   min-height: 100vh;
-  background-color: rgb(250 250 250);
+  background-color: var(--color-surface);
 }
 
 .layout-header {
-  background-color: white;
+  background-color: var(--color-card);
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  border-bottom: 1px solid rgb(229 229 229);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .layout-header-content {
@@ -149,8 +271,8 @@ body {
 }
 
 .layout-footer {
-  background-color: white;
-  border-top: 1px solid rgb(229 229 229);
+  background-color: var(--color-card);
+  border-top: 1px solid var(--color-border);
   margin-top: auto;
 }
 
@@ -181,35 +303,37 @@ body {
 .header-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: rgb(38 38 38);
+  color: var(--color-header);
 }
 
 .section-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: rgb(38 38 38);
+  color: var(--color-header);
   margin-bottom: 1rem;
 }
 
 .text-muted {
-  color: rgb(115 115 115);
+  color: var(--color-muted);
 }
 
 .text-subtle {
-  color: rgb(163 163 163);
+  color: var(--color-subtle);
 }
 
 .input-base {
   border-radius: 0.5rem;
-  border: 1px solid rgb(212 212 212);
+  border: 1px solid var(--color-border-muted);
   padding: 0.5rem 0.75rem;
   transition: all 0.2s ease;
+  background-color: var(--color-card);
+  color: var(--foreground);
 }
 
 .input-base:focus {
-  outline: 2px solid rgb(79 70 229);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-color: rgb(79 70 229);
+  border-color: var(--color-primary);
 }
 
 .form-group {
@@ -219,7 +343,7 @@ body {
 .form-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgb(64 64 64);
+  color: var(--color-header);
   display: block;
   margin-bottom: 0.5rem;
 }
@@ -227,7 +351,7 @@ body {
 .filters-bar {
   display: flex;
   gap: 1rem;
-  background-color: white;
+  background-color: var(--color-card);
   padding: 1rem;
   border-radius: 0.75rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -236,13 +360,13 @@ body {
 .search-box {
   display: flex;
   align-items: center;
-  background-color: rgb(245 245 245);
+  background-color: var(--color-surface);
   border-radius: 0.5rem;
   padding: 0 0.75rem;
 }
 
 .upload-box {
-  border: 2px dashed rgb(212 212 212);
+  border: 2px dashed var(--color-border-muted);
   border-radius: 0.75rem;
   padding: 1.5rem;
   display: flex;
@@ -253,5 +377,5 @@ body {
 }
 
 .upload-box:hover {
-  border-color: rgb(79 70 229);
+  border-color: var(--color-primary);
 }

@@ -1,0 +1,1 @@
+export interface LegendProps extends React.HTMLAttributes<HTMLLegendElement> {}

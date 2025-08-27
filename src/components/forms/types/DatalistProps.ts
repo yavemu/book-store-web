@@ -1,0 +1,1 @@
+export interface DatalistProps extends React.HTMLAttributes<HTMLDataListElement> {}

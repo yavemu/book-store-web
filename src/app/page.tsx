@@ -1,6 +1,7 @@
 'use client';
 
-import { Layout, LoadingSpinner, ErrorMessage, LoginForm, UserDashboard } from "@/components";
+import { Layout, LoadingSpinner, ErrorMessage, UserDashboard } from "@/components";
+import LoginForm from "@/components/forms/LoginForm";
 import { useHealthCheck, useAuthState } from "@/hooks";
 
 export default function Home() {
@@ -28,7 +29,6 @@ export default function Home() {
   }
 
   const handleLoginSuccess = () => {
-    // Refresh auth state after successful login
     checkAuth();
   };
 
@@ -39,7 +39,6 @@ export default function Home() {
   return (
     <Layout>
       <div className="space-y-8">
-        {/* Header - Always visible */}
         <div className="layout-page-header">
           <div className="text-center mx-auto">
             <h1 className="text-4xl font-bold text-neutral-800 mb-3">🏪 Bienvenido a Book Store</h1>
@@ -50,14 +49,10 @@ export default function Home() {
         </div>
 
         <div className="layout-section">
-          {/* Conditional Content based on Authentication */}
           {isAuthenticated && user ? (
-            // Authenticated User Dashboard
             <UserDashboard user={user} onLogout={handleLogout} />
           ) : (
-            // Non-authenticated User Content
             <div className="space-y-8">
-              {/* Login Form */}
               <div className="max-w-md mx-auto">
                 <LoginForm onSuccess={handleLoginSuccess} showTitle={true} compact={false} />
               </div>

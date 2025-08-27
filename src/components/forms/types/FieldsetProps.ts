@@ -1,0 +1,1 @@
+export interface FieldsetProps extends React.FieldsetHTMLAttributes<HTMLFieldSetElement> {}

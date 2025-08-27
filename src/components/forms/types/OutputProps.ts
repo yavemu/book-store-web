@@ -1,0 +1,1 @@
+export interface OutputProps extends React.OutputHTMLAttributes<HTMLOutputElement> {}
