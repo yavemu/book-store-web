@@ -13,29 +13,40 @@ import {
 import { PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
 
+// Utilidad para construir query strings
+const buildQueryString = (params: Record<string, unknown>): string => {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  return searchParams.toString();
+};
+
+// Utilidad para construir URLs con parámetros opcionales
+const buildUrl = (basePath: string, queryParams?: Record<string, unknown>): string => {
+  if (!queryParams) return basePath;
+
+  const queryString = buildQueryString(queryParams);
+  return queryString ? `${basePath}?${queryString}` : basePath;
+};
+
 export const bookCatalogApi = {
   // Listar libros con paginación y filtros
   list: (params?: BookCatalogListParams): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams();
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      ...params,
+    };
 
-    // Siempre incluir page y limit con valores por defecto
-    searchParams.append("page", (params?.page || 1).toString());
-    searchParams.append("limit", (params?.limit || 10).toString());
-
-    if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
-    if (params?.sortOrder) searchParams.append("sortOrder", params.sortOrder);
-    if (params?.search) searchParams.append("search", params.search);
-    if (params?.genreId) searchParams.append("genreId", params.genreId);
-    if (params?.publisherId) searchParams.append("publisherId", params.publisherId);
-    if (params?.isAvailable !== undefined) searchParams.append("isAvailable", params.isAvailable.toString());
-    if (params?.minPrice !== undefined) searchParams.append("minPrice", params.minPrice.toString());
-    if (params?.maxPrice !== undefined) searchParams.append("maxPrice", params.maxPrice.toString());
-
-    const queryString = searchParams.toString();
-    const url = `/book-catalog?${queryString}`;
+    const url = buildUrl("/book-catalog", defaultParams);
 
     console.log("bookCatalogApi.list: llamando URL:", url);
-    console.log("bookCatalogApi.list: parámetros:", params);
+    console.log("bookCatalogApi.list: parámetros:", defaultParams);
 
     return apiClient.get(url);
   },
@@ -57,67 +68,61 @@ export const bookCatalogApi = {
 
   // Buscar libros
   search: (params: BookCatalogSearchParams): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams({
-      term: params.term,
-    });
-
-    if (params.page) searchParams.append("page", params.page.toString());
-    if (params.limit) searchParams.append("limit", params.limit.toString());
-
-    return apiClient.get(`/api/book-catalog/search?${searchParams.toString()}`);
+    const url = buildUrl("/book-catalog/search", params);
+    return apiClient.get(url);
   },
 
   // Filtros avanzados
   filter: (filters: BookFiltersDto, page?: number, limit?: number): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams();
-    if (page) searchParams.append("page", page.toString());
-    if (limit) searchParams.append("limit", limit.toString());
+    const queryParams: Record<string, unknown> = {};
+    if (page) queryParams.page = page;
+    if (limit) queryParams.limit = limit;
 
-    const queryString = searchParams.toString();
-    return apiClient.post(`/api/book-catalog/filter${queryString ? `?${queryString}` : ""}`, filters);
+    const url = buildUrl("/book-catalog/filter", queryParams);
+    return apiClient.post(url, filters);
   },
 
   // Libros disponibles
   available: (page?: number, limit?: number): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams();
-    if (page) searchParams.append("page", page.toString());
-    if (limit) searchParams.append("limit", limit.toString());
+    const queryParams: Record<string, unknown> = {};
+    if (page) queryParams.page = page;
+    if (limit) queryParams.limit = limit;
 
-    const queryString = searchParams.toString();
-    return apiClient.get(`/api/book-catalog/available${queryString ? `?${queryString}` : ""}`);
+    const url = buildUrl("/book-catalog/available", queryParams);
+    return apiClient.get(url);
   },
 
   // Libros por género
   byGenre: (genreId: string, page?: number, limit?: number): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams();
-    if (page) searchParams.append("page", page.toString());
-    if (limit) searchParams.append("limit", limit.toString());
+    const queryParams: Record<string, unknown> = {};
+    if (page) queryParams.page = page;
+    if (limit) queryParams.limit = limit;
 
-    const queryString = searchParams.toString();
-    return apiClient.get(`/api/book-catalog/by-genre/${genreId}${queryString ? `?${queryString}` : ""}`);
+    const url = buildUrl(`/api/book-catalog/by-genre/${genreId}`, queryParams);
+    return apiClient.get(url);
   },
 
   // Libros por editorial
   byPublisher: (publisherId: string, page?: number, limit?: number): Promise<PaginatedResponse<BookCatalog>> => {
-    const searchParams = new URLSearchParams();
-    if (page) searchParams.append("page", page.toString());
-    if (limit) searchParams.append("limit", limit.toString());
+    const queryParams: Record<string, unknown> = {};
+    if (page) queryParams.page = page;
+    if (limit) queryParams.limit = limit;
 
-    const queryString = searchParams.toString();
-    return apiClient.get(`/api/book-catalog/by-publisher/${publisherId}${queryString ? `?${queryString}` : ""}`);
+    const url = buildUrl(`/api/book-catalog/by-publisher/${publisherId}`, queryParams);
+    return apiClient.get(url);
   },
 };
 
 // APIs auxiliares para géneros, editoriales y autores
 export const genresApi = {
   list: (): Promise<Genre[]> => apiClient.get("/api/genres"),
-  search: (q: string): Promise<Genre[]> => apiClient.get(`/api/genres/search?q=${encodeURIComponent(q)}`),
+  search: (q: string): Promise<Genre[]> => apiClient.get(buildUrl("/genres/search", { q })),
   create: (data: { name: string; description?: string }): Promise<Genre> => apiClient.post("/api/genres", data),
 };
 
 export const publishingHousesApi = {
   list: (): Promise<PublishingHouse[]> => apiClient.get("/api/publishing-houses"),
-  search: (term: string): Promise<PublishingHouse[]> => apiClient.get(`/api/publishing-houses/search?term=${encodeURIComponent(term)}`),
+  search: (term: string): Promise<PublishingHouse[]> => apiClient.get(buildUrl("/publishing-houses/search", { term })),
   create: (data: { name: string; country?: string; foundedYear?: number }): Promise<PublishingHouse> =>
     apiClient.post("/api/publishing-houses", data),
   byCountry: (country: string): Promise<PublishingHouse[]> => apiClient.get(`/api/publishing-houses/by-country/${encodeURIComponent(country)}`),
@@ -125,14 +130,14 @@ export const publishingHousesApi = {
 
 export const authorsApi = {
   list: (page?: number, limit?: number): Promise<PaginatedResponse<Author>> => {
-    const searchParams = new URLSearchParams();
-    if (page) searchParams.append("page", page.toString());
-    if (limit) searchParams.append("limit", limit.toString());
+    const queryParams: Record<string, unknown> = {};
+    if (page) queryParams.page = page;
+    if (limit) queryParams.limit = limit;
 
-    const queryString = searchParams.toString();
-    return apiClient.get(`/api/book-authors${queryString ? `?${queryString}` : ""}`);
+    const url = buildUrl("/book-authors", queryParams);
+    return apiClient.get(url);
   },
-  search: (term: string): Promise<Author[]> => apiClient.get(`/api/book-authors/search?term=${encodeURIComponent(term)}`),
+  search: (term: string): Promise<Author[]> => apiClient.get(buildUrl("/book-authors/search", { term })),
   create: (data: { firstName: string; lastName: string; biography?: string; birthDate?: string; nationality?: string }): Promise<Author> =>
     apiClient.post("/api/book-authors", data),
   byName: (firstName: string, lastName: string): Promise<Author> =>

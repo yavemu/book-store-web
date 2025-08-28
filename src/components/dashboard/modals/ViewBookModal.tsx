@@ -3,6 +3,7 @@
 import { Modal } from '@/components/ui';
 import { Button } from '@/components/forms';
 import { BookCatalog } from '@/types/domain';
+import { formatDate } from '@/utils/dateFormatter';
 
 interface ViewBookModalProps {
   isOpen: boolean;
@@ -14,9 +15,9 @@ interface ViewBookModalProps {
 export function ViewBookModal({ isOpen, onClose, onEdit, book }: ViewBookModalProps) {
   if (!book) return null;
 
-  const formatDate = (dateString?: string) => {
+  const formatBookDate = (dateString?: string) => {
     if (!dateString) return 'No especificada';
-    return new Date(dateString).toLocaleDateString('es-ES');
+    return formatDate(dateString);
   };
 
   return (
@@ -92,7 +93,7 @@ export function ViewBookModal({ isOpen, onClose, onEdit, book }: ViewBookModalPr
               
               <div>
                 <span className="font-medium text-gray-700">Publicación:</span>
-                <span className="ml-2">{formatDate(book.publicationDate)}</span>
+                <span className="ml-2">{formatBookDate(book.publicationDate)}</span>
               </div>
               
               <div>
@@ -141,11 +142,11 @@ export function ViewBookModal({ isOpen, onClose, onEdit, book }: ViewBookModalPr
         <div className="border-t pt-4 flex flex-col sm:flex-row gap-2 text-xs text-gray-500">
           <div>
             <span className="font-medium">Creado:</span>
-            <span className="ml-1">{formatDate(book.createdAt)}</span>
+            <span className="ml-1">{formatBookDate(book.createdAt)}</span>
           </div>
           <div>
             <span className="font-medium">Actualizado:</span>
-            <span className="ml-1">{formatDate(book.updatedAt)}</span>
+            <span className="ml-1">{formatBookDate(book.updatedAt)}</span>
           </div>
         </div>
         

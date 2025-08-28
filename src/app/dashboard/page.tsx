@@ -1,52 +1,145 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Layout, LoadingSpinner } from '@/components';
-import NavigationMenu from '@/components/navigation/NavigationMenu';
-import { useAppSelector, useAppDispatch } from '@/hooks';
-import { logout } from '@/store/slices/authSlice';
+import { useState, useEffect, useCallback, JSX } from "react";
+import { useRouter } from "next/navigation";
+import { Layout, LoadingSpinner } from "@/components";
+import NavigationMenu from "@/components/navigation/NavigationMenu";
+import { useAppSelector, useAppDispatch } from "@/hooks";
+import { logout } from "@/store/slices/authSlice";
 
 // Dynamic content components
-import CatalogPage from '@/components/dashboard/pages/CatalogPage';
-import SearchPage from '@/components/dashboard/pages/SearchPage';
-import ProfilePage from '@/components/dashboard/pages/ProfilePage';
-import BooksManagementPage from '@/components/dashboard/pages/BooksManagementPage';
-import AuthorsManagementPage from '@/components/dashboard/pages/AuthorsManagementPage';
-import PublishersManagementPage from '@/components/dashboard/pages/PublishersManagementPage';
-import GenresManagementPage from '@/components/dashboard/pages/GenresManagementPage';
-import UsersManagementPage from '@/components/dashboard/pages/UsersManagementPage';
-import AuditPage from '@/components/dashboard/pages/AuditPage';
+import SearchPage from "@/components/dashboard/pages/SearchPage";
+import ProfilePage from "@/components/dashboard/pages/ProfilePage";
+import GenericManagementPage from "@/components/dashboard/pages/GenericManagementPage";
+import { CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal } from "@/components/dashboard/modals";
+import {
+  booksManagementConfig,
+  authorsManagementConfig,
+  publishersManagementConfig,
+  genresManagementConfig,
+  usersManagementConfig,
+  auditManagementConfig,
+} from "@/components/dashboard/configs";
+import { BookCatalog } from "@/types/domain";
 
 export default function Dashboard() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user, loading: authLoading } = useAppSelector(state => state.auth);
-  const [activeMenuItem, setActiveMenuItem] = useState<string>('catalog');
+  const { isAuthenticated, user, loading: authLoading } = useAppSelector((state) => state.auth);
+  const [activeMenuItem, setActiveMenuItem] = useState<string>("books");
   const [pageLoading, setPageLoading] = useState(false);
 
+  // Modal states for books
+  const [selectedBook, setSelectedBook] = useState<BookCatalog | null>(null);
+  const [showCreateBookModal, setShowCreateBookModal] = useState(false);
+  const [showEditBookModal, setShowEditBookModal] = useState(false);
+  const [showDeleteBookModal, setShowDeleteBookModal] = useState(false);
+  const [showViewBookModal, setShowViewBookModal] = useState(false);
+
+  // -----------------------
+  // Auth redirect
+  // -----------------------
   useEffect(() => {
-    // Redirect to home if not authenticated after loading is complete
     if (!authLoading && !isAuthenticated) {
-      router.push('/');
+      router.push("/");
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [authLoading, isAuthenticated, router]);
 
-  const handleLogout = () => {
+  // -----------------------
+  // Logout
+  // -----------------------
+  const handleLogout = useCallback(() => {
     dispatch(logout());
-    router.push('/');
-  };
+    router.push("/");
+  }, [dispatch, router]);
 
-  const handleMenuItemClick = (menuItemId: string) => {
-    if (menuItemId === activeMenuItem) return;
-    
-    setPageLoading(true);
-    
-    // Simulate loading time for better UX
-    setTimeout(() => {
-      setActiveMenuItem(menuItemId);
-      setPageLoading(false);
-    }, 300);
+  // -----------------------
+  // Menu navigation
+  // -----------------------
+  const handleMenuItemClick = useCallback(
+    (menuItemId: string) => {
+      if (menuItemId === activeMenuItem) return;
+
+      setPageLoading(true);
+
+      // Simulate loading for better UX
+      setTimeout(() => {
+        setActiveMenuItem(menuItemId);
+        setPageLoading(false);
+      }, 300);
+    },
+    [activeMenuItem],
+  );
+
+  // -----------------------
+  // Page content mapping
+  // -----------------------
+  const userRole = user?.role?.name?.toLowerCase() || "user";
+
+  const pageComponents: Record<string, JSX.Element> = {
+    search: <SearchPage />,
+    profile: <ProfilePage user={user} />,
+    books: (
+      <>
+        <GenericManagementPage
+          config={booksManagementConfig}
+          userRole={userRole}
+          onCreateModal={() => setShowCreateBookModal(true)}
+          onViewModal={(book) => {
+            setSelectedBook(book);
+            setShowViewBookModal(true);
+          }}
+          onEditModal={(book) => {
+            setSelectedBook(book);
+            setShowEditBookModal(true);
+          }}
+          onDeleteModal={(book) => {
+            setSelectedBook(book);
+            setShowDeleteBookModal(true);
+          }}
+        />
+
+        <CreateBookModal isOpen={showCreateBookModal} onClose={() => setShowCreateBookModal(false)} onSuccess={() => {}} />
+
+        <EditBookModal
+          isOpen={showEditBookModal}
+          onClose={() => {
+            setShowEditBookModal(false);
+            setSelectedBook(null);
+          }}
+          onSuccess={() => {}}
+          book={selectedBook}
+        />
+
+        <DeleteBookModal
+          isOpen={showDeleteBookModal}
+          onClose={() => {
+            setShowDeleteBookModal(false);
+            setSelectedBook(null);
+          }}
+          onSuccess={() => {}}
+          book={selectedBook}
+        />
+
+        <ViewBookModal
+          isOpen={showViewBookModal}
+          onClose={() => {
+            setShowViewBookModal(false);
+            setSelectedBook(null);
+          }}
+          onEdit={() => {
+            setShowViewBookModal(false);
+            setShowEditBookModal(true);
+          }}
+          book={selectedBook}
+        />
+      </>
+    ),
+    authors: <GenericManagementPage config={authorsManagementConfig} userRole={userRole} />,
+    publishers: <GenericManagementPage config={publishersManagementConfig} userRole={userRole} />,
+    genres: <GenericManagementPage config={genresManagementConfig} userRole={userRole} />,
+    users: <GenericManagementPage config={usersManagementConfig} userRole={userRole} />,
+    audit: <GenericManagementPage config={auditManagementConfig} userRole={userRole} />,
   };
 
   const renderPageContent = () => {
@@ -58,30 +151,12 @@ export default function Dashboard() {
       );
     }
 
-    switch (activeMenuItem) {
-      case 'catalog':
-        return <CatalogPage />;
-      case 'search':
-        return <SearchPage />;
-      case 'profile':
-        return <ProfilePage user={user} />;
-      case 'books':
-        return <BooksManagementPage />;
-      case 'authors':
-        return <AuthorsManagementPage />;
-      case 'publishers':
-        return <PublishersManagementPage />;
-      case 'genres':
-        return <GenresManagementPage />;
-      case 'users':
-        return <UsersManagementPage />;
-      case 'audit':
-        return <AuditPage />;
-      default:
-        return <CatalogPage />;
-    }
+    return pageComponents[activeMenuItem] || pageComponents["books"];
   };
 
+  // -----------------------
+  // Render loading states
+  // -----------------------
   if (authLoading) {
     return (
       <Layout>
@@ -93,30 +168,21 @@ export default function Dashboard() {
   }
 
   if (!isAuthenticated || !user) {
-    return null; // Will redirect to login
+    return null; // Redirect will handle navigation
   }
 
+  // -----------------------
+  // Main render
+  // -----------------------
   return (
     <Layout user={user} onLogout={handleLogout}>
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Navigation Sidebar */}
-            <div className="lg:col-span-1">
-              <NavigationMenu 
-                user={user} 
-                onMenuItemClick={handleMenuItemClick}
-                activeMenuItem={activeMenuItem}
-              />
-            </div>
-            
-            {/* Main Content Area */}
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-lg min-h-96">
-                {renderPageContent()}
-              </div>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-6">
+          {/* Navigation Top Menu */}
+          <NavigationMenu user={user} onMenuItemClick={handleMenuItemClick} activeMenuItem={activeMenuItem} />
+
+          {/* Main Content Area */}
+          <div className="bg-white rounded-lg shadow-lg min-h-[24rem] p-4">{renderPageContent()}</div>
         </div>
       </div>
     </Layout>

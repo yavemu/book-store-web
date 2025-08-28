@@ -1,5 +1,5 @@
-import { ReactNode, useState, useEffect, useRef } from 'react';
-import { UserProfileResponseDto } from '@/types/auth';
+import { ReactNode, useState, useEffect, useRef, use } from "react";
+import { UserProfileResponseDto } from "@/types/auth";
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,9 +18,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -38,16 +38,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           <div className="flex items-center justify-between">
             <h1 className="header-title">📚 Book Store</h1>
             <nav className="flex items-center space-x-4">
-              {user ? (
+              {user && (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none"
                   >
-                    <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="hidden md:block">{user.username}</span>
+                    <span className="hidden md:block">
+                      {user.username} - [{user.role.name.toUpperCase()}]
+                    </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -59,15 +58,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                         <div className="px-4 py-2 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-900">{user.username}</p>
                           <p className="text-xs text-gray-500">{user.email}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              user.role.name.toLowerCase() === 'admin' 
-                                ? 'bg-purple-100 text-purple-800' 
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {user.role.name.toUpperCase()}
-                            </span>
-                          </p>
                         </div>
                         <button
                           onClick={handleLogout}
@@ -79,24 +69,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <span className="text-sm text-muted">Guest</span>
               )}
             </nav>
           </div>
         </div>
       </header>
-      
-      <main className="layout-content flex-1">
-        {children}
-      </main>
-      
+
+      <main className="layout-content flex-1">{children}</main>
+
       <footer className="layout-footer">
         <div className="layout-footer-content">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-subtle">
-              Book Store © 2024 - Sistema de gestión de libros
-            </p>
+            <p className="text-sm text-subtle">Book Store © 2024 - Sistema de gestión de libros</p>
             <div className="flex items-center space-x-4">
               <span className="text-xs text-subtle">v1.0.0</span>
             </div>

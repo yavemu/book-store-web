@@ -1,43 +1,46 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { DataTable, Column, ErrorMessage } from "@/components/ui";
-import { Button } from "@/components/forms";
+import { useCallback } from "react";
+import { Column } from "@/components/ui";
 import { bookCatalogApi } from "@/services/api";
 import { BookCatalog, BookCatalogListParams, BookFiltersDto } from "@/types/domain";
-import { PaginationMeta } from "@/types/api";
+import { useManagementPage } from "@/hooks/useManagementPage";
+import { ManagementPageLayout, ManagementActions } from "../common";
 import { CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal } from "../modals";
 import { BookFilters } from "../components";
 
 export default function BooksManagementPage() {
-  // Estados principales
-  const [books, setBooks] = useState<BookCatalog[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
+  const {
+    data: books,
+    meta,
+    loading,
+    error,
+    fetchData: fetchBooks,
+    handlePageChange,
+    handleSort,
+    handleFilter,
+    handleClearFilters,
+    handleView: handleViewBook,
+    handleEdit: handleEditBook,
+    handleDelete: handleDeleteBook,
+    modalStates: { showCreateModal, showEditModal, showDeleteModal, showViewModal },
+    setShowCreateModal,
+    setShowEditModal,
+    setShowDeleteModal,
+    setShowViewModal,
+    selectedItem: selectedBook,
+    setSelectedItem: setSelectedBook,
+  } = useManagementPage<BookCatalog, BookCatalogListParams, BookFiltersDto>({
+    initialParams: {
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "DESC",
+    },
+    apiService: bookCatalogApi,
+    errorMessage: "Error al cargar los libros",
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [params, setParams] = useState<BookCatalogListParams>({
-    page: 1,
-    limit: 10,
-    sortBy: "createdAt",
-    sortOrder: "DESC",
-  });
-  const [activeFilters, setActiveFilters] = useState<BookFiltersDto>({});
-  const [selectedBook, setSelectedBook] = useState<BookCatalog | null>(null);
 
-  // Modales
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-
-  // Columnas de la tabla
   const columns: Column<BookCatalog>[] = [
     {
       key: "coverImageUrl",
@@ -85,131 +88,37 @@ export default function BooksManagementPage() {
     },
   ];
 
-  // --------------------
-  // Funciones de fetch
-  // --------------------
-  const fetchBooks = useCallback(
-    async (searchParams?: BookCatalogListParams, filters?: BookFiltersDto) => {
-      setLoading(true);
-      setError(null);
-
-      const currentParams = { ...params, ...searchParams };
-      const currentFilters = filters ?? activeFilters;
-
-      try {
-        const response =
-          Object.keys(currentFilters).length > 0 && Object.values(currentFilters).some((v) => v !== undefined)
-            ? await bookCatalogApi.filter(currentFilters, currentParams.page, currentParams.limit)
-            : await bookCatalogApi.list(currentParams);
-
-        setBooks(response.data);
-        setMeta(response.meta);
-        setParams(currentParams);
-
-        if (filters) setActiveFilters(currentFilters);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al cargar los libros");
-        setBooks([]);
-        setMeta({ total: 0, page: 1, limit: 10, totalPages: 0, hasNext: false, hasPrev: false });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [], // <-- corregido, dependencias vacías para evitar loop
-  );
-
-  const handlePageChange = useCallback((page: number) => fetchBooks({ page }), [fetchBooks]);
-  const handleSort = useCallback((sortBy: string, sortOrder: "ASC" | "DESC") => fetchBooks({ sortBy, sortOrder, page: 1 }), [fetchBooks]);
-  const handleFilter = useCallback((filters: BookFiltersDto) => fetchBooks({ page: 1 }, filters), [fetchBooks]);
-  const handleClearFilters = useCallback(() => {
-    setActiveFilters({});
-    fetchBooks({ page: 1 }, {});
-  }, [fetchBooks]);
-
-  // --------------------
-  // Handlers de acciones
-  // --------------------
-  const handleViewBook = useCallback((book: BookCatalog) => {
-    setSelectedBook(book);
-    setShowViewModal(true);
-  }, []);
-  const handleEditBook = useCallback((book: BookCatalog) => {
-    setSelectedBook(book);
-    setShowEditModal(true);
-  }, []);
-  const handleDeleteBook = useCallback((book: BookCatalog) => {
-    setSelectedBook(book);
-    setShowDeleteModal(true);
-  }, []);
 
   const renderActions = useCallback(
     (book: BookCatalog) => (
-      <div className="flex items-center space-x-2">
-        <Button variant="outline" size="sm" onClick={() => handleViewBook(book)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-          Ver
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => handleEditBook(book)} className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50">
-          Editar
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => handleDeleteBook(book)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-          Eliminar
-        </Button>
-      </div>
+      <ManagementActions
+        item={book}
+        onView={handleViewBook}
+        onEdit={handleEditBook}
+        onDelete={handleDeleteBook}
+      />
     ),
     [handleViewBook, handleEditBook, handleDeleteBook],
   );
 
-  // --------------------
-  // Lifecycle
-  // --------------------
-  useEffect(() => {
-    fetchBooks();
-  }, []); // solo se ejecuta al montar
-
-  // --------------------
-  // Render principal
-  // --------------------
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">Gestión de Libros</h1>
-        </div>
-        <ErrorMessage error={error} />
-        <div className="mt-4">
-          <Button onClick={() => fetchBooks()} variant="outline">
-            Reintentar
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Panel Administrativo de Libros</h1>
-        <div className="flex items-center space-x-3">
-          <Button onClick={() => fetchBooks()} variant="outline" disabled={loading}>
-            Actualizar
-          </Button>
-          <Button onClick={() => setShowCreateModal(true)} variant="primary">
-            Crear Libro
-          </Button>
-        </div>
-      </div>
-
-      <BookFilters onFilter={handleFilter} onClear={handleClearFilters} loading={loading} />
-
-      <DataTable
+    <>
+      <ManagementPageLayout
+        title="Panel Administrativo de Libros"
         data={books}
         columns={columns}
         meta={meta}
         loading={loading}
+        error={error}
+        emptyMessage="No se encontraron libros. Crea tu primer libro para comenzar."
+        createButtonText="Crear Libro"
+        onRefresh={() => fetchBooks()}
+        onCreate={() => setShowCreateModal(true)}
         onPageChange={handlePageChange}
         onSort={handleSort}
-        actions={renderActions}
-        emptyMessage="No se encontraron libros. Crea tu primer libro para comenzar."
+        renderActions={renderActions}
+        filters={<BookFilters onFilter={handleFilter} onClear={handleClearFilters} loading={loading} />}
       />
 
       <CreateBookModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onSuccess={() => fetchBooks()} />
@@ -246,6 +155,6 @@ export default function BooksManagementPage() {
         }}
         book={selectedBook}
       />
-    </div>
+    </>
   );
 }
