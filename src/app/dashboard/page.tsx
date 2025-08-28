@@ -12,7 +12,8 @@ import SearchPage from "@/components/dashboard/pages/SearchPage";
 import ProfilePage from "@/components/dashboard/pages/ProfilePage";
 import GenericManagementPage from "@/components/dashboard/pages/GenericManagementPage";
 import { 
-  CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal
+  CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal,
+  DeleteAuthorModal, DeleteGenreModal, DeletePublisherModal
 } from "@/components/dashboard/modals";
 import {
   booksManagementConfig,
@@ -23,6 +24,9 @@ import {
   auditManagementConfig,
 } from "@/components/dashboard/configs";
 import { BookCatalog } from "@/types/domain";
+import { BookAuthor } from "@/types/authors";
+import { BookGenre } from "@/types/genres";
+import { PublishingHouse } from "@/types/publishing-houses";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -40,6 +44,18 @@ export default function Dashboard() {
   
   // Note: Other entity modals converted to separate pages
   
+  // Modal states for authors
+  const [selectedAuthor, setSelectedAuthor] = useState<BookAuthor | null>(null);
+  const [showDeleteAuthorModal, setShowDeleteAuthorModal] = useState(false);
+
+  // Modal states for genres
+  const [selectedGenre, setSelectedGenre] = useState<BookGenre | null>(null);
+  const [showDeleteGenreModal, setShowDeleteGenreModal] = useState(false);
+
+  // Modal states for publishers
+  const [selectedPublisher, setSelectedPublisher] = useState<PublishingHouse | null>(null);
+  const [showDeletePublisherModal, setShowDeletePublisherModal] = useState(false);
+
   // Refresh key to force component updates after CRUD operations
   const [refreshKey, setRefreshKey] = useState(0);
   const forceRefresh = useCallback(() => {
@@ -161,9 +177,84 @@ export default function Dashboard() {
         />
       </>
     ),
-    authors: <GenericManagementPage key={`authors-${refreshKey}`} config={authorsManagementConfig} userRole={userRole} />,
-    publishers: <GenericManagementPage key={`publishers-${refreshKey}`} config={publishersManagementConfig} userRole={userRole} />,
-    genres: <GenericManagementPage key={`genres-${refreshKey}`} config={genresManagementConfig} userRole={userRole} />,
+    authors: (
+      <>
+        <GenericManagementPage
+          key={`authors-${refreshKey}`}
+          config={authorsManagementConfig}
+          userRole={userRole}
+          onDeleteModal={(author) => {
+            setSelectedAuthor(author as BookAuthor);
+            setShowDeleteAuthorModal(true);
+          }}
+        />
+        <DeleteAuthorModal
+          isOpen={showDeleteAuthorModal}
+          onClose={() => {
+            setShowDeleteAuthorModal(false);
+            setSelectedAuthor(null);
+          }}
+          onSuccess={() => {
+            setShowDeleteAuthorModal(false);
+            setSelectedAuthor(null);
+            forceRefresh();
+          }}
+          author={selectedAuthor}
+        />
+      </>
+    ),
+    publishers: (
+      <>
+        <GenericManagementPage
+          key={`publishers-${refreshKey}`}
+          config={publishersManagementConfig}
+          userRole={userRole}
+          onDeleteModal={(publisher) => {
+            setSelectedPublisher(publisher as PublishingHouse);
+            setShowDeletePublisherModal(true);
+          }}
+        />
+        <DeletePublisherModal
+          isOpen={showDeletePublisherModal}
+          onClose={() => {
+            setShowDeletePublisherModal(false);
+            setSelectedPublisher(null);
+          }}
+          onSuccess={() => {
+            setShowDeletePublisherModal(false);
+            setSelectedPublisher(null);
+            forceRefresh();
+          }}
+          publisher={selectedPublisher}
+        />
+      </>
+    ),
+    genres: (
+      <>
+        <GenericManagementPage
+          key={`genres-${refreshKey}`}
+          config={genresManagementConfig}
+          userRole={userRole}
+          onDeleteModal={(genre) => {
+            setSelectedGenre(genre as BookGenre);
+            setShowDeleteGenreModal(true);
+          }}
+        />
+        <DeleteGenreModal
+          isOpen={showDeleteGenreModal}
+          onClose={() => {
+            setShowDeleteGenreModal(false);
+            setSelectedGenre(null);
+          }}
+          onSuccess={() => {
+            setShowDeleteGenreModal(false);
+            setSelectedGenre(null);
+            forceRefresh();
+          }}
+          genre={selectedGenre}
+        />
+      </>
+    ),
     users: <GenericManagementPage key={`users-${refreshKey}`} config={usersManagementConfig} userRole={userRole} />,
     audit: <GenericManagementPage key={`audit-${refreshKey}`} config={auditManagementConfig} userRole={userRole} />,
   };

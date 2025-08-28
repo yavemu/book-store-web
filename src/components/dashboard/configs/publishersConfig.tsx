@@ -8,6 +8,7 @@ export const publishersManagementConfig: ManagementPageConfig<PublishingHouse, P
   title: "Panel Administrativo de Editoriales",
   createButtonText: "Crear Editorial",
   createUrl: "/dashboard/publishers/create",
+  editUrl: "/dashboard/publishers/edit",
   emptyMessage: "No se encontraron editoriales. Crea tu primera editorial para comenzar.",
   errorMessage: "Error al cargar las editoriales",
   initialParams: {

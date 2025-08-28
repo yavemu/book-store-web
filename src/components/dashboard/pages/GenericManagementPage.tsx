@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Column } from "@/components/ui";
 import { PaginationMeta } from "@/types/api";
 import { useManagementPage } from "@/hooks/useManagementPage";
@@ -33,6 +34,7 @@ export interface ManagementPageConfig<T, TParams extends ManagementPageParams, T
   title: string;
   createButtonText: string;
   createUrl?: string;
+  editUrl?: string;
   emptyMessage: string;
   errorMessage: string;
   initialParams: TParams;
@@ -68,6 +70,7 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
   onViewModal,
 }: GenericManagementPageProps<T, TParams, TFilters>) {
   const isClient = useIsClient();
+  const router = useRouter();
   
   // Mover todos los hooks al inicio antes de cualquier return
   // Siempre llamar el hook para evitar errores de hooks condicionales
@@ -84,10 +87,19 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
     onViewModal?.(item);
   }, [managementData, onViewModal]);
 
-  const handleEditWithCallback = useCallback((item: T) => {
+  const handleEdit = useCallback((item: T) => {
+    if (onEditModal) {
+      managementData.handleEdit(item);
+      onEditModal(item);
+      return;
+    }
+    const entity = item as { id?: string };
+    if (config.editUrl && entity.id) {
+      router.push(`${config.editUrl}/${entity.id}`);
+      return;
+    }
     managementData.handleEdit(item);
-    onEditModal?.(item);
-  }, [managementData, onEditModal]);
+  }, [onEditModal, config.editUrl, router, managementData]);
 
   const handleDeleteWithCallback = useCallback((item: T) => {
     managementData.handleDelete(item);
@@ -133,12 +145,12 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
         <ManagementActions
           item={item}
           onView={canView ? handleViewWithCallback : undefined}
-          onEdit={canEdit ? handleEditWithCallback : undefined}
+          onEdit={canEdit ? handleEdit : undefined}
           onDelete={canDelete ? handleDeleteWithCallback : undefined}
         />
       );
     },
-    [handleViewWithCallback, handleEditWithCallback, handleDeleteWithCallback, config?.hideActions, canView, canEdit, canDelete],
+    [handleViewWithCallback, handleEdit, handleDeleteWithCallback, config?.hideActions, canView, canEdit, canDelete],
   );
 
   // Verificaciones de errores

@@ -7,6 +7,7 @@ export const authorsManagementConfig = {
   title: "Panel Administrativo de Autores",
   createButtonText: "Crear Autor",
   createUrl: "/dashboard/authors/create",
+  editUrl: "/dashboard/authors/edit",
   emptyMessage: "No se encontraron autores. Crea tu primer autor para comenzar.",
   errorMessage: "Error al cargar los autores",
   initialParams: {
