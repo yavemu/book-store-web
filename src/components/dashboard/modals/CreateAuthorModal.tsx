@@ -1,27 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, LoadingSpinner, ValidationError } from '@/components/ui';
+import { Modal } from '@/components/ui';
 import { Form, Input, Textarea, Button } from '@/components/forms';
-import { authorsApi } from '@/services/api/entities/authors';
+import { authorsApi } from '@/services/api';
 import { createAuthorSchema, CreateAuthorFormData } from '@/services/validation';
 import { validateWithZodSafe } from '@/services/validation';
-import { BookAuthor } from '@/types/authors';
 
 interface CreateAuthorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (author: BookAuthor) => void;
+  onSuccess: () => void;
 }
 
 export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorModalProps) {
-  const [formData, setFormData] = useState<CreateAuthorFormData>({
+  const [formData, setFormData] = useState<CreateBookAuthorFormData>({
     firstName: '',
     lastName: '',
-    nationality: '',
-    birthDate: '',
     biography: '',
-    isActive: true,
+    birthDate: '',
+    nationality: '',
   });
   
   const [loading, setLoading] = useState(false);
@@ -35,7 +33,6 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
       Object.entries(validation.errors).forEach(([field, messages]) => {
         newErrors[field] = messages[0];
       });
-      
       setErrors(newErrors);
       return false;
     }
@@ -44,9 +41,10 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
     return true;
   };
 
-  const handleInputChange = (name: string, value: string | boolean) => {
+  const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -61,58 +59,43 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
 
     try {
       setLoading(true);
-      const newAuthor = await authorsApi.create(formData);
+      await authorsApi.create(formData);
       
+      // Reset form
       setFormData({
         firstName: '',
         lastName: '',
-        nationality: '',
-        birthDate: '',
         biography: '',
-        isActive: true,
+        birthDate: '',
+        nationality: '',
       });
-      
       setErrors({});
-      onSuccess(newAuthor as BookAuthor);
+      onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('Error creating author:', err);
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al crear el autor';
-      setErrors({ general: errorMessage });
+      setErrors({ general: 'Error al crear el autor. Por favor, intenta de nuevo.' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    if (!loading) {
-      setFormData({
-        firstName: '',
-        lastName: '',
-        nationality: '',
-        birthDate: '',
-        biography: '',
-        isActive: true,
-      });
-      setErrors({});
-      onClose();
     }
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title="Crear Nuevo Autor"
-      size="md"
+      size="lg"
     >
       <Form onSubmit={handleSubmit}>
         {errors.general && (
-          <ValidationError message={errors.general} />
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {errors.general}
+          </div>
         )}
         
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <Input
               label="Nombre"
               type="text"
@@ -120,8 +103,11 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
               onChange={(e) => handleInputChange('firstName', e.target.value)}
               required
               placeholder="Nombre del autor"
+              error={errors.firstName}
             />
-            
+          </div>
+          
+          <div>
             <Input
               label="Apellido"
               type="text"
@@ -129,53 +115,48 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
               onChange={(e) => handleInputChange('lastName', e.target.value)}
               required
               placeholder="Apellido del autor"
+              error={errors.lastName}
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Nacionalidad"
-              type="text"
-              value={formData.nationality}
-              onChange={(e) => handleInputChange('nationality', e.target.value)}
-              required
-              placeholder="Ej: Colombiana, Mexicana..."
-            />
-            
+          <div>
             <Input
               label="Fecha de Nacimiento"
               type="date"
-              value={formData.birthDate}
+              value={formData.birthDate || ''}
               onChange={(e) => handleInputChange('birthDate', e.target.value)}
+              error={errors.birthDate}
             />
           </div>
           
-          <Textarea
-            label="Biografía"
-            value={formData.biography || ''}
-            onChange={(e) => handleInputChange('biography', e.target.value)}
-            placeholder="Biografía del autor (opcional)"
-            rows={4}
-          />
-          
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={(e) => handleInputChange('isActive', e.target.checked)}
-              className="mr-2"
+          <div>
+            <Input
+              label="Nacionalidad"
+              type="text"
+              value={formData.nationality || ''}
+              onChange={(e) => handleInputChange('nationality', e.target.value)}
+              placeholder="Ej: Española, Mexicana, Argentina..."
+              error={errors.nationality}
             />
-            <span className="text-sm font-medium text-gray-700">
-              Autor activo
-            </span>
-          </label>
+          </div>
+          
+          <div className="md:col-span-2">
+            <Textarea
+              label="Biografía"
+              value={formData.biography || ''}
+              onChange={(e) => handleInputChange('biography', e.target.value)}
+              placeholder="Breve biografía del autor..."
+              rows={4}
+              error={errors.biography}
+            />
+          </div>
         </div>
         
         <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
           <Button
             type="button"
             className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleClose}
+            onClick={onClose}
             disabled={loading}
           >
             Cancelar
@@ -185,14 +166,7 @@ export function CreateAuthorModal({ isOpen, onClose, onSuccess }: CreateAuthorMo
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <LoadingSpinner size="small" />
-                <span className="ml-2">Creando...</span>
-              </>
-            ) : (
-              'Crear Autor'
-            )}
+            {loading ? 'Creando...' : 'Crear Autor'}
           </Button>
         </div>
       </Form>

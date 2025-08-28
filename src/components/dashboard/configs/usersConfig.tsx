@@ -6,6 +6,7 @@ import { formatDate } from "@/utils/dateFormatter";
 export const usersManagementConfig = {
   title: "Panel Administrativo de Usuarios",
   createButtonText: "Crear Usuario",
+  createUrl: "/dashboard/users/create",
   emptyMessage: "No se encontraron usuarios. Crea tu primer usuario para comenzar.",
   errorMessage: "Error al cargar los usuarios",
   initialParams: {

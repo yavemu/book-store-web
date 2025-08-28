@@ -11,7 +11,9 @@ import { logout } from "@/store/slices/authSlice";
 import SearchPage from "@/components/dashboard/pages/SearchPage";
 import ProfilePage from "@/components/dashboard/pages/ProfilePage";
 import GenericManagementPage from "@/components/dashboard/pages/GenericManagementPage";
-import { CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal } from "@/components/dashboard/modals";
+import { 
+  CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal
+} from "@/components/dashboard/modals";
 import {
   booksManagementConfig,
   authorsManagementConfig,
@@ -35,6 +37,8 @@ export default function Dashboard() {
   const [showEditBookModal, setShowEditBookModal] = useState(false);
   const [showDeleteBookModal, setShowDeleteBookModal] = useState(false);
   const [showViewBookModal, setShowViewBookModal] = useState(false);
+  
+  // Note: Other entity modals converted to separate pages
   
   // Refresh key to force component updates after CRUD operations
   const [refreshKey, setRefreshKey] = useState(0);

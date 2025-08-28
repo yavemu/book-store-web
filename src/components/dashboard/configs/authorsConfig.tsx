@@ -6,6 +6,7 @@ import { formatDate } from "@/utils/dateFormatter";
 export const authorsManagementConfig = {
   title: "Panel Administrativo de Autores",
   createButtonText: "Crear Autor",
+  createUrl: "/dashboard/authors/create",
   emptyMessage: "No se encontraron autores. Crea tu primer autor para comenzar.",
   errorMessage: "Error al cargar los autores",
   initialParams: {

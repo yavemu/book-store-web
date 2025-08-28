@@ -7,6 +7,7 @@ import type { ManagementPageConfig } from "../pages/GenericManagementPage";
 export const publishersManagementConfig: ManagementPageConfig<PublishingHouse, PublishingHouseListParams, PublishingHouseFiltersDto> = {
   title: "Panel Administrativo de Editoriales",
   createButtonText: "Crear Editorial",
+  createUrl: "/dashboard/publishers/create",
   emptyMessage: "No se encontraron editoriales. Crea tu primera editorial para comenzar.",
   errorMessage: "Error al cargar las editoriales",
   initialParams: {

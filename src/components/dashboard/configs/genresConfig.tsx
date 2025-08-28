@@ -6,6 +6,7 @@ import { formatDate } from "@/utils/dateFormatter";
 export const genresManagementConfig = {
   title: "Panel Administrativo de Géneros",
   createButtonText: "Crear Género",
+  createUrl: "/dashboard/genres/create",
   emptyMessage: "No se encontraron géneros. Crea tu primer género para comenzar.",
   errorMessage: "Error al cargar los géneros",
   initialParams: {

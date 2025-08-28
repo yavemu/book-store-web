@@ -1,25 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, LoadingSpinner, ValidationError } from '@/components/ui';
-import { Form, Input, Textarea, Button } from '@/components/forms';
+import { Modal } from '@/components/ui';
+import { Form, Input, Button } from '@/components/forms';
 import { genresApi } from '@/services/api';
 import { createGenreSchema, CreateGenreFormData } from '@/services/validation';
 import { validateWithZodSafe } from '@/services/validation';
-import { BookGenre } from '@/types/genres';
 
 interface CreateGenreModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (genre: BookGenre) => void;
-  initialName?: string;
+  onSuccess: () => void;
 }
 
-export function CreateGenreModal({ isOpen, onClose, onSuccess, initialName }: CreateGenreModalProps) {
+export function CreateGenreModal({ isOpen, onClose, onSuccess }: CreateGenreModalProps) {
   const [formData, setFormData] = useState<CreateGenreFormData>({
-    name: initialName || '',
-    description: '',
-    isActive: true,
+    name: '',
   });
   
   const [loading, setLoading] = useState(false);
@@ -33,7 +29,6 @@ export function CreateGenreModal({ isOpen, onClose, onSuccess, initialName }: Cr
       Object.entries(validation.errors).forEach(([field, messages]) => {
         newErrors[field] = messages[0];
       });
-      
       setErrors(newErrors);
       return false;
     }
@@ -42,9 +37,10 @@ export function CreateGenreModal({ isOpen, onClose, onSuccess, initialName }: Cr
     return true;
   };
 
-  const handleInputChange = (name: string, value: string | boolean) => {
+  const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -59,86 +55,52 @@ export function CreateGenreModal({ isOpen, onClose, onSuccess, initialName }: Cr
 
     try {
       setLoading(true);
-      const newGenre = await genresApi.create(formData);
+      await genresApi.create(formData);
       
-      setFormData({
-        name: '',
-        description: '',
-        isActive: true,
-      });
-      
+      // Reset form
+      setFormData({ name: '' });
       setErrors({});
-      onSuccess(newGenre as BookGenre);
+      onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('Error creating genre:', err);
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al crear el género';
-      setErrors({ general: errorMessage });
+      setErrors({ general: 'Error al crear el género. Por favor, intenta de nuevo.' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    if (!loading) {
-      setFormData({
-        name: initialName || '',
-        description: '',
-        isActive: true,
-      });
-      setErrors({});
-      onClose();
     }
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title="Crear Nuevo Género"
       size="md"
     >
       <Form onSubmit={handleSubmit}>
         {errors.general && (
-          <ValidationError message={errors.general} />
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {errors.general}
+          </div>
         )}
         
-        <div className="space-y-4">
+        <div>
           <Input
-            label="Nombre del género"
+            label="Nombre del Género"
             type="text"
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
             required
-            placeholder="Ej: Ficción, Misterio, Romance..."
+            placeholder="Ej: Ficción, Drama, Comedia..."
+            error={errors.name}
           />
-          
-          <Textarea
-            label="Descripción"
-            value={formData.description || ''}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-            placeholder="Descripción del género (opcional)"
-            rows={3}
-          />
-          
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={(e) => handleInputChange('isActive', e.target.checked)}
-              className="mr-2"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              Género activo
-            </span>
-          </label>
         </div>
         
         <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
           <Button
             type="button"
             className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleClose}
+            onClick={onClose}
             disabled={loading}
           >
             Cancelar
@@ -148,14 +110,7 @@ export function CreateGenreModal({ isOpen, onClose, onSuccess, initialName }: Cr
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <LoadingSpinner size="small" />
-                <span className="ml-2">Creando...</span>
-              </>
-            ) : (
-              'Crear Género'
-            )}
+            {loading ? 'Creando...' : 'Crear Género'}
           </Button>
         </div>
       </Form>

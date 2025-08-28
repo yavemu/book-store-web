@@ -32,6 +32,7 @@ export interface RolePermissions {
 export interface ManagementPageConfig<T, TParams extends ManagementPageParams, TFilters> {
   title: string;
   createButtonText: string;
+  createUrl?: string;
   emptyMessage: string;
   errorMessage: string;
   initialParams: TParams;
@@ -218,6 +219,7 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
           error={error}
           emptyMessage={config.emptyMessage}
           createButtonText={config.createButtonText}
+          createUrl={config.createUrl}
           onRefresh={() => fetchData()}
           onCreate={canCreate ? handleCreateWithCallback : () => {}}
           onPageChange={handlePageChange}

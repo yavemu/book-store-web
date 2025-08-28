@@ -113,33 +113,7 @@ export const bookCatalogApi = {
   },
 };
 
-// APIs auxiliares para géneros, editoriales y autores
-export const genresApi = {
-  list: (): Promise<Genre[]> => apiClient.get("/api/genres"),
-  search: (q: string): Promise<Genre[]> => apiClient.get(buildUrl("/genres/search", { q })),
-  create: (data: { name: string; description?: string }): Promise<Genre> => apiClient.post("/api/genres", data),
-};
-
-export const publishingHousesApi = {
-  list: (): Promise<PublishingHouse[]> => apiClient.get("/api/publishing-houses"),
-  search: (term: string): Promise<PublishingHouse[]> => apiClient.get(buildUrl("/publishing-houses/search", { term })),
-  create: (data: { name: string; country?: string; foundedYear?: number }): Promise<PublishingHouse> =>
-    apiClient.post("/api/publishing-houses", data),
-  byCountry: (country: string): Promise<PublishingHouse[]> => apiClient.get(`/api/publishing-houses/by-country/${encodeURIComponent(country)}`),
-};
-
-export const authorsApi = {
-  list: (page?: number, limit?: number): Promise<PaginatedResponse<Author>> => {
-    const queryParams: Record<string, unknown> = {};
-    if (page) queryParams.page = page;
-    if (limit) queryParams.limit = limit;
-
-    const url = buildUrl("/book-authors", queryParams);
-    return apiClient.get(url);
-  },
-  search: (term: string): Promise<Author[]> => apiClient.get(buildUrl("/book-authors/search", { term })),
-  create: (data: { firstName: string; lastName: string; biography?: string; birthDate?: string; nationality?: string }): Promise<Author> =>
-    apiClient.post("/api/book-authors", data),
-  byName: (firstName: string, lastName: string): Promise<Author> =>
-    apiClient.get(`/api/book-authors/by-name/${encodeURIComponent(firstName)}/${encodeURIComponent(lastName)}`),
-};
+// Note: Auxiliary APIs moved to their respective entity files to avoid conflicts:
+// - genresApi -> entities/genres.ts
+// - publishingHousesApi -> entities/publishing-houses.ts  
+// - authorsApi -> entities/authors.ts
