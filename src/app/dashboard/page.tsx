@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, JSX } from "react";
 import { useRouter } from "next/navigation";
-import { Layout, LoadingSpinner } from "@/components";
+import { DeletePublisherModal, Layout, LoadingSpinner } from "@/components";
 import NavigationMenu from "@/components/navigation/NavigationMenu";
 import { useAppSelector, useAppDispatch } from "@/hooks";
 import { logout } from "@/store/slices/authSlice";
@@ -11,10 +11,7 @@ import { logout } from "@/store/slices/authSlice";
 import SearchPage from "@/components/dashboard/pages/SearchPage";
 import ProfilePage from "@/components/dashboard/pages/ProfilePage";
 import GenericManagementPage from "@/components/dashboard/pages/GenericManagementPage";
-import { 
-  CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal,
-  DeleteAuthorModal, DeleteGenreModal, DeletePublisherModal
-} from "@/components/dashboard/modals";
+import { CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal } from "@/components/dashboard/modals";
 import {
   booksManagementConfig,
   authorsManagementConfig,
@@ -27,6 +24,8 @@ import { BookCatalog } from "@/types/domain";
 import { BookAuthor } from "@/types/authors";
 import { BookGenre } from "@/types/genres";
 import { PublishingHouse } from "@/types/publishing-houses";
+import { DeleteAuthorModal } from "@/components/forms/DeleteAuthorModal";
+import { DeleteGenreModal } from "@/components/forms/DeleteGenreModal";
 
 export default function Dashboard() {
   const router = useRouter();
