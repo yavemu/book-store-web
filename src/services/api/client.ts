@@ -1,5 +1,6 @@
 import { environment } from '@/config/environment';
 import { ApiError } from '@/types/api';
+import { authService } from "@/services/api";
 
 class ApiClient {
   private baseURL: string;
@@ -14,11 +15,13 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+    const token = authService.getToken();
+
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
+        Authorization: `Bearer ${token}`,
       },
       ...options,
     };

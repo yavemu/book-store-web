@@ -10,6 +10,7 @@ export * from "./elements/Datalist";
 export * from "./elements/Output";
 export * from "./elements/Option";
 export * from "./elements/Optgroup";
+export * from "./elements/SearchSelect";
 
 export { default as LoginForm } from "./LoginForm";
 export { default as RegisterForm } from "./RegisterForm";
