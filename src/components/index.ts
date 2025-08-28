@@ -4,3 +4,6 @@ export * from './dashboard';
 export * from './layout';
 export * from './domain';
 export * from './navigation';
+
+// Auth
+export { AuthInitializer } from './AuthInitializer';

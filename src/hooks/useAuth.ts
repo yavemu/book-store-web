@@ -22,17 +22,18 @@ export function useAuth(): UseAuthReturn {
   const [error, setError] = useState<string | null>(null);
 
   const login = useCallback(async (data: LoginDto): Promise<LoginResponseDto> => {
+    const loginId = Math.random().toString(36).substr(2, 9);
     try {
-      console.log('🔧 useAuth: Iniciando login, loading = true');
+      console.log(`🔧 useAuth [${loginId}]: Iniciando login, loading = true`);
       setLoading(true);
       setError(null);
       
-      console.log('🌐 useAuth: Llamando authService.login con:', data);
+      console.log(`🌐 useAuth [${loginId}]: Llamando authService.login con:`, data);
       const response = await authService.login(data);
-      console.log('✅ useAuth: Respuesta del authService:', response);
+      console.log(`✅ useAuth [${loginId}]: Respuesta del authService:`, response);
       return response;
     } catch (err) {
-      console.error('❌ useAuth: Error en login:', err);
+      console.error(`❌ useAuth [${loginId}]: Error en login:`, err);
       const apiError = err as ApiError;
       
       // Handle specific error status codes

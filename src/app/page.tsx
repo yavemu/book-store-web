@@ -1,19 +1,30 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout, LoadingSpinner, ErrorMessage, UserDashboard, AuthForm } from "@/components";
-import { useHealthCheck, useAuthState } from "@/hooks";
+import { useHealthCheck, useAppSelector, useAppDispatch } from "@/hooks";
+import { logout } from "@/store/slices/authSlice";
 
 export default function Home() {
   const router = useRouter();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const dispatch = useAppDispatch();
   const { data, loading, error, refetch } = useHealthCheck();
-  const { isAuthenticated, user, loading: authLoading, checkAuth, logout } = useAuthState();
+  const { isAuthenticated, user, loading: authLoading } = useAppSelector(state => state.auth);
 
-  if (loading || authLoading) {
+  // Redirect to dashboard if authenticated (based on auth state, not just token)
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, user, authLoading, router]);
+
+  if (loading || authLoading || isLoggingIn) {
     return (
       <Layout>
         <div className="layout-flex-center py-12">
-          <LoadingSpinner size="large" message={loading ? "Verificando conexión con el servidor..." : "Verificando autenticación..."} />
+          <LoadingSpinner size="large" message={loading ? "Verificando conexión con el servidor..." : isLoggingIn ? "Iniciando sesión..." : "Verificando autenticación..."} />
         </div>
       </Layout>
     );
@@ -29,15 +40,14 @@ export default function Home() {
     );
   }
 
-  const handleLoginSuccess = async () => {
-    // Update auth state after successful login
-    await checkAuth();
-    // Redirect to dashboard after successful login
+  const handleLoginSuccess = () => {
+    // Redux automatically updates auth state after successful login
+    // Just redirect to dashboard
     router.push('/dashboard');
   };
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
   };
 
   return (

@@ -9,6 +9,7 @@ import {
 
 class AuthService {
   private getAuthToken(): string | null {
+    console.log("🔑 AuthService: getAuthToken");
     if (typeof window !== 'undefined') {
       return localStorage.getItem('access_token');
     }
@@ -16,12 +17,15 @@ class AuthService {
   }
 
   private setAuthToken(token: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', token);
+    console.log("🔑 AuthService: setAuthToken", token);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("access_token", token);
+      console.log("🔑 AuthService: creado", token);
     }
   }
 
   private removeAuthToken(): void {
+    console.log("🔑 AuthService: removeAuthToken");
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
     }
@@ -42,21 +46,22 @@ class AuthService {
   }
 
   async login(loginData: LoginDto): Promise<LoginResponseDto> {
+    const authId = Math.random().toString(36).substr(2, 9);
     try {
-      console.log('🔄 AuthService: Enviando login request a /auth/login con:', loginData);
+      console.log(`🔄 AuthService [${authId}]: Enviando login request a /auth/login con:`, loginData);
       const response = await apiClient.post<LoginResponseDto>('/auth/login', loginData);
-      console.log('📡 AuthService: Respuesta recibida:', response);
+      console.log(`📡 AuthService [${authId}]: Respuesta recibida:`, response);
       
       if (response.access_token) {
-        console.log('🔑 AuthService: Guardando token en localStorage');
+        console.log(`🔑 AuthService [${authId}]: Guardando token en localStorage:`, response.access_token);
         this.setAuthToken(response.access_token);
       } else {
-        console.warn('⚠️ AuthService: No se recibió access_token en la respuesta');
+        console.warn(`⚠️ AuthService [${authId}]: No se recibió access_token en la respuesta`);
       }
       
       return response;
     } catch (error) {
-      console.error('❌ AuthService: Error en login:', error);
+      console.error(`❌ AuthService [${authId}]: Error en login:`, error);
       throw error;
     }
   }
@@ -90,6 +95,10 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.getAuthToken();
+  }
+
+  getToken(): string | null {
+    return this.getAuthToken();
   }
 }
 

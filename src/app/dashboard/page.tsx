@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout, LoadingSpinner } from '@/components';
 import NavigationMenu from '@/components/navigation/NavigationMenu';
-import { useAuthState } from '@/hooks';
+import { useAppSelector, useAppDispatch } from '@/hooks';
+import { logout } from '@/store/slices/authSlice';
 
 // Dynamic content components
 import CatalogPage from '@/components/dashboard/pages/CatalogPage';
@@ -19,18 +20,20 @@ import AuditPage from '@/components/dashboard/pages/AuditPage';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { isAuthenticated, user, loading: authLoading, logout } = useAuthState();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user, loading: authLoading } = useAppSelector(state => state.auth);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('catalog');
   const [pageLoading, setPageLoading] = useState(false);
 
   useEffect(() => {
+    // Redirect to home if not authenticated after loading is complete
     if (!authLoading && !isAuthenticated) {
       router.push('/');
     }
   }, [isAuthenticated, authLoading, router]);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     router.push('/');
   };
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { Form, Input, Button } from "../forms";
-import { useAuth } from "@/hooks";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import { loginAsync, clearError } from "@/store/slices/authSlice";
 import { LoginDto } from "@/types/auth";
 
 export type LoginFormData = LoginDto;
@@ -13,12 +14,17 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSuccess, showTitle = true, compact = false }: LoginFormProps) {
-  const { login, loading, error } = useAuth();
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector(state => state.auth);
 
   const handleLogin = async (data: LoginFormData) => {
     console.log('🚀 LoginForm: Iniciando login con datos:', data);
+    
+    // Clear any previous errors
+    dispatch(clearError());
+    
     try {
-      const result = await login(data);
+      const result = await dispatch(loginAsync(data)).unwrap();
       console.log('✅ LoginForm: Login exitoso, resultado:', result);
 
       if (onSuccess) {
@@ -26,7 +32,7 @@ export default function LoginForm({ onSuccess, showTitle = true, compact = false
         onSuccess();
       }
     } catch (error) {
-      // Error is handled by useAuth hook
+      // Error is handled by Redux slice
       console.error("❌ LoginForm: Error en login:", error);
     }
   };
