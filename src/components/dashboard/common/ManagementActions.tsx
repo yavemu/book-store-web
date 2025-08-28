@@ -25,30 +25,24 @@ export default function ManagementActions<T>({
     <div className="flex items-center space-x-2">
       {onView && (
         <Button 
-          variant="outline" 
-          size="sm" 
           onClick={() => onView(item)} 
-          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 border border-blue-300 rounded"
         >
           {viewLabel}
         </Button>
       )}
       {onEdit && (
         <Button 
-          variant="outline" 
-          size="sm" 
           onClick={() => onEdit(item)} 
-          className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+          className="px-3 py-1 text-sm text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 border border-yellow-300 rounded"
         >
           {editLabel}
         </Button>
       )}
       {onDelete && (
         <Button 
-          variant="outline" 
-          size="sm" 
           onClick={() => onDelete(item)} 
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-300 rounded"
         >
           {deleteLabel}
         </Button>

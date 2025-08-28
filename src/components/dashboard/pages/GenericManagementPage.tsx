@@ -9,6 +9,13 @@ import { ManagementPageLayout, ManagementActions } from "../common";
 import { ClientOnly } from "@/components";
 import HydrationGuard from "@/components/common/HydrationGuard";
 
+interface ManagementPageParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
+}
+
 interface ApiService<T, TParams, TFilters> {
   list: (params?: TParams) => Promise<{ data: T[]; meta: PaginationMeta }>;
   filter?: (filters: TFilters, page?: number, limit?: number) => Promise<{ data: T[]; meta: PaginationMeta }>;
@@ -19,10 +26,10 @@ export interface RolePermissions {
   canEdit?: boolean;
   canDelete?: boolean;
   canView?: boolean;
-  roles?: string[]; // Roles permitidos para esta funcionalidad
+  roles?: string[];
 }
 
-export interface ManagementPageConfig<T, TParams, TFilters> {
+export interface ManagementPageConfig<T, TParams extends ManagementPageParams, TFilters> {
   title: string;
   createButtonText: string;
   emptyMessage: string;
@@ -42,7 +49,7 @@ export interface ManagementPageConfig<T, TParams, TFilters> {
   permissions?: RolePermissions;
 }
 
-interface GenericManagementPageProps<T, TParams, TFilters> {
+interface GenericManagementPageProps<T, TParams extends ManagementPageParams, TFilters> {
   config: ManagementPageConfig<T, TParams, TFilters>;
   userRole: string;
   onCreateModal?: () => void;
@@ -51,7 +58,7 @@ interface GenericManagementPageProps<T, TParams, TFilters> {
   onViewModal?: (item: T) => void;
 }
 
-export default function GenericManagementPage<T, TParams, TFilters>({
+function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters>({
   config,
   userRole,
   onCreateModal,
@@ -61,24 +68,50 @@ export default function GenericManagementPage<T, TParams, TFilters>({
 }: GenericManagementPageProps<T, TParams, TFilters>) {
   const isClient = useIsClient();
   
-  // Función para verificar permisos basados en rol
+  // Mover todos los hooks al inicio antes de cualquier return
+  // Siempre llamar el hook para evitar errores de hooks condicionales
+  const managementData = useManagementPage<T, TParams, TFilters>({
+    initialParams: config?.initialParams || { page: 1, limit: 10 } as TParams,
+    apiService: config?.apiService || {
+      list: () => Promise.resolve({ data: [], meta: { total: 0, page: 1, limit: 10, pages: 0 } })
+    },
+    errorMessage: config?.errorMessage || "Error al cargar los datos",
+  });
+
+  const handleViewWithCallback = useCallback((item: T) => {
+    managementData.handleView(item);
+    onViewModal?.(item);
+  }, [managementData, onViewModal]);
+
+  const handleEditWithCallback = useCallback((item: T) => {
+    managementData.handleEdit(item);
+    onEditModal?.(item);
+  }, [managementData, onEditModal]);
+
+  const handleDeleteWithCallback = useCallback((item: T) => {
+    managementData.handleDelete(item);
+    onDeleteModal?.(item);
+  }, [managementData, onDeleteModal]);
+
+  const handleCreateWithCallback = useCallback(() => {
+    managementData.setShowCreateModal(true);
+    onCreateModal?.();
+  }, [managementData, onCreateModal]);
+
+  // Ahora añadir las funciones de permisos después de los hooks
   const hasPermission = (permission: keyof RolePermissions): boolean => {
-    if (!config.permissions) return true; // Si no hay permisos definidos, permitir todo
+    if (!config?.permissions) return true;
     
-    // Verificar si el rol tiene acceso
     if (config.permissions.roles && !config.permissions.roles.includes(userRole)) {
       return false;
     }
     
-    // Verificar permisos específicos según rol
     const basePermission = config.permissions[permission];
     
-    // Si es admin, tiene todos los permisos base
     if (userRole === "admin") {
       return basePermission !== false;
     }
     
-    // Si es user, solo puede ver, no crear/editar/eliminar
     if (userRole === "user") {
       return permission === "canView" && basePermission !== false;
     }
@@ -90,8 +123,24 @@ export default function GenericManagementPage<T, TParams, TFilters>({
   const canEdit = hasPermission('canEdit');
   const canDelete = hasPermission('canDelete');
   const canView = hasPermission('canView');
-  
-  // Validar la configuración antes de continuar
+
+  const renderActions = useCallback(
+    (item: T) => {
+      if (config?.hideActions || (!canView && !canEdit && !canDelete)) return null;
+      
+      return (
+        <ManagementActions
+          item={item}
+          onView={canView ? handleViewWithCallback : undefined}
+          onEdit={canEdit ? handleEditWithCallback : undefined}
+          onDelete={canDelete ? handleDeleteWithCallback : undefined}
+        />
+      );
+    },
+    [handleViewWithCallback, handleEditWithCallback, handleDeleteWithCallback, config?.hideActions, canView, canEdit, canDelete],
+  );
+
+  // Verificaciones de errores
   if (!config) {
     return (
       <div className="p-6">
@@ -121,7 +170,8 @@ export default function GenericManagementPage<T, TParams, TFilters>({
       </div>
     );
   }
-  
+
+
   const {
     data,
     meta,
@@ -132,60 +182,10 @@ export default function GenericManagementPage<T, TParams, TFilters>({
     handleSort,
     handleFilter,
     handleClearFilters,
-    handleView,
-    handleEdit,
-    handleDelete,
-    modalStates: { showCreateModal, showEditModal, showDeleteModal, showViewModal },
-    setShowCreateModal,
-    setShowEditModal,
-    setShowDeleteModal,
-    setShowViewModal,
-    selectedItem,
-    setSelectedItem,
-  } = useManagementPage<T, TParams, TFilters>({
-    initialParams: config.initialParams,
-    apiService: config.apiService,
-    errorMessage: config.errorMessage || "Error al cargar los datos",
-  });
-
-  const handleViewWithCallback = useCallback((item: T) => {
-    handleView(item);
-    onViewModal?.(item);
-  }, [handleView, onViewModal]);
-
-  const handleEditWithCallback = useCallback((item: T) => {
-    handleEdit(item);
-    onEditModal?.(item);
-  }, [handleEdit, onEditModal]);
-
-  const handleDeleteWithCallback = useCallback((item: T) => {
-    handleDelete(item);
-    onDeleteModal?.(item);
-  }, [handleDelete, onDeleteModal]);
-
-  const handleCreateWithCallback = useCallback(() => {
-    setShowCreateModal(true);
-    onCreateModal?.();
-  }, [setShowCreateModal, onCreateModal]);
-
-  const renderActions = useCallback(
-    (item: T) => {
-      if (config.hideActions || (!canView && !canEdit && !canDelete)) return null;
-      
-      return (
-        <ManagementActions
-          item={item}
-          onView={canView ? handleViewWithCallback : undefined}
-          onEdit={canEdit ? handleEditWithCallback : undefined}
-          onDelete={canDelete ? handleDeleteWithCallback : undefined}
-        />
-      );
-    },
-    [handleViewWithCallback, handleEditWithCallback, handleDeleteWithCallback, config.hideActions, canView, canEdit, canDelete],
-  );
+  } = managementData;
 
   const filtersWithProps = isClient && config.filters && React.isValidElement(config.filters)
-    ? React.cloneElement(config.filters as React.ReactElement, {
+    ? React.cloneElement(config.filters as React.ReactElement<Record<string, unknown>>, {
         onFilter: handleFilter,
         onClear: handleClearFilters,
         loading: loading,
@@ -211,18 +211,18 @@ export default function GenericManagementPage<T, TParams, TFilters>({
       }>
         <ManagementPageLayout
           title={config.title}
-          data={data}
-          columns={config.columns}
+          data={data as Record<string, unknown>[]}
+          columns={config.columns as Column<Record<string, unknown>>[]}
           meta={meta}
           loading={loading}
           error={error}
           emptyMessage={config.emptyMessage}
           createButtonText={config.createButtonText}
           onRefresh={() => fetchData()}
-          onCreate={canCreate ? handleCreateWithCallback : undefined}
+          onCreate={canCreate ? handleCreateWithCallback : () => {}}
           onPageChange={handlePageChange}
           onSort={handleSort}
-          renderActions={renderActions}
+          renderActions={renderActions as (item: Record<string, unknown>) => ReactNode}
           filters={filtersWithProps}
           hideCreateButton={config.hideCreateButton || !canCreate}
         />
@@ -235,3 +235,6 @@ export default function GenericManagementPage<T, TParams, TFilters>({
     </HydrationGuard>
   );
 }
+
+export default GenericManagementPage;
+export { GenericManagementPage };

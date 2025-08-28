@@ -48,9 +48,9 @@ export default function BooksManagementPage() {
       className: "w-20",
       render: (book, value) => (
         <div className="w-16 h-20 bg-gray-200 rounded overflow-hidden">
-          {value ? (
+          {value && typeof value === 'string' ? (
             <img
-              src={value}
+              src={value as string}
               alt={`Portada de ${book.title}`}
               className="w-full h-full object-cover"
               onError={(e) => (e.currentTarget.style.display = "none")}
@@ -67,7 +67,7 @@ export default function BooksManagementPage() {
       sortable: true,
       render: (book, value) => (
         <div className="min-w-48">
-          <div className="font-medium text-gray-900 truncate">{value}</div>
+          <div className="font-medium text-gray-900 truncate">{value as string}</div>
           <div className="text-sm text-gray-500 truncate">{book.isbnCode}</div>
         </div>
       ),
@@ -106,8 +106,8 @@ export default function BooksManagementPage() {
     <>
       <ManagementPageLayout
         title="Panel Administrativo de Libros"
-        data={books}
-        columns={columns}
+        data={books as unknown as Record<string, unknown>[]}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
         meta={meta}
         loading={loading}
         error={error}
@@ -117,7 +117,7 @@ export default function BooksManagementPage() {
         onCreate={() => setShowCreateModal(true)}
         onPageChange={handlePageChange}
         onSort={handleSort}
-        renderActions={renderActions}
+        renderActions={renderActions as unknown as (item: Record<string, unknown>) => React.ReactNode}
         filters={<BookFilters onFilter={handleFilter} onClear={handleClearFilters} loading={loading} />}
       />
 

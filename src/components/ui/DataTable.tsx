@@ -7,7 +7,7 @@ export interface Column<T> {
   key: keyof T | string;
   label: string;
   sortable?: boolean;
-  render?: (item: T, value: any) => React.ReactNode;
+  render?: (item: T, value: unknown) => React.ReactNode;
   className?: string;
 }
 
@@ -32,7 +32,7 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   meta,

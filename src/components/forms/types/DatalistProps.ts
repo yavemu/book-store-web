@@ -1,1 +1,1 @@
-export interface DatalistProps extends React.HTMLAttributes<HTMLDataListElement> {}
+export type DatalistProps = React.HTMLAttributes<HTMLDataListElement>;

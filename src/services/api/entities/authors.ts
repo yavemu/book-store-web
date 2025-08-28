@@ -106,7 +106,7 @@ export const authorsApi = {
   },
 
   // Obtener libros de un autor específico
-  getBooks: (authorId: string, params?: Pick<AuthorListParams, 'page' | 'limit'>): Promise<any> => {
+  getBooks: (authorId: string, params?: Pick<AuthorListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
     const defaultParams = {
       page: 1,
       limit: 10,
@@ -118,19 +118,83 @@ export const authorsApi = {
   },
 };
 
+export interface BookAuthorAssignmentListParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
+
 // API para gestión de asignaciones autor-libro
 export const bookAuthorAssignmentsApi = {
-  // Asignar autor a un libro
-  assign: (data: CreateBookAuthorAssignmentDto): Promise<any> => {
+  // Crear asignación autor-libro
+  create: (data: CreateBookAuthorAssignmentDto): Promise<unknown> => {
     return apiClient.post('/book-author-assignments', data);
   },
 
-  // Actualizar asignación autor-libro
-  update: (assignmentId: string, data: UpdateBookAuthorAssignmentDto): Promise<any> => {
-    return apiClient.put(`/book-author-assignments/${assignmentId}`, data);
+  // Listar todas las asignaciones
+  list: (params?: BookAuthorAssignmentListParams): Promise<{ data: unknown[]; meta: unknown }> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      ...params,
+    };
+
+    const url = buildUrl('/book-author-assignments', defaultParams);
+    return apiClient.get(url);
   },
 
-  // Remover asignación autor-libro
+  // Obtener asignaciones por libro
+  getByBook: (bookId: string, params?: Pick<BookAuthorAssignmentListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      ...params,
+    };
+
+    const url = buildUrl(`/book-author-assignments/by-book/${bookId}`, defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Obtener asignaciones por autor
+  getByAuthor: (authorId: string, params?: Pick<BookAuthorAssignmentListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      ...params,
+    };
+
+    const url = buildUrl(`/book-author-assignments/by-author/${authorId}`, defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Verificar si existe asignación específica
+  checkAssignment: (bookId: string, authorId: string): Promise<{ exists: boolean }> => {
+    return apiClient.get(`/book-author-assignments/check/${bookId}/${authorId}`);
+  },
+
+  // Obtener asignación por ID
+  getById: (assignmentId: string): Promise<unknown> => {
+    return apiClient.get(`/book-author-assignments/${assignmentId}`);
+  },
+
+  // Actualizar asignación autor-libro
+  update: (assignmentId: string, data: UpdateBookAuthorAssignmentDto): Promise<unknown> => {
+    return apiClient.patch(`/book-author-assignments/${assignmentId}`, data);
+  },
+
+  // Eliminar asignación autor-libro
+  delete: (assignmentId: string): Promise<{ message: string }> => {
+    return apiClient.delete(`/book-author-assignments/${assignmentId}`);
+  },
+
+  // Alias para compatibilidad
+  assign: (data: CreateBookAuthorAssignmentDto): Promise<unknown> => {
+    return apiClient.post('/book-author-assignments', data);
+  },
+
   remove: (assignmentId: string): Promise<{ message: string }> => {
     return apiClient.delete(`/book-author-assignments/${assignmentId}`);
   },

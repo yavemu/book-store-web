@@ -28,7 +28,7 @@ export interface CreatePublishingHouseDto {
   isActive?: boolean;
 }
 
-export interface UpdatePublishingHouseDto extends Partial<CreatePublishingHouseDto> {}
+export type UpdatePublishingHouseDto = Partial<CreatePublishingHouseDto>;
 
 export interface PublishingHouseResponseDto {
   success: boolean;

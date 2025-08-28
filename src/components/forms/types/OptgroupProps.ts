@@ -1,1 +1,1 @@
-export interface OptgroupProps extends React.OptgroupHTMLAttributes<HTMLOptGroupElement> {}
+export type OptgroupProps = React.OptgroupHTMLAttributes<HTMLOptGroupElement>;

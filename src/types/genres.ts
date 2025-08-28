@@ -12,7 +12,7 @@ export interface CreateBookGenreDto {
   isActive?: boolean;
 }
 
-export interface UpdateBookGenreDto extends Partial<CreateBookGenreDto> {}
+export type UpdateBookGenreDto = Partial<CreateBookGenreDto>;
 
 export interface BookGenreResponseDto {
   success: boolean;

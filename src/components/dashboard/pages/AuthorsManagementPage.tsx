@@ -45,9 +45,9 @@ export default function AuthorsManagementPage() {
       className: "w-20",
       render: (author, value) => (
         <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden">
-          {value ? (
+          {value && typeof value === 'string' ? (
             <img
-              src={value}
+              src={value as string}
               alt={`Foto de ${author.firstName} ${author.lastName}`}
               className="w-full h-full object-cover"
               onError={(e) => (e.currentTarget.style.display = "none")}
@@ -74,15 +74,15 @@ export default function AuthorsManagementPage() {
     { 
       key: "birthDate", 
       label: "Fecha de nacimiento", 
-      render: (_, value) => formatDate(value), 
+      render: (_, value) => formatDate(value as string), 
       className: "min-w-32" 
     },
     { 
       key: "website", 
       label: "Sitio web", 
-      render: (_, value) => value ? (
-        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 truncate max-w-32 block">
-          {value}
+      render: (_, value) => value && typeof value === 'string' ? (
+        <a href={value as string} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 truncate max-w-32 block">
+          {value as string}
         </a>
       ) : "N/A", 
       className: "min-w-32" 
@@ -114,8 +114,8 @@ export default function AuthorsManagementPage() {
   return (
     <ManagementPageLayout
       title="Panel Administrativo de Autores"
-      data={authors}
-      columns={columns}
+      data={authors as unknown as Record<string, unknown>[]}
+      columns={columns as unknown as Column<Record<string, unknown>>[]}
       meta={meta}
       loading={loading}
       error={error}
@@ -125,7 +125,7 @@ export default function AuthorsManagementPage() {
       onCreate={() => setShowCreateModal(true)}
       onPageChange={handlePageChange}
       onSort={handleSort}
-      renderActions={renderActions}
+      renderActions={renderActions as unknown as (item: Record<string, unknown>) => React.ReactNode}
     />
   );
 }

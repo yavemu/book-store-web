@@ -56,7 +56,7 @@ interface UseManagementPageReturn<T, TParams, TFilters> {
   setSelectedItem: (item: T | null) => void;
 }
 
-export function useManagementPage<T, TParams extends ManagementPageParams, TFilters = {}>(
+export function useManagementPage<T, TParams extends ManagementPageParams, TFilters = Record<string, never>>(
   options: UseManagementPageOptions<T, TParams, TFilters>
 ): UseManagementPageReturn<T, TParams, TFilters> {
   const { initialParams, apiService, errorMessage = "Error al cargar los datos" } = options;
@@ -94,10 +94,10 @@ export function useManagementPage<T, TParams extends ManagementPageParams, TFilt
       setLoading(true);
       setError(null);
 
-      const currentParams = { ...params, ...searchParams } as TParams;
-      const currentFilters = filters ?? activeFilters;
-
       try {
+        const currentParams = { ...params, ...searchParams } as TParams;
+        const currentFilters = filters ?? activeFilters;
+
         let response;
         
         if (apiService.filter && filters && Object.keys(currentFilters).length > 0 && Object.values(currentFilters).some(v => v !== undefined)) {
@@ -119,7 +119,7 @@ export function useManagementPage<T, TParams extends ManagementPageParams, TFilt
         setLoading(false);
       }
     },
-    [params, activeFilters, apiService, errorMessage]
+    [apiService]
   );
 
   const handlePageChange = useCallback((page: number) => fetchData({ page } as Partial<TParams>), [fetchData]);
@@ -157,7 +157,7 @@ export function useManagementPage<T, TParams extends ManagementPageParams, TFilt
     }, 0);
     
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [fetchData]);
 
   return {
     data,

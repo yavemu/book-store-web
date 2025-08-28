@@ -1,1 +1,1 @@
-export interface OptionProps extends React.OptionHTMLAttributes<HTMLOptionElement> {}
+export type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement>;

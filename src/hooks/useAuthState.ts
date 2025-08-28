@@ -37,7 +37,7 @@ export function useAuthState(): UseAuthStateReturn {
       console.log(`👤 useAuthState [${checkId}]: Perfil obtenido:`, profile);
       setUser(profile);
       setIsAuthenticated(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`❌ useAuthState [${checkId}]: Error en checkAuth:`, err);
       setError('Error al verificar autenticación');
       setIsAuthenticated(false);

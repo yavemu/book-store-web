@@ -24,7 +24,7 @@ export interface CreateBookAuthorDto {
   isActive?: boolean;
 }
 
-export interface UpdateBookAuthorDto extends Partial<CreateBookAuthorDto> {}
+export type UpdateBookAuthorDto = Partial<CreateBookAuthorDto>;
 
 export interface BookAuthorResponseDto {
   success: boolean;
@@ -63,7 +63,7 @@ export interface CreateBookAuthorAssignmentDto {
   role?: string;
 }
 
-export interface UpdateBookAuthorAssignmentDto extends Partial<CreateBookAuthorAssignmentDto> {}
+export type UpdateBookAuthorAssignmentDto = Partial<CreateBookAuthorAssignmentDto>;
 
 export interface AuthorListParams {
   page?: number;

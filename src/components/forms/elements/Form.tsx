@@ -3,8 +3,8 @@
 import React, { forwardRef } from "react";
 import { FormProps } from "../types/FormProps";
 
-function defaultSerialize<T = Record<string, any>>(fd: FormData): T {
-  const out: Record<string, any> = {};
+function defaultSerialize<T = Record<string, unknown>>(fd: FormData): T {
+  const out: Record<string, unknown> = {};
   for (const [key, value] of fd.entries()) {
     if (Object.prototype.hasOwnProperty.call(out, key)) {
       const cur = out[key];
@@ -17,7 +17,7 @@ function defaultSerialize<T = Record<string, any>>(fd: FormData): T {
   return out as T;
 }
 
-function InternalForm<T = Record<string, any>>(
+function InternalForm<T = Record<string, unknown>>(
   { children, onSubmit, onSuccess, serialize, title, ...props }: FormProps<T>,
   ref: React.Ref<HTMLFormElement>,
 ) {
@@ -46,4 +46,4 @@ function InternalForm<T = Record<string, any>>(
   );
 }
 
-export const Form = forwardRef(InternalForm) as <T = Record<string, any>>(props: FormProps<T> & { ref?: React.Ref<HTMLFormElement> }) => JSX.Element;
+export const Form = forwardRef(InternalForm) as <T = Record<string, unknown>>(props: FormProps<T> & { ref?: React.Ref<HTMLFormElement> }) => JSX.Element;

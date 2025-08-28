@@ -6,7 +6,7 @@ import { LoadingSpinner } from '@/components/ui';
 interface Option {
   id: string;
   label: string;
-  value?: any;
+  value?: unknown;
 }
 
 interface SearchSelectProps {
@@ -81,7 +81,7 @@ export function SearchSelect({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [searchTerm, minSearchLength, debounceMs]);
+  }, [searchTerm, minSearchLength, debounceMs, onSearch]);
 
   const performSearch = async (term: string) => {
     try {
@@ -223,7 +223,7 @@ export function SearchSelect({
                 disabled={loading}
                 className="w-full px-3 py-2 text-left text-sm text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:bg-indigo-50 border-t border-gray-200 disabled:opacity-50"
               >
-                {createLabel}: "{searchTerm}"
+                {createLabel}: &quot;{searchTerm}&quot;
               </button>
             )}
           </div>

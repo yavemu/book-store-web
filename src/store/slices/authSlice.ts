@@ -31,8 +31,9 @@ export const loginAsync = createAsyncThunk(
     try {
       const response = await authService.login(loginData);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Error al iniciar sesión');
+    } catch (error: unknown) {
+      const errorMessage = (error as Error)?.message || 'Error al iniciar sesión';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -43,8 +44,9 @@ export const registerAsync = createAsyncThunk(
     try {
       const response = await authService.register(registerData);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Error al registrar usuario');
+    } catch (error: unknown) {
+      const errorMessage = (error as Error)?.message || 'Error al registrar usuario';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -61,12 +63,14 @@ export const checkAuthAsync = createAsyncThunk(
         user: profile,
         token: authService.getToken(),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Solo eliminar token si es error 401
-      if (error?.status === 401 || error?.message?.includes('401')) {
+      const err = error as { status?: number; message?: string };
+      if (err?.status === 401 || err?.message?.includes('401')) {
         authService.logout();
       }
-      return rejectWithValue(error.message || 'Error al verificar autenticación');
+      const errorMessage = err?.message || 'Error al verificar autenticación';
+      return rejectWithValue(errorMessage);
     }
   }
 );

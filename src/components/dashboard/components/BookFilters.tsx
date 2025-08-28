@@ -16,7 +16,7 @@ export function BookFilters({ onFilter, onClear, loading = false }: BookFiltersP
   const [filters, setFilters] = useState<BookFiltersDto>({});
   const [expanded, setExpanded] = useState(false);
 
-  const handleFilterChange = (key: keyof BookFiltersDto, value: string | number | boolean) => {
+  const handleFilterChange = (key: keyof BookFiltersDto, value: string | number | boolean | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value || undefined
@@ -65,12 +65,14 @@ export function BookFilters({ onFilter, onClear, loading = false }: BookFiltersP
     }
   };
 
-  const handleGenreChange = (option: { id: string; label: string; value: Genre } | null) => {
-    handleFilterChange('genreId', option?.value.id);
+  const handleGenreChange = (option: { id: string; label: string; value?: unknown } | null) => {
+    const genre = option?.value as Genre | undefined;
+    handleFilterChange('genreId', genre?.id);
   };
 
-  const handlePublisherChange = (option: { id: string; label: string; value: PublishingHouse } | null) => {
-    handleFilterChange('publisherId', option?.value.id);
+  const handlePublisherChange = (option: { id: string; label: string; value?: unknown } | null) => {
+    const publisher = option?.value as PublishingHouse | undefined;
+    handleFilterChange('publisherId', publisher?.id);
   };
 
   return (

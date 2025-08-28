@@ -35,6 +35,12 @@ export default function Dashboard() {
   const [showEditBookModal, setShowEditBookModal] = useState(false);
   const [showDeleteBookModal, setShowDeleteBookModal] = useState(false);
   const [showViewBookModal, setShowViewBookModal] = useState(false);
+  
+  // Refresh key to force component updates after CRUD operations
+  const [refreshKey, setRefreshKey] = useState(0);
+  const forceRefresh = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
 
   // -----------------------
   // Auth redirect
@@ -82,6 +88,7 @@ export default function Dashboard() {
     books: (
       <>
         <GenericManagementPage
+          key={`books-${refreshKey}`}
           config={booksManagementConfig}
           userRole={userRole}
           onCreateModal={() => setShowCreateBookModal(true)}
@@ -99,7 +106,14 @@ export default function Dashboard() {
           }}
         />
 
-        <CreateBookModal isOpen={showCreateBookModal} onClose={() => setShowCreateBookModal(false)} onSuccess={() => {}} />
+        <CreateBookModal 
+          isOpen={showCreateBookModal} 
+          onClose={() => setShowCreateBookModal(false)} 
+          onSuccess={() => {
+            setShowCreateBookModal(false);
+            forceRefresh(); // Forzar actualización de la tabla
+          }} 
+        />
 
         <EditBookModal
           isOpen={showEditBookModal}
@@ -107,7 +121,11 @@ export default function Dashboard() {
             setShowEditBookModal(false);
             setSelectedBook(null);
           }}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            setShowEditBookModal(false);
+            setSelectedBook(null);
+            forceRefresh(); // Forzar actualización de la tabla
+          }}
           book={selectedBook}
         />
 
@@ -117,7 +135,11 @@ export default function Dashboard() {
             setShowDeleteBookModal(false);
             setSelectedBook(null);
           }}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            setShowDeleteBookModal(false);
+            setSelectedBook(null);
+            forceRefresh(); // Forzar actualización de la tabla
+          }}
           book={selectedBook}
         />
 
@@ -135,11 +157,11 @@ export default function Dashboard() {
         />
       </>
     ),
-    authors: <GenericManagementPage config={authorsManagementConfig} userRole={userRole} />,
-    publishers: <GenericManagementPage config={publishersManagementConfig} userRole={userRole} />,
-    genres: <GenericManagementPage config={genresManagementConfig} userRole={userRole} />,
-    users: <GenericManagementPage config={usersManagementConfig} userRole={userRole} />,
-    audit: <GenericManagementPage config={auditManagementConfig} userRole={userRole} />,
+    authors: <GenericManagementPage key={`authors-${refreshKey}`} config={authorsManagementConfig} userRole={userRole} />,
+    publishers: <GenericManagementPage key={`publishers-${refreshKey}`} config={publishersManagementConfig} userRole={userRole} />,
+    genres: <GenericManagementPage key={`genres-${refreshKey}`} config={genresManagementConfig} userRole={userRole} />,
+    users: <GenericManagementPage key={`users-${refreshKey}`} config={usersManagementConfig} userRole={userRole} />,
+    audit: <GenericManagementPage key={`audit-${refreshKey}`} config={auditManagementConfig} userRole={userRole} />,
   };
 
   const renderPageContent = () => {
