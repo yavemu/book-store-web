@@ -5,6 +5,7 @@ import { useApiRequest } from '@/hooks';
 import { booksApi, BookListParams } from '@/services/api/entities/books';
 import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
+import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
 
 export default function BooksPage() {
   const [params, setParams] = useState<BookListParams>({ page: 1, limit: 10 });
@@ -17,7 +18,13 @@ export default function BooksPage() {
       console.log('Books loaded:', response);
     },
     onError: (error) => {
-      console.error('Error loading books:', error);
+      const errorMessage = error?.message || error?.error || 'Error desconocido al cargar libros';
+      const errorDetails = {
+        message: errorMessage,
+        statusCode: error?.statusCode || 'unknown',
+        timestamp: new Date().toISOString()
+      };
+      console.error('Error loading books:', errorDetails);
     }
   });
 
@@ -121,11 +128,24 @@ export default function BooksPage() {
   ];
 
   if (error) {
+    const canRetry = error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch');
+    
     return (
-      <PageWrapper title="Libros" breadcrumbs={['Dashboard', 'Libros']}>
-        <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>
-          Error cargando libros: {error}
-        </div>
+      <PageWrapper title="Libros" breadcrumbs={['Libros']}>
+        <ApiErrorState
+          error={error}
+          canRetry={canRetry}
+          isRetrying={loading}
+          onRetry={() => execute()}
+          onReset={() => {
+            setParams({ page: 1, limit: 10 });
+            setSearchTerm('');
+            reset();
+          }}
+          title="Error cargando libros"
+          description="No se pudieron cargar los libros del sistema."
+          showTechnicalDetails={true}
+        />
       </PageWrapper>
     );
   }
@@ -133,7 +153,7 @@ export default function BooksPage() {
   return (
     <PageWrapper 
       title="Libros" 
-      breadcrumbs={['Dashboard', 'Libros']}
+      breadcrumbs={['Libros']}
       onSearch={handleSearch}
       searchPlaceholder="Buscar libros por título, ISBN..."
     >

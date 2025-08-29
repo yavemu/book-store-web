@@ -13,7 +13,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard' },
   { label: 'Libros', path: '/books' },
   { label: 'Géneros', path: '/genres' },
   { label: 'Autores', path: '/authors' },
@@ -39,9 +38,6 @@ export default function Navigation() {
   };
 
   const isActive = (path: string) => {
-    if (path === '/dashboard') {
-      return pathname === '/dashboard';
-    }
     return pathname.startsWith(path);
   };
 

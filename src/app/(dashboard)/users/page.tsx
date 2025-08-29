@@ -76,7 +76,7 @@ export default function UsersPage() {
   return (
     <PageWrapper 
       title="Gestión de Usuarios"
-      breadcrumbs={['Dashboard', 'Usuarios']}
+      breadcrumbs={['Usuarios']}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar usuarios..."

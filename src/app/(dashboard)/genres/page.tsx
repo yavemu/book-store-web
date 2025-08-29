@@ -76,7 +76,7 @@ export default function GenresPage() {
   return (
     <PageWrapper 
       title="Gestión de Géneros"
-      breadcrumbs={['Dashboard', 'Géneros']}
+      breadcrumbs={['Géneros']}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar géneros..."

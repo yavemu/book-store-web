@@ -63,7 +63,7 @@ export default function AuditPage() {
   return (
     <PageWrapper 
       title="Logs de Auditoría"
-      breadcrumbs={['Dashboard', 'Auditoría']}
+      breadcrumbs={['Auditoría']}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar en logs..."

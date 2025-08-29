@@ -77,7 +77,7 @@ export default function AuthorsPage() {
   return (
     <PageWrapper 
       title="Gestión de Autores"
-      breadcrumbs={['Dashboard', 'Autores']}
+      breadcrumbs={['Autores']}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar autores..."

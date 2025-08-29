@@ -77,7 +77,7 @@ export default function PublishersPage() {
   return (
     <PageWrapper 
       title="Gestión de Editoriales"
-      breadcrumbs={['Dashboard', 'Editoriales']}
+      breadcrumbs={['Editoriales']}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar editoriales..."

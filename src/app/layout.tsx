@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Provider } from 'react-redux';
 import { store } from '@/store/store';
 import AuthProvider from '@/providers/AuthProvider';
+import GlobalApiMonitor from '@/components/GlobalApiMonitor';
 import './globals.css';
 
 export default function RootLayout({
@@ -16,6 +17,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Provider store={store}>
           <AuthProvider>
+            <GlobalApiMonitor />
             {children}
           </AuthProvider>
         </Provider>

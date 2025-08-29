@@ -123,12 +123,37 @@ class ApiClient {
 
       return data as T;
     } catch (error) {
+      // Mejorar el manejo de errores para proporcionar más información
       if (error instanceof Error) {
-        throw {
-          message: error.message,
-          error: "ClientError",
-          statusCode: 0,
-        } as ApiError;
+        let errorMessage = error.message;
+        let statusCode = 0;
+
+        // Detectar diferentes tipos de errores de conexión
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('fetch is not defined') ||
+            error.message.includes('NetworkError') ||
+            error.name === 'TypeError') {
+          errorMessage = 'Sin conexión al servidor';
+          statusCode = 0;
+        } else if (error.name === 'AbortError') {
+          errorMessage = 'Timeout de conexión';
+          statusCode = 408;
+        }
+
+        const apiError: ApiError = {
+          message: errorMessage,
+          error: "NetworkError",
+          statusCode: statusCode,
+        };
+
+        console.error('API Client Error:', {
+          url,
+          method: options.method || 'GET',
+          error: apiError,
+          originalError: error
+        });
+
+        throw apiError;
       }
 
       throw error;
