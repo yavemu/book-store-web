@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const createAuthorSchema = z.object({
+  // CAMPOS OBLIGATORIOS
   firstName: z
     .string()
     .min(1, "El nombre es requerido")
@@ -11,6 +12,8 @@ export const createAuthorSchema = z.object({
     .min(1, "Los apellidos son requeridos")
     .max(50, "Los apellidos no pueden exceder 50 caracteres")
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "Los apellidos solo pueden contener letras y espacios"),
+  
+  // CAMPOS OPCIONALES
   nationality: z
     .string()
     .max(50, "La nacionalidad no puede exceder 50 caracteres")
@@ -18,12 +21,14 @@ export const createAuthorSchema = z.object({
     .or(z.literal('')),
   birthDate: z
     .string()
-    .refine((val) => !val || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
-    .refine((val) => !val || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura")
+    .refine((val) => !val || val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val), "La fecha debe tener formato YYYY-MM-DD")
+    .refine((val) => !val || val === "" || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
+    .refine((val) => !val || val === "" || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura")
     .optional()
     .or(z.literal('')),
   biography: z
     .string()
+    .max(1000, "La biografía no puede exceder 1000 caracteres")
     .optional()
     .or(z.literal('')),
 });
@@ -46,8 +51,9 @@ export const updateAuthorSchema = z.object({
   birthDate: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
-    .refine((val) => !val || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura"),
+    .refine((val) => !val || val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val), "La fecha debe tener formato YYYY-MM-DD")
+    .refine((val) => !val || val === "" || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
+    .refine((val) => !val || val === "" || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura"),
   nationality: z
     .string()
     .optional()

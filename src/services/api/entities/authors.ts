@@ -48,7 +48,28 @@ export interface AuthorSearchParams {
 export const authorsApi = {
   // Crear nuevo autor (solo admin)
   create: (data: CreateBookAuthorDto): Promise<CreateBookAuthorResponseDto> => {
-    return apiClient.post('/book-authors', data);
+    // Transformar fecha al formato ISO requerido por la API
+    const transformedData = { ...data };
+    
+    if (transformedData.birthDate && transformedData.birthDate.trim() !== '') {
+      // Si la fecha no está ya en formato YYYY-MM-DD, convertirla
+      const dateValue = transformedData.birthDate;
+      
+      // Verificar si ya está en formato ISO (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        // Intentar parsear y convertir a formato ISO
+        try {
+          const parsedDate = new Date(dateValue);
+          if (!isNaN(parsedDate.getTime())) {
+            // Convertir a formato YYYY-MM-DD
+            transformedData.birthDate = parsedDate.toISOString().split('T')[0];
+          }
+        } catch (error) {
+          // Error silencioso al transformar fecha
+        }
+      }
+    }
+    return apiClient.post('/book-authors', transformedData);
   },
 
   // Obtener lista paginada de autores

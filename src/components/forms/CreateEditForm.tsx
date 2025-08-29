@@ -6,8 +6,12 @@ import { SmartForm, Message } from ".";
 interface FormField {
   name: string;
   label: string;
-  type?: "text" | "email" | "password" | "number" | "textarea";
+  type?: "text" | "email" | "password" | "number" | "textarea" | "date" | "select";
   placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
+  step?: string;
+  min?: string;
+  max?: string;
 }
 
 interface CreateEditFormProps<CreateT extends z.ZodSchema, UpdateT extends z.ZodSchema> {

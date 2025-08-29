@@ -4,8 +4,12 @@ import { z } from 'zod';
 export type TypedFormField<T> = {
   name: keyof T;
   label: string;
-  type?: "text" | "email" | "password" | "number" | "textarea";
+  type?: "text" | "email" | "password" | "number" | "textarea" | "select" | "date";
   placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
+  step?: string;
+  min?: string;
+  max?: string;
 };
 
 // Interfaz base para formularios de entidad

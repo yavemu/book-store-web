@@ -69,4 +69,24 @@ export const genresApi = {
     const url = buildUrl('/genres/search', params);
     return apiClient.get(url);
   },
+
+  // Obtener opciones para formularios select
+  getSelectOptions: async (): Promise<Array<{ value: string; label: string }>> => {
+    try {
+      const response = await genresApi.list({ limit: 100, sortBy: 'name', sortOrder: 'ASC' });
+      return response.data.map(genre => ({
+        value: genre.id,
+        label: genre.name
+      }));
+    } catch (error) {
+      console.error('Error fetching genre options:', error);
+      // Fallback con algunos géneros comunes
+      return [
+        { value: "c3acfc56-05c4-4ec4-8a8a-f42fdb76f0ab", label: "Realismo Mágico" },
+        { value: "956c1e72-3765-426c-a96c-017bf8cd6a62", label: "Romance" },
+        { value: "331403ac-b685-49e1-8780-243f84024147", label: "Aventura" },
+        { value: "e2ff5335-9b04-42ed-be74-4e0893f11252", label: "Misterio" }
+      ];
+    }
+  },
 };

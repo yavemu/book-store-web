@@ -95,4 +95,24 @@ export const publishingHousesApi = {
     const url = buildUrl(`/publishing-houses/by-country/${encodeURIComponent(country)}`, defaultParams);
     return apiClient.get(url);
   },
+
+  // Obtener opciones para formularios select
+  getSelectOptions: async (): Promise<Array<{ value: string; label: string }>> => {
+    try {
+      const response = await publishingHousesApi.list({ limit: 100, sortBy: 'name', sortOrder: 'ASC' });
+      return response.data.map(publisher => ({
+        value: publisher.id,
+        label: publisher.name
+      }));
+    } catch (error) {
+      console.error('Error fetching publisher options:', error);
+      // Fallback con algunas editoriales comunes  
+      return [
+        { value: "d875c518-4db9-4dba-86f7-357b3b140fef", label: "Planeta" },
+        { value: "c23f7c8f-bb03-401b-b92d-10161b0f9d0f", label: "Random House" },
+        { value: "5de2b076-c26d-4af5-a2b7-5315d353aa62", label: "Norma" },
+        { value: "aee0d473-b0fb-428b-a2fc-c9ba47f66cb5", label: "McGraw Hill" }
+      ];
+    }
+  },
 };

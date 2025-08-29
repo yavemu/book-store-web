@@ -18,6 +18,8 @@ export { default as SmartForm } from "./SmartForm";
 export { default as AuthForm } from "./AuthForm";
 export { default as CreateEditForm } from "./CreateEditForm";
 export { default as EntityForm } from "./EntityForm";
+export { DynamicUserForm } from "./DynamicUserForm";
+export { DynamicBookForm } from "./DynamicBookForm";
 export { default as AuthorForm } from "./AuthorForm";
 export { default as GenreForm } from "./GenreForm";
 export { default as PublisherForm } from "./PublisherForm";

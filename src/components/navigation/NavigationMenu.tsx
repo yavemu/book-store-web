@@ -44,9 +44,9 @@ export default function NavigationMenu({ user, onMenuItemClick, activeMenuItem }
       </div>
 
       {/* Horizontal Menu */}
-      <ul className="flex space-x-2 overflow-x-auto px-2 py-1">
+      <ul className="flex flex-col space-y-2 px-2 py-1 md:flex-row md:space-y-0 md:space-x-2 md:overflow-x-auto">
         {filteredMenuItems.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className="shrink-0">
             <div onClick={() => onMenuItemClick(item.id)} className={itemClasses(activeMenuItem === item.id)}>
               <span className="text-lg">{item.icon}</span>
               <span>{item.title}</span>

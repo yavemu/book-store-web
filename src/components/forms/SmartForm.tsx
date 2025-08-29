@@ -3,14 +3,19 @@
 import React, { useState } from "react";
 import { z } from "zod";
 import { Input } from "./elements/Input";
+import { Select } from "./elements/Select";
 import { Button } from "./elements/Button";
 import { Message } from "./elements/Message";
 
 interface FormField {
   name: string;
   label: string;
-  type?: "text" | "email" | "password" | "number" | "textarea";
+  type?: "text" | "email" | "password" | "number" | "textarea" | "date" | "select";
   placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
+  step?: string;
+  min?: string;
+  max?: string;
 }
 
 interface FormMode<T extends z.ZodSchema> {
@@ -117,7 +122,7 @@ function SmartForm<T extends z.ZodSchema>({
   };
 
   // 🔥 Validación en tiempo real con Zod
-  const validateField = (fieldName: string, value: string) => {
+  const validateField = (fieldName: string, value: any) => {
     try {
       const fieldSchema = resolvedSchema?.shape?.[fieldName];
       if (fieldSchema) {
@@ -219,13 +224,27 @@ function SmartForm<T extends z.ZodSchema>({
   };
 
   // 🎯 Manejo de cambios en inputs con validación en tiempo real
-  const handleInputChange = (name: string, value: string) => {
+  const handleInputChange = (name: string, value: string, fieldType?: string) => {
+    // Convertir valor según el tipo de campo
+    let processedValue: any = value;
+    
+    if (fieldType === "number" && value !== "") {
+      // Para campos numéricos, convertir a número
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        processedValue = numValue;
+      }
+    } else if (fieldType === "date" && value !== "") {
+      // Para campos de fecha, mantener como string pero en formato ISO
+      processedValue = value;
+    }
+    
     // Actualizar data del formulario
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
     
     // Validación en tiempo real (opcional pero útil)
     if (value.trim() !== "") {
-      validateField(name, value);
+      validateField(name, processedValue);
     } else {
       // Limpiar error si el campo se vacía
       setFieldErrors(prev => {
@@ -240,7 +259,7 @@ function SmartForm<T extends z.ZodSchema>({
     <>
       {/* 🔝 Contenido superior (fuera del form) */}
       {topProps && <div className="form-top-content">{topProps}</div>}
-      
+
       {/* 📋 Formulario principal con validación Zod */}
       <form onSubmit={handleSubmit} className={className}>
         {/* ✅ Mensajes de éxito externos */}
@@ -264,20 +283,46 @@ function SmartForm<T extends z.ZodSchema>({
         </Message>
 
         {/* 📝 Campos del formulario con validación Zod */}
-        {resolvedFields?.map((field) => (
-          <Input
-            key={field.name}
-            id={field.name}
-            label={field.label}
-            name={field.name}
-            type={field.type || "text"}
-            required={true} // Siempre requerido, Zod maneja la validación
-            value={formData[field.name as keyof z.infer<T>] as string || ""}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            placeholder={field.placeholder}
-            error={fieldErrors[field.name]} // Solo errores de Zod
-          />
-        ))}
+        {resolvedFields?.map((field) => {
+          if (field.type === "select") {
+            return (
+              <Select
+                key={field.name}
+                id={field.name}
+                label={field.label}
+                name={field.name}
+                required={true}
+                value={(formData[field.name as keyof z.infer<T>] as string) || ""}
+                onChange={(e) => handleInputChange(field.name, e.target.value, field.type)}
+                placeholder={field.placeholder}
+                options={field.options || []}
+                error={fieldErrors[field.name]}
+              />
+            );
+          } else {
+            return (
+              <Input
+                key={field.name}
+                id={field.name}
+                label={field.label}
+                name={field.name}
+                type={field.type || "text"}
+                required={true} // Siempre requerido, Zod maneja la validación
+                value={
+                  field.type === "number" 
+                    ? (formData[field.name as keyof z.infer<T>] as number)?.toString() || ""
+                    : (formData[field.name as keyof z.infer<T>] as string) || ""
+                }
+                onChange={(e) => handleInputChange(field.name, e.target.value, field.type)}
+                placeholder={field.placeholder}
+                step={field.step}
+                min={field.min}
+                max={field.max}
+                error={fieldErrors[field.name]} // Solo errores de Zod
+              />
+            );
+          }
+        })}
 
         {/* 🚀 Botón de submit con estado de loading */}
         <Button type="submit" disabled={isLoading}>
@@ -288,11 +333,11 @@ function SmartForm<T extends z.ZodSchema>({
         {isMultiMode && onModeChange && modeToggleText && (
           <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--color-muted)", marginTop: "1rem" }}>
             {modeToggleText[currentMode]}{" "}
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => {
                 handleModeChange();
-                const nextMode = Object.keys(modes).find(mode => mode !== currentMode) || currentMode;
+                const nextMode = Object.keys(modes).find((mode) => mode !== currentMode) || currentMode;
                 onModeChange(nextMode);
               }}
               style={{
@@ -302,7 +347,7 @@ function SmartForm<T extends z.ZodSchema>({
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = "var(--color-primary-hover)";
@@ -313,7 +358,7 @@ function SmartForm<T extends z.ZodSchema>({
                 e.currentTarget.style.textDecoration = "none";
               }}
             >
-              {Object.keys(modes).find(mode => mode !== currentMode)}
+              {Object.keys(modes).find((mode) => mode !== currentMode)}
             </button>
           </p>
         )}

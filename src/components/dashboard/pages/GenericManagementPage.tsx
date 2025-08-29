@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Column } from "@/components/ui";
 import { PaginationMeta } from "@/types/api";
 import { useManagementPage } from "@/hooks/useManagementPage";
@@ -66,6 +67,7 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
   config,
   userRole,
 }: GenericManagementPageProps<T, TParams, TFilters>) {
+  const router = useRouter();
   const isClient = useIsClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
@@ -99,9 +101,15 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
     handleSort,
   } = managementData;
 
-  // Modal handlers
-  const handleOpenCreateModal = () => {
-    setIsCreateModalOpen(true);
+  // Create handler - redirige a página o abre modal
+  const handleCreate = () => {
+    if (config.createUrl) {
+      // Si hay createUrl, redirigir a la página dedicada
+      router.push(config.createUrl);
+    } else {
+      // Si no hay createUrl, usar modal (comportamiento anterior)
+      setIsCreateModalOpen(true);
+    }
   };
 
   const handleCloseCreateModal = () => {
@@ -111,6 +119,52 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
   const handleCreateSuccess = () => {
     fetchData(); // Refresh data after successful creation
   };
+
+  // Render action buttons for each row
+  const renderActions = useCallback((item: T) => {
+    const itemId = (item as any).id;
+    const entityPaths = {
+      authors: "/dashboard/authors",
+      books: "/dashboard/books", 
+      genres: "/dashboard/genres",
+      publishers: "/dashboard/publishers",
+      users: "/dashboard/users"
+    };
+    
+    const basePath = entityPaths[config.entityType as keyof typeof entityPaths];
+    if (!basePath || !itemId) return null;
+
+    return (
+      <div className="flex space-x-2 justify-center">
+        <button
+          onClick={() => router.push(`${basePath}/${itemId}`)}
+          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+          title="Ver detalles"
+        >
+          <svg 
+            className="w-5 h-5" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+            />
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+            />
+          </svg>
+        </button>
+      </div>
+    );
+  }, [config.entityType, router]);
 
   return (
     <HydrationGuard fallback={
@@ -138,16 +192,17 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
           error={error}
           emptyMessage={config.emptyMessage}
           createButtonText={config.createButtonText}
-          onCreate={handleOpenCreateModal}
+          onCreate={handleCreate}
           onRefresh={() => fetchData()}
           onPageChange={handlePageChange}
           onSort={handleSort}
           hideCreateButton={config.hideCreateButton || false}
-          hideActions={config.hideActions || true}
+          hideActions={config.hideActions || false}
+          renderActions={renderActions}
         />
 
-        {/* Create Modal */}
-        {config.entityType && (
+        {/* Create Modal - solo mostrar si no hay createUrl */}
+        {config.entityType && !config.createUrl && (
           <CreateModalOptimized
             isOpen={isCreateModalOpen}
             onClose={handleCloseCreateModal}

@@ -34,10 +34,21 @@ class ApiClient {
       }
 
       if (!response.ok) {
-
         // Adaptar error a un formato uniforme
+        // El backend puede devolver message como string o array de strings
+        let errorMessage = "Error desconocido";
+        if (data?.message) {
+          if (Array.isArray(data.message)) {
+            errorMessage = data.message.join(", ");
+          } else {
+            errorMessage = data.message;
+          }
+        } else {
+          errorMessage = response.statusText || "Error desconocido";
+        }
+
         const errorData: ApiError = {
-          message: data?.message || response.statusText || "Error desconocido",
+          message: errorMessage,
           error: data?.error || "Request Error",
           statusCode: data?.statusCode || response.status,
         };

@@ -11,7 +11,7 @@ const createAuthorFields: TypedFormField<CreateAuthorFormData>[] = [
   { name: "firstName", label: "Nombre", type: "text", placeholder: "Ej: Gabriel" },
   { name: "lastName", label: "Apellidos", type: "text", placeholder: "Ej: García Márquez" },
   { name: "nationality", label: "Nacionalidad", type: "text", placeholder: "Ej: Colombiana" },
-  { name: "birthDate", label: "Fecha de nacimiento", type: "text", placeholder: "YYYY-MM-DD" },
+  { name: "birthDate", label: "Fecha de nacimiento", type: "date", placeholder: "YYYY-MM-DD" },
   { name: "biography", label: "Biografía", type: "textarea", placeholder: "Información sobre el autor..." }
 ];
 
@@ -20,7 +20,7 @@ const editAuthorFields: TypedFormField<UpdateAuthorFormData>[] = [
   { name: "firstName", label: "Nombre", type: "text", placeholder: "Ej: Gabriel" },
   { name: "lastName", label: "Apellidos", type: "text", placeholder: "Ej: García Márquez" },
   { name: "nationality", label: "Nacionalidad", type: "text", placeholder: "Ej: Colombiana" },
-  { name: "birthDate", label: "Fecha de nacimiento", type: "text", placeholder: "YYYY-MM-DD" },
+  { name: "birthDate", label: "Fecha de nacimiento", type: "date", placeholder: "YYYY-MM-DD" },
   { name: "biography", label: "Biografía", type: "textarea", placeholder: "Información sobre el autor..." }
 ];
 
@@ -30,7 +30,7 @@ export const authorsFormConfig: EntityFormConfig<CreateAuthorFormData, UpdateAut
   createFields: createAuthorFields,
   editFields: editAuthorFields,
   entityName: "Author",
-  createSubmitText: "Crear Autor",
+  createSubmitText: "Guardar",
   editSubmitText: "Actualizar Autor",
   createLoadingText: "Creando autor...",
   editLoadingText: "Actualizando autor...",

@@ -15,26 +15,39 @@ export const usersFormConfig: EntityFormConfig<CreateUserFormData, UpdateUserFor
     { name: "username", label: "Nombre de usuario", type: "text", placeholder: "Ej: juan_perez" },
     { name: "email", label: "Correo electrónico", type: "email", placeholder: "usuario@ejemplo.com" },
     { name: "password", label: "Contraseña", type: "password", placeholder: "Mínimo 8 caracteres" },
-    { name: "roleId", label: "Rol", type: "text", placeholder: "Seleccionar rol..." }
+    { 
+      name: "roleId", 
+      label: "Rol", 
+      type: "select", 
+      placeholder: "Seleccionar rol...",
+      options: [
+        { value: "1", label: "Administrador" },
+        { value: "2", label: "Usuario" }
+      ]
+    }
   ],
   
   editFields: [
     { name: "username", label: "Nombre de usuario", type: "text", placeholder: "Ej: juan_perez" },
     { name: "email", label: "Correo electrónico", type: "email", placeholder: "usuario@ejemplo.com" },
     { name: "password", label: "Nueva contraseña (opcional)", type: "password", placeholder: "Dejar vacío para mantener actual" },
-    { name: "roleId", label: "Rol", type: "text", placeholder: "Seleccionar rol..." }
+    { 
+      name: "roleId", 
+      label: "Rol", 
+      type: "select", 
+      placeholder: "Seleccionar rol...",
+      options: [
+        { value: "1", label: "Administrador" },
+        { value: "2", label: "Usuario" }
+      ]
+    }
   ],
 
-  apiService: {
-    create: usersApi.create
-  },
-
-  texts: {
-    createSubmitText: "Crear Usuario",
-    editSubmitText: "Actualizar Usuario",
-    createLoadingText: "Creando usuario...",
-    editLoadingText: "Actualizando usuario...",
-    createSuccessMessage: "Usuario creado exitosamente",
-    editSuccessMessage: "Usuario actualizado exitosamente"
-  }
+  entityName: "usuario",
+  createSubmitText: "Crear Usuario",
+  editSubmitText: "Actualizar Usuario",
+  createLoadingText: "Creando usuario...",
+  editLoadingText: "Actualizando usuario...",
+  createSuccessMessage: "Usuario creado exitosamente",
+  editSuccessMessage: "Usuario actualizado exitosamente"
 };
