@@ -1,0 +1,6512 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "example": "2024-01-01T00:00:00.000Z"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "example": 123.456
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "Health Check"
+        ]
+      }
+    },
+    "/api/audit": {
+      "get": {
+        "description": "Obtiene una lista paginada de todos los registros de auditoría del sistema. Solo accesible para administradores.",
+        "operationId": "AuditController_getAuditTrail",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros de auditoría obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener registros de auditoría - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/audit/user/{userId}": {
+      "get": {
+        "description": "Obtiene una lista paginada de registros de auditoría de un usuario específico. Solo accesible para administradores.",
+        "operationId": "AuditController_getUserAuditHistory",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "ID único del usuario para obtener su auditoría (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros de auditoría del usuario obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante"
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador"
+          },
+          "404": {
+            "description": "Usuario no encontrado con el ID proporcionado"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener auditoría por usuario - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/audit/entity/{entityId}": {
+      "get": {
+        "description": "Obtiene una lista paginada de registros de auditoría de una entidad específica. Solo accesible para administradores.",
+        "operationId": "AuditController_getEntityAuditHistory",
+        "parameters": [
+          {
+            "name": "entityId",
+            "required": true,
+            "in": "path",
+            "description": "ID único de la entidad para obtener su auditoría (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros de auditoría de la entidad obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante"
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador"
+          },
+          "404": {
+            "description": "Entidad no encontrada con el ID proporcionado"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener auditoría por entidad - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/audit/action/{action}": {
+      "get": {
+        "description": "Obtiene una lista paginada de registros de auditoría filtrados por tipo de acción. Solo accesible para administradores.",
+        "operationId": "AuditController_getAuditsByAction",
+        "parameters": [
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "description": "Tipo de acción de auditoría a filtrar",
+            "schema": {
+              "enum": [
+                "CREATE",
+                "UPDATE",
+                "DELETE",
+                "LOGIN",
+                "REGISTER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros de auditoría filtrados por acción obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener registros de auditoría por acción - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/audit/type/{entityType}": {
+      "get": {
+        "description": "Obtiene una lista paginada de registros de auditoría filtrados por tipo de entidad. Solo accesible para administradores.",
+        "operationId": "AuditController_getAuditsByEntityType",
+        "parameters": [
+          {
+            "name": "entityType",
+            "required": true,
+            "in": "path",
+            "description": "Tipo de entidad a filtrar (ej: User, BookCatalog, BookGenre)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros de auditoría filtrados por tipo de entidad obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener registros de auditoría por tipo de entidad - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/audit/search": {
+      "get": {
+        "description": "Busca registros de auditoría por término en el campo de detalles. Solo accesible para administradores.",
+        "operationId": "AuditController_searchAuditLogs",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar por detalles de auditoría",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda de auditoría obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AuditLogListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Buscar registros de auditoría - Acceso: ADMIN",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "description": "Autentica al usuario con credenciales y devuelve un token JWT",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Iniciar sesión de usuario - Acceso: Público",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "description": "Crea una nueva cuenta de usuario en el sistema",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario ya existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar nuevo usuario - Acceso: Público",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "description": "Obtiene la información del perfil del usuario autenticado",
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Perfil de usuario obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener perfil del usuario actual - Acceso: ADMIN, USER",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/users": {
+      "post": {
+        "description": "Crea un nuevo usuario en el sistema. Solo accesible para administradores.",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UserResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El usuario ya existe en el sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Crear nuevo usuario - Acceso: ADMIN",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todos los usuarios del sistema. Solo accesible para administradores.",
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UserListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener lista de usuarios - Acceso: ADMIN",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "description": "Obtiene la información detallada de un usuario específico por su ID único.",
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del usuario (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UserResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - No tiene permisos para ver este usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado con el ID proporcionado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Obtener usuario por ID - Acceso: ADMIN",
+        "tags": [
+          "Users"
+        ]
+      },
+      "put": {
+        "description": "Actualiza la información de un usuario existente. Los usuarios pueden actualizar su propio perfil, los administradores pueden actualizar cualquier usuario.",
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del usuario a actualizar (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UserResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - No tiene permisos para actualizar este usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado con el ID proporcionado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto - El nombre de usuario o email ya están en uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Actualizar información de usuario - Acceso: ADMIN",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "description": "Realiza una eliminación lógica (soft delete) de un usuario del sistema. Solo accesible para administradores.",
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del usuario a eliminar (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado exitosamente del sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado con el ID proporcionado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Eliminar usuario del sistema - Acceso: ADMIN",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/genres": {
+      "post": {
+        "description": "Crea un nuevo género de libro en el catálogo. Solo accesible para administradores.",
+        "operationId": "BookGenresController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookGenreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Género de libro creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El género ya existe en el sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Crear nuevo género de libro - Acceso: ADMIN",
+        "tags": [
+          "Book Genres"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todos los géneros de libros disponibles en el sistema.",
+        "operationId": "BookGenresController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Géneros de libros obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "page": {
+                              "type": "number"
+                            },
+                            "limit": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "hasNext": {
+                              "type": "boolean"
+                            },
+                            "hasPrev": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener géneros de libros - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Genres"
+        ]
+      }
+    },
+    "/api/genres/search": {
+      "get": {
+        "description": "Busca géneros de libros por término en nombre o descripción.",
+        "operationId": "BookGenresController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar géneros por nombre o descripción",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda de géneros obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "page": {
+                              "type": "number"
+                            },
+                            "limit": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "hasNext": {
+                              "type": "boolean"
+                            },
+                            "hasPrev": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Buscar géneros de libros - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Genres"
+        ]
+      }
+    },
+    "/api/genres/{id}": {
+      "get": {
+        "description": "Obtiene un género específico de libros utilizando su ID único.",
+        "operationId": "BookGenresController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del género de libro",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Género de libro obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Género no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener género por ID - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Genres"
+        ]
+      },
+      "put": {
+        "description": "Actualiza un género de libro existente. Solo accesible para administradores.",
+        "operationId": "BookGenresController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del género de libro a actualizar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Datos para actualizar el género de libro",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookGenreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Género de libro obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud incorrecta - Datos de entrada inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Género no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Actualizar género de libro - Acceso: ADMIN",
+        "tags": [
+          "Book Genres"
+        ]
+      },
+      "delete": {
+        "description": "Elimina (soft delete) un género de libro del sistema. Solo accesible para administradores.",
+        "operationId": "BookGenresController_softDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del género de libro a eliminar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Género de libro eliminado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Género no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Eliminar género de libro - Acceso: ADMIN",
+        "tags": [
+          "Book Genres"
+        ]
+      }
+    },
+    "/api/publishing-houses": {
+      "post": {
+        "description": "Crea una nueva editorial en el sistema. Solo accesible para administradores.",
+        "operationId": "PublishingHousesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePublishingHouseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Editorial creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePublishingHouseResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La editorial ya existe en el sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Crear nueva editorial - Acceso: ADMIN",
+        "tags": [
+          "Publishing Houses"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todas las editoriales registradas con filtros opcionales. Endpoint público.",
+        "operationId": "PublishingHousesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar por nombre de la editorial",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "País para filtrar editoriales",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de editoriales obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishingHouseListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener lista de editoriales - Acceso: ADMIN, USER",
+        "tags": [
+          "Publishing Houses"
+        ]
+      }
+    },
+    "/api/publishing-houses/search": {
+      "get": {
+        "description": "Busca editoriales por término en nombre, descripción o país.",
+        "operationId": "PublishingHousesController_search",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar editoriales",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda de editoriales obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishingHouseListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Buscar editoriales - Acceso: ADMIN, USER",
+        "tags": [
+          "Publishing Houses"
+        ]
+      }
+    },
+    "/api/publishing-houses/by-country/{country}": {
+      "get": {
+        "description": "Obtiene una lista paginada de editoriales filtradas por un país específico.",
+        "operationId": "PublishingHousesController_findByCountry",
+        "parameters": [
+          {
+            "name": "country",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del país para filtrar las editoriales",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editoriales del país especificado obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishingHouseListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener editoriales por país - Acceso: ADMIN, USER",
+        "tags": [
+          "Publishing Houses"
+        ]
+      }
+    },
+    "/api/publishing-houses/{id}": {
+      "get": {
+        "description": "Obtiene los detalles completos de una editorial específica usando su ID único. Endpoint público.",
+        "operationId": "PublishingHousesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único de la editorial",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editorial encontrada y devuelta exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishingHouseResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Editorial no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener editorial por ID - Acceso: ADMIN, USER",
+        "tags": [
+          "Publishing Houses"
+        ]
+      },
+      "patch": {
+        "description": "Actualiza la información de una editorial existente. Solo accesible para administradores.",
+        "operationId": "PublishingHousesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único de la editorial a actualizar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePublishingHouseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Editorial actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePublishingHouseResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Editorial no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe otra editorial con el mismo nombre",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Actualizar información de la editorial - Acceso: ADMIN",
+        "tags": [
+          "Publishing Houses"
+        ]
+      },
+      "delete": {
+        "description": "Elimina una editorial del sistema (eliminación lógica). Solo accesible para administradores.",
+        "operationId": "PublishingHousesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único de la editorial a eliminar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editorial eliminada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePublishingHouseResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Editorial no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Eliminar editorial del sistema - Acceso: ADMIN",
+        "tags": [
+          "Publishing Houses"
+        ]
+      }
+    },
+    "/api/book-authors": {
+      "post": {
+        "description": "Crea un nuevo autor en el sistema. Solo accesible para administradores.",
+        "operationId": "BookAuthorsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookAuthorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Autor creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookAuthorResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El autor ya existe en el sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Crear nuevo autor - Acceso: ADMIN",
+        "tags": [
+          "Book Authors"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todos los autores registrados con filtros opcionales. Endpoint público.",
+        "operationId": "BookAuthorsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar por nombre o apellido",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nationality",
+            "required": false,
+            "in": "query",
+            "description": "Nacionalidad para filtrar autores",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de autores obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookAuthorListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener lista de autores - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Authors"
+        ]
+      }
+    },
+    "/api/book-authors/search": {
+      "get": {
+        "description": "Busca autores por término en nombre, apellido o biografía.",
+        "operationId": "BookAuthorsController_search",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar autores",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda de autores obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookAuthorListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Buscar autores - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Authors"
+        ]
+      }
+    },
+    "/api/book-authors/by-name/{firstName}/{lastName}": {
+      "get": {
+        "description": "Obtiene un autor específico utilizando su nombre y apellido.",
+        "operationId": "BookAuthorsController_findByFullName",
+        "parameters": [
+          {
+            "name": "firstName",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del autor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lastName",
+            "required": true,
+            "in": "path",
+            "description": "Apellido del autor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autor obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookAuthorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Autor no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener autor por nombre completo - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Authors"
+        ]
+      }
+    },
+    "/api/book-authors/{id}": {
+      "get": {
+        "description": "Obtiene los detalles completos de un autor específico usando su ID único. Endpoint público.",
+        "operationId": "BookAuthorsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del autor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autor encontrado y devuelto exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookAuthorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Autor no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener autor por ID - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Authors"
+        ]
+      },
+      "patch": {
+        "description": "Actualiza la información de un autor existente. Solo accesible para administradores.",
+        "operationId": "BookAuthorsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del autor a actualizar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookAuthorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autor actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookAuthorResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Autor no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe otro autor con el mismo nombre y apellido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Actualizar información del autor - Acceso: ADMIN",
+        "tags": [
+          "Book Authors"
+        ]
+      },
+      "delete": {
+        "description": "Elimina un autor del sistema (eliminación lógica). Solo accesible para administradores.",
+        "operationId": "BookAuthorsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del autor a eliminar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autor eliminado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteBookAuthorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Autor no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Eliminar autor del sistema - Acceso: ADMIN",
+        "tags": [
+          "Book Authors"
+        ]
+      }
+    },
+    "/api/book-catalog": {
+      "post": {
+        "description": "Crea un nuevo libro en el catálogo del sistema. Solo accesible para administradores.",
+        "operationId": "BookCatalogController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookCatalogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Libro creado exitosamente en el catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BookCatalogResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El código ISBN ya existe en el catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Crear nuevo libro en el catálogo - Acceso: ADMIN",
+        "tags": [
+          "Book Catalog"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todos los libros en el catálogo con filtros opcionales. Endpoint público.",
+        "operationId": "BookCatalogController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda para filtrar por título del libro",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "genreId",
+            "required": false,
+            "in": "query",
+            "description": "ID del género para filtrar libros por categoría",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "publisherId",
+            "required": false,
+            "in": "query",
+            "description": "ID de la editorial para filtrar libros por publicador",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isAvailable",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por disponibilidad del libro",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "Precio mínimo para filtrar libros",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "description": "Precio máximo para filtrar libros",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catálogo de libros obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener catálogo de libros - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/search": {
+      "get": {
+        "description": "Busca libros en el catálogo por un término de búsqueda en el título, código ISBN o resumen. Endpoint público.",
+        "operationId": "BookCatalogController_search",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de la búsqueda de libros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Buscar libros en el catálogo - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/filter": {
+      "post": {
+        "description": "Filtra libros del catálogo utilizando criterios avanzados como género, precio, disponibilidad, etc.",
+        "operationId": "BookCatalogController_filter",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Criterios de filtrado para los libros",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookFiltersDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Libros filtrados obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Filtrar libros con criterios avanzados - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/available": {
+      "get": {
+        "description": "Obtiene una lista paginada de libros disponibles para compra en el catálogo.",
+        "operationId": "BookCatalogController_findAvailable",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Libros disponibles obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener libros disponibles - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/by-genre/{genreId}": {
+      "get": {
+        "description": "Obtiene una lista paginada de libros que pertenecen a un género específico.",
+        "operationId": "BookCatalogController_findByGenre",
+        "parameters": [
+          {
+            "name": "genreId",
+            "required": true,
+            "in": "path",
+            "description": "ID del género para filtrar los libros",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Libros del género especificado obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener libros por género - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/by-publisher/{publisherId}": {
+      "get": {
+        "description": "Obtiene una lista paginada de libros que pertenecen a una editorial específica.",
+        "operationId": "BookCatalogController_findByPublisher",
+        "parameters": [
+          {
+            "name": "publisherId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la editorial para filtrar los libros",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Libros de la editorial especificada obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/BookCatalogResponseDto"
+                              }
+                            },
+                            "meta": {
+                              "type": "object",
+                              "properties": {
+                                "total": {
+                                  "type": "number"
+                                },
+                                "page": {
+                                  "type": "number"
+                                },
+                                "limit": {
+                                  "type": "number"
+                                },
+                                "totalPages": {
+                                  "type": "number"
+                                },
+                                "hasNext": {
+                                  "type": "boolean"
+                                },
+                                "hasPrev": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener libros por editorial - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/check-isbn/{isbn}": {
+      "get": {
+        "description": "Verifica si un ISBN específico ya existe en el catálogo de libros. Solo accesible para administradores.",
+        "operationId": "BookCatalogController_checkIsbn",
+        "parameters": [
+          {
+            "name": "isbn",
+            "required": true,
+            "in": "path",
+            "description": "Código ISBN a verificar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verificación de ISBN realizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean",
+                      "description": "Indica si el ISBN ya existe en el catálogo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verificar existencia de ISBN - Acceso: ADMIN",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-catalog/{id}": {
+      "get": {
+        "description": "Obtiene los detalles completos de un libro específico del catálogo usando su ID único. Endpoint público.",
+        "operationId": "BookCatalogController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del libro en el catálogo",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Libro encontrado y devuelto exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BookCatalogResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Libro no encontrado en el catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener libro por ID - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Catalog"
+        ]
+      },
+      "patch": {
+        "description": "Actualiza la información de un libro existente en el catálogo. Solo accesible para administradores.",
+        "operationId": "BookCatalogController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del libro a actualizar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookCatalogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Libro actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BookCatalogResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o errores de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Libro no encontrado en el catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El código ISBN ya está en uso por otro libro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Actualizar libro del catálogo - Acceso: ADMIN",
+        "tags": [
+          "Book Catalog"
+        ]
+      },
+      "delete": {
+        "description": "Elimina un libro del catálogo del sistema (eliminación lógica). Solo accesible para administradores.",
+        "operationId": "BookCatalogController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único del libro a eliminar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Libro eliminado exitosamente del catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Libro no encontrado en el catálogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Eliminar libro del catálogo - Acceso: ADMIN",
+        "tags": [
+          "Book Catalog"
+        ]
+      }
+    },
+    "/api/book-author-assignments": {
+      "post": {
+        "description": "Crea una nueva asignación entre un libro y un autor. Solo accesible para administradores.",
+        "operationId": "BookAuthorAssignmentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos para crear la asignación libro-autor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookAuthorAssignmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asignación libro-autor creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "bookId": {
+                      "type": "string"
+                    },
+                    "authorId": {
+                      "type": "string"
+                    },
+                    "assignmentOrder": {
+                      "type": "number"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud incorrecta - Datos de entrada inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear asignación autor-libro - Acceso: ADMIN",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      },
+      "get": {
+        "description": "Obtiene una lista paginada de todas las asignaciones entre libros y autores.",
+        "operationId": "BookAuthorAssignmentsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignaciones libro-autor obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "bookId": {
+                            "type": "string"
+                          },
+                          "authorId": {
+                            "type": "string"
+                          },
+                          "assignmentOrder": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener asignaciones autor-libro - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      }
+    },
+    "/api/book-author-assignments/by-book/{bookId}": {
+      "get": {
+        "description": "Obtiene todas las asignaciones de autores para un libro específico.",
+        "operationId": "BookAuthorAssignmentsController_findByBook",
+        "parameters": [
+          {
+            "name": "bookId",
+            "required": true,
+            "in": "path",
+            "description": "ID del libro para filtrar asignaciones",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignaciones del libro especificado obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "bookId": {
+                            "type": "string"
+                          },
+                          "authorId": {
+                            "type": "string"
+                          },
+                          "assignmentOrder": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener asignaciones por libro - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      }
+    },
+    "/api/book-author-assignments/by-author/{authorId}": {
+      "get": {
+        "description": "Obtiene todas las asignaciones de libros para un autor específico.",
+        "operationId": "BookAuthorAssignmentsController_findByAuthor",
+        "parameters": [
+          {
+            "name": "authorId",
+            "required": true,
+            "in": "path",
+            "description": "ID del autor para filtrar asignaciones",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "DESC",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignaciones del autor especificado obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "bookId": {
+                            "type": "string"
+                          },
+                          "authorId": {
+                            "type": "string"
+                          },
+                          "assignmentOrder": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener asignaciones por autor - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      }
+    },
+    "/api/book-author-assignments/check/{bookId}/{authorId}": {
+      "get": {
+        "description": "Verifica si existe una asignación entre un libro y un autor específicos.",
+        "operationId": "BookAuthorAssignmentsController_checkAssignment",
+        "parameters": [
+          {
+            "name": "bookId",
+            "required": true,
+            "in": "path",
+            "description": "ID del libro a verificar",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorId",
+            "required": true,
+            "in": "path",
+            "description": "ID del autor a verificar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verificación de asignación realizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean",
+                      "description": "Indica si existe la asignación entre el libro y el autor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verificar existencia de asignación - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      }
+    },
+    "/api/book-author-assignments/{id}": {
+      "get": {
+        "description": "Obtiene una asignación específica entre libro y autor por su ID.",
+        "operationId": "BookAuthorAssignmentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la asignación libro-autor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignación libro-autor obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "bookId": {
+                      "type": "string"
+                    },
+                    "authorId": {
+                      "type": "string"
+                    },
+                    "assignmentOrder": {
+                      "type": "number"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Asignación no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener asignación por ID - Acceso: ADMIN, USER",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      },
+      "patch": {
+        "description": "Actualiza una asignación existente entre un libro y un autor. Solo accesible para administradores.",
+        "operationId": "BookAuthorAssignmentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la asignación libro-autor a actualizar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Datos para actualizar la asignación libro-autor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookAuthorAssignmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asignación libro-autor actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "bookId": {
+                      "type": "string"
+                    },
+                    "authorId": {
+                      "type": "string"
+                    },
+                    "assignmentOrder": {
+                      "type": "number"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud incorrecta - Datos de entrada inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Asignación no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Actualizar asignación autor-libro - Acceso: ADMIN",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      },
+      "delete": {
+        "description": "Elimina (soft delete) una asignación entre un libro y un autor. Solo accesible para administradores.",
+        "operationId": "BookAuthorAssignmentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la asignación libro-autor a eliminar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignación libro-autor eliminada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - Token JWT inválido o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado - Se requieren permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Asignación no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Eliminar asignación autor-libro - Acceso: ADMIN",
+        "tags": [
+          "Book Author Assignments"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Store API Documentation",
+    "description": "Store API is a simple API that allows you to manage books.",
+    "version": "1.0",
+    "contact": {
+
+    }
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "JWT",
+        "description": "Enter JWT token",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "PaginationDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "default": 1
+          },
+          "limit": {
+            "type": "number",
+            "default": 10
+          },
+          "sortBy": {
+            "type": "string",
+            "default": "createdAt"
+          },
+          "sortOrder": {
+            "type": "string",
+            "default": "DESC"
+          },
+          "offset": {
+            "type": "number"
+          }
+        }
+      },
+      "ApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 200,
+            "description": "Status code"
+          },
+          "message": {
+            "type": "string",
+            "example": "Success",
+            "description": "Response message"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      },
+      "AuditLogResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del registro de auditoría",
+            "example": "b8c4e4b2-1234-5678-9abc-def123456789"
+          },
+          "performedBy": {
+            "type": "string",
+            "description": "ID del usuario que realizó la acción",
+            "example": "user-uuid-123"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "ID de la entidad afectada por la acción",
+            "example": "entity-uuid-456"
+          },
+          "action": {
+            "type": "string",
+            "description": "Tipo de acción realizada",
+            "enum": [
+              "CREATE",
+              "UPDATE",
+              "DELETE",
+              "READ",
+              "LOGIN",
+              "REGISTER"
+            ],
+            "example": "CREATE"
+          },
+          "details": {
+            "type": "string",
+            "description": "Descripción detallada de la acción realizada",
+            "example": "Usuario creado exitosamente con email: john@example.com"
+          },
+          "entityType": {
+            "type": "string",
+            "description": "Tipo de entidad afectada",
+            "example": "User"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora cuando se registró la auditoría",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "performedBy",
+          "entityId",
+          "action",
+          "details",
+          "entityType",
+          "createdAt"
+        ]
+      },
+      "AuditLogListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de registros de auditoría",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Información de paginación",
+            "example": {
+              "total": 150,
+              "page": 1,
+              "limit": 20,
+              "totalPages": 8,
+              "hasNext": true,
+              "hasPrev": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UnauthorizedResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 401,
+            "description": "Status code"
+          },
+          "message": {
+            "type": "string",
+            "example": "Unauthorized",
+            "description": "Error message"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de email del usuario",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario",
+            "example": "Password123!",
+            "minLength": 6
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del usuario",
+            "example": "b8c4e4b2-1234-5678-9abc-def123456789"
+          },
+          "username": {
+            "type": "string",
+            "description": "Nombre de usuario único",
+            "example": "john_doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Dirección de email del usuario",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario en el sistema",
+            "example": "USER",
+            "enum": [
+              "ADMIN",
+              "USER"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "Token JWT para autenticación",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "description": "Información del usuario autenticado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "access_token",
+          "user"
+        ]
+      },
+      "BadRequestResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "HTTP status code"
+          },
+          "message": {
+            "description": "Error message or array of validation errors",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "RegisterUserDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Nombre de usuario único para el sistema",
+            "example": "john_doe",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario (mínimo 6 caracteres)",
+            "example": "Password123!",
+            "minLength": 6
+          },
+          "email": {
+            "type": "string",
+            "description": "Dirección de email válida del usuario",
+            "example": "john@example.com",
+            "format": "email"
+          },
+          "roleId": {
+            "type": "string",
+            "description": "ID del rol del usuario en el sistema (UUID). Si no se especifica, se asigna rol USER por defecto",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "email"
+        ]
+      },
+      "RegisterResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Usuario creado exitosamente"
+          },
+          "user": {
+            "description": "Información del usuario creado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "user"
+        ]
+      },
+      "ConflictResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "HTTP status code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Conflict error message"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "UserProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del usuario",
+            "example": "b8c4e4b2-1234-5678-9abc-def123456789"
+          },
+          "username": {
+            "type": "string",
+            "description": "Nombre de usuario único",
+            "example": "john_doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Dirección de email del usuario",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario en el sistema",
+            "example": "USER",
+            "enum": [
+              "ADMIN",
+              "USER"
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del usuario",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del usuario",
+            "example": "2024-01-02T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Nombre de usuario único para el sistema",
+            "example": "john_doe",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario (mínimo 6 caracteres)",
+            "example": "Password123!",
+            "minLength": 6
+          },
+          "email": {
+            "type": "string",
+            "description": "Dirección de email válida del usuario",
+            "example": "john@example.com",
+            "format": "email"
+          },
+          "roleId": {
+            "type": "string",
+            "description": "ID del rol del usuario en el sistema (UUID). Si no se especifica, se asigna rol USER por defecto",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "email"
+        ]
+      },
+      "ForbiddenResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "HTTP status code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Forbidden error message"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del usuario",
+            "example": "b8c4e4b2-1234-5678-9abc-def123456789"
+          },
+          "username": {
+            "type": "string",
+            "description": "Nombre de usuario único",
+            "example": "john_doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Dirección de email del usuario",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario en el sistema",
+            "enum": [
+              "admin",
+              "user"
+            ],
+            "example": "user"
+          },
+          "roleId": {
+            "type": "string",
+            "description": "ID del rol personalizado asignado al usuario",
+            "example": "role-uuid-123"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del usuario",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del usuario",
+            "example": "2024-01-02T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UserListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de usuarios",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Información de paginación",
+            "example": {
+              "total": 25,
+              "page": 1,
+              "limit": 10,
+              "totalPages": 3,
+              "hasNext": true,
+              "hasPrev": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "NotFoundResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "HTTP status code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Not found error message"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+
+        }
+      },
+      "CreateBookGenreDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the book genre",
+            "example": "Science Fiction",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the book genre",
+            "example": "Fiction that deals with futuristic concepts, advanced science and technology, space exploration, time travel, parallel universes, and extraterrestrial life."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateBookGenreDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the book genre",
+            "example": "Science Fiction",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the book genre",
+            "example": "Fiction that deals with futuristic concepts, advanced science and technology, space exploration, time travel, parallel universes, and extraterrestrial life."
+          }
+        }
+      },
+      "CreatePublishingHouseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the publishing house",
+            "example": "Penguin Random House",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "country": {
+            "type": "string",
+            "description": "Country where the publishing house is located",
+            "example": "United States",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "Official website URL of the publishing house",
+            "example": "https://www.penguinrandomhouse.com",
+            "format": "url"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "PublishingHouseResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único de la editorial",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre de la editorial",
+            "example": "Penguin Random House"
+          },
+          "country": {
+            "type": "string",
+            "description": "País donde se ubica la editorial",
+            "example": "Estados Unidos"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "URL del sitio web oficial de la editorial",
+            "example": "https://www.penguinrandomhouse.com"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del registro",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del registro",
+            "example": "2024-01-02T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreatePublishingHouseResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Editorial creada exitosamente"
+          },
+          "publisher": {
+            "description": "Información de la editorial creada",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublishingHouseResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "publisher"
+        ]
+      },
+      "PublishingHouseListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de editoriales",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublishingHouseResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Información de paginación",
+            "example": {
+              "total": 45,
+              "page": 1,
+              "limit": 10,
+              "totalPages": 5,
+              "hasNext": true,
+              "hasPrev": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdatePublishingHouseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the publishing house",
+            "example": "Penguin Random House",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "country": {
+            "type": "string",
+            "description": "Country where the publishing house is located",
+            "example": "United States",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "Official website URL of the publishing house",
+            "example": "https://www.penguinrandomhouse.com",
+            "format": "url"
+          }
+        }
+      },
+      "UpdatePublishingHouseResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Editorial actualizada exitosamente"
+          },
+          "publisher": {
+            "description": "Información de la editorial actualizada",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublishingHouseResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "publisher"
+        ]
+      },
+      "DeletePublishingHouseResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Editorial eliminada exitosamente"
+          },
+          "deletedPublisherId": {
+            "type": "string",
+            "description": "ID de la editorial eliminada",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "required": [
+          "message",
+          "deletedPublisherId"
+        ]
+      },
+      "CreateBookAuthorDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "First name of the author",
+            "example": "Stephen",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name of the author",
+            "example": "King",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "nationality": {
+            "type": "string",
+            "description": "Nationality of the author",
+            "example": "American",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "birthDate": {
+            "format": "date",
+            "type": "string",
+            "description": "Birth date of the author",
+            "example": "1947-10-21"
+          },
+          "biography": {
+            "type": "string",
+            "description": "Biography or description of the author",
+            "example": "Stephen Edwin King is an American author of horror, supernatural fiction, suspense, crime, science-fiction, and fantasy novels."
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName"
+        ]
+      },
+      "BookAuthorResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del autor",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Nombre del autor",
+            "example": "Stephen"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Apellido del autor",
+            "example": "King"
+          },
+          "nationality": {
+            "type": "string",
+            "description": "Nacionalidad del autor",
+            "example": "Estadounidense"
+          },
+          "birthDate": {
+            "format": "date",
+            "type": "string",
+            "description": "Birth date of the author",
+            "example": "1947-10-21"
+          },
+          "biography": {
+            "type": "string",
+            "description": "Biografía del autor",
+            "example": "Stephen Edwin King es un escritor estadounidense de novelas de terror, ficción sobrenatural, suspenso, ciencia ficción y fantasía."
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del registro",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del registro",
+            "example": "2024-01-02T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateBookAuthorResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Autor creado exitosamente"
+          },
+          "author": {
+            "description": "Información del autor creado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookAuthorResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "author"
+        ]
+      },
+      "BookAuthorListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de autores",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookAuthorResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Información de paginación",
+            "example": {
+              "total": 75,
+              "page": 1,
+              "limit": 10,
+              "totalPages": 8,
+              "hasNext": true,
+              "hasPrev": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateBookAuthorDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "First name of the author",
+            "example": "Stephen",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name of the author",
+            "example": "King",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "nationality": {
+            "type": "string",
+            "description": "Nationality of the author",
+            "example": "American",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "birthDate": {
+            "format": "date",
+            "type": "string",
+            "description": "Birth date of the author",
+            "example": "1947-10-21"
+          },
+          "biography": {
+            "type": "string",
+            "description": "Biography or description of the author",
+            "example": "Stephen Edwin King is an American author of horror, supernatural fiction, suspense, crime, science-fiction, and fantasy novels."
+          }
+        }
+      },
+      "UpdateBookAuthorResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Autor actualizado exitosamente"
+          },
+          "author": {
+            "description": "Información del autor actualizado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookAuthorResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "author"
+        ]
+      },
+      "DeleteBookAuthorResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Autor eliminado exitosamente"
+          },
+          "deletedAuthorId": {
+            "type": "string",
+            "description": "ID del autor eliminado",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "required": [
+          "message",
+          "deletedAuthorId"
+        ]
+      },
+      "CreateBookCatalogDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the book",
+            "example": "The Shining",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "isbnCode": {
+            "type": "string",
+            "description": "Unique ISBN code for the book",
+            "example": "9780307743657",
+            "minLength": 10,
+            "maxLength": 13
+          },
+          "price": {
+            "type": "number",
+            "description": "Price of the book",
+            "example": 19.99,
+            "minimum": 0,
+            "format": "decimal"
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Indicates if the book is available for purchase",
+            "example": true,
+            "default": true
+          },
+          "stockQuantity": {
+            "type": "number",
+            "description": "Available stock quantity of the book",
+            "example": 25,
+            "minimum": 0,
+            "default": 0
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "description": "URL of the book cover image",
+            "example": "https://example.com/covers/the-shining.jpg",
+            "format": "url"
+          },
+          "publicationDate": {
+            "format": "date",
+            "type": "string",
+            "description": "Date when the book was published",
+            "example": "1947-09-21"
+          },
+          "pageCount": {
+            "type": "number",
+            "description": "Number of pages in the book",
+            "example": 447,
+            "minimum": 1
+          },
+          "summary": {
+            "type": "string",
+            "description": "Summary or description of the book",
+            "example": "A psychological horror novel that tells the story of Jack Torrance, an aspiring writer and recovering alcoholic who accepts a position as the off-season caretaker of the isolated historic Overlook Hotel."
+          },
+          "genreId": {
+            "type": "string",
+            "description": "Foreign key reference to book genre",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "format": "uuid"
+          },
+          "publisherId": {
+            "type": "string",
+            "description": "Foreign key reference to publishing house",
+            "example": "550e8400-e29b-41d4-a716-446655440001",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "title",
+          "isbnCode",
+          "price",
+          "genreId",
+          "publisherId"
+        ]
+      },
+      "BookCatalogResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID único del libro",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "title": {
+            "type": "string",
+            "description": "Título del libro",
+            "example": "The Shining"
+          },
+          "isbnCode": {
+            "type": "string",
+            "description": "Código ISBN único del libro",
+            "example": "9780307743657"
+          },
+          "price": {
+            "type": "number",
+            "description": "Precio del libro",
+            "example": 19.99
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Indica si el libro está disponible para compra",
+            "example": true
+          },
+          "stockQuantity": {
+            "type": "number",
+            "description": "Cantidad disponible en stock",
+            "example": 25
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "description": "URL de la imagen de portada del libro",
+            "example": "https://example.com/covers/the-shining.jpg"
+          },
+          "publicationDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de publicación del libro",
+            "example": "1977-01-28T00:00:00.000Z"
+          },
+          "pageCount": {
+            "type": "number",
+            "description": "Número de páginas del libro",
+            "example": 447
+          },
+          "summary": {
+            "type": "string",
+            "description": "Resumen o descripción del libro",
+            "example": "Una novela de terror psicológico que cuenta la historia de Jack Torrance..."
+          },
+          "genreId": {
+            "type": "string",
+            "description": "ID del género del libro",
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "publisherId": {
+            "type": "string",
+            "description": "ID de la editorial",
+            "example": "550e8400-e29b-41d4-a716-446655440002"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del registro",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del registro",
+            "example": "2024-01-02T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "isbnCode",
+          "price",
+          "isAvailable",
+          "stockQuantity",
+          "genreId",
+          "publisherId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BookFiltersDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Search term for book title",
+            "example": "Harry Potter"
+          },
+          "genreId": {
+            "type": "string",
+            "description": "Filter by genre ID",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "format": "uuid"
+          },
+          "publisherId": {
+            "type": "string",
+            "description": "Filter by publisher ID",
+            "example": "550e8400-e29b-41d4-a716-446655440001",
+            "format": "uuid"
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Filter by availability status",
+            "example": true
+          },
+          "minPrice": {
+            "type": "number",
+            "description": "Minimum price filter",
+            "example": 10,
+            "minimum": 0
+          },
+          "maxPrice": {
+            "type": "number",
+            "description": "Maximum price filter",
+            "example": 50,
+            "minimum": 0
+          },
+          "author": {
+            "type": "string",
+            "description": "Search term for author name",
+            "example": "J.K. Rowling"
+          }
+        }
+      },
+      "UpdateBookCatalogDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the book",
+            "example": "The Shining",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "isbnCode": {
+            "type": "string",
+            "description": "Unique ISBN code for the book",
+            "example": "9780307743657",
+            "minLength": 10,
+            "maxLength": 13
+          },
+          "price": {
+            "type": "number",
+            "description": "Price of the book",
+            "example": 19.99,
+            "minimum": 0,
+            "format": "decimal"
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Indicates if the book is available for purchase",
+            "example": true,
+            "default": true
+          },
+          "stockQuantity": {
+            "type": "number",
+            "description": "Available stock quantity of the book",
+            "example": 25,
+            "minimum": 0,
+            "default": 0
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "description": "URL of the book cover image",
+            "example": "https://example.com/covers/the-shining.jpg",
+            "format": "url"
+          },
+          "publicationDate": {
+            "format": "date",
+            "type": "string",
+            "description": "Date when the book was published",
+            "example": "1947-09-21"
+          },
+          "pageCount": {
+            "type": "number",
+            "description": "Number of pages in the book",
+            "example": 447,
+            "minimum": 1
+          },
+          "summary": {
+            "type": "string",
+            "description": "Summary or description of the book",
+            "example": "A psychological horror novel that tells the story of Jack Torrance, an aspiring writer and recovering alcoholic who accepts a position as the off-season caretaker of the isolated historic Overlook Hotel."
+          },
+          "genreId": {
+            "type": "string",
+            "description": "Foreign key reference to book genre",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "format": "uuid"
+          },
+          "publisherId": {
+            "type": "string",
+            "description": "Foreign key reference to publishing house",
+            "example": "550e8400-e29b-41d4-a716-446655440001",
+            "format": "uuid"
+          }
+        }
+      },
+      "CreateBookAuthorAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "description": "ID of the book being assigned",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "authorId": {
+            "type": "string",
+            "description": "ID of the author being assigned",
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "authorRole": {
+            "type": "string",
+            "description": "Role of the author in this book (e.g., \"Main Author\", \"Co-Author\")",
+            "example": "Main Author",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "bookId",
+          "authorId"
+        ]
+      },
+      "UpdateBookAuthorAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "description": "ID of the book being assigned",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "authorId": {
+            "type": "string",
+            "description": "ID of the author being assigned",
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "authorRole": {
+            "type": "string",
+            "description": "Role of the author in this book (e.g., \"Main Author\", \"Co-Author\")",
+            "example": "Main Author",
+            "maxLength": 100
+          }
+        }
+      }
+    }
+  }
+}
