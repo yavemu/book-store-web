@@ -6,3 +6,4 @@ export * from './publishing-houses';
 export * from './books';
 export * from './book-author-assignments';
 export * from './health';
+export * from './audit';

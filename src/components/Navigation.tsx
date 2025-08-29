@@ -14,10 +14,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard' },
-  { label: 'Usuarios', path: '/users', requiredRole: 'ADMIN' },
+  { label: 'Libros', path: '/books' },
   { label: 'Géneros', path: '/genres' },
   { label: 'Autores', path: '/authors' },
   { label: 'Editoriales', path: '/publishers' },
+  { label: 'Usuarios', path: '/users', requiredRole: 'ADMIN' },
   { label: 'Auditoría', path: '/audit', requiredRole: 'ADMIN' }
 ];
 

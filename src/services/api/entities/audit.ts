@@ -1,5 +1,26 @@
 import { apiClient } from '../client';
-import { AuditLogResponseDto, AuditLogListResponseDto } from "@/types/api/entities";
+
+export interface AuditLog {
+  id: string;
+  performedBy: string; // Updated to match API response
+  entityId: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
+  details: string;
+  entityType: string;
+  createdAt: string;
+}
+
+export interface AuditLogListResponse {
+  data: AuditLog[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();
@@ -39,7 +60,7 @@ export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
 
 export const auditApi = {
   // Obtener lista paginada de todos los registros de auditoría (solo admin)
-  list: (params?: AuditListParams): Promise<AuditLogListResponseDto> => {
+  list: (params?: AuditListParams): Promise<AuditLogListResponse> => {
     const defaultParams = {
       page: 1,
       limit: 20,
@@ -53,7 +74,7 @@ export const auditApi = {
   },
 
   // Obtener registros de auditoría por usuario específico (solo admin)
-  getUserAuditHistory: (userId: string, params?: Pick<AuditListParams, 'page' | 'limit'>): Promise<AuditLogListResponseDto> => {
+  getUserAuditHistory: (userId: string, params?: Pick<AuditListParams, 'page' | 'limit'>): Promise<AuditLogListResponse> => {
     const defaultParams = {
       page: 1,
       limit: 20,
@@ -65,7 +86,7 @@ export const auditApi = {
   },
 
   // Obtener registros de auditoría por entidad específica (solo admin)
-  getEntityAuditHistory: (entityId: string, params?: Pick<AuditListParams, 'page' | 'limit'>): Promise<AuditLogListResponseDto> => {
+  getEntityAuditHistory: (entityId: string, params?: Pick<AuditListParams, 'page' | 'limit'>): Promise<AuditLogListResponse> => {
     const defaultParams = {
       page: 1,
       limit: 20,
@@ -77,7 +98,7 @@ export const auditApi = {
   },
 
   // Obtener registros de auditoría por tipo de acción (solo admin)
-  getAuditsByAction: (action: AuditAction, params?: AuditListParams): Promise<AuditLogListResponseDto> => {
+  getAuditsByAction: (action: AuditAction, params?: AuditListParams): Promise<AuditLogListResponse> => {
     const defaultParams = {
       page: 1,
       limit: 20,
@@ -91,7 +112,7 @@ export const auditApi = {
   },
 
   // Obtener registros de auditoría por tipo de entidad (solo admin)
-  getAuditsByEntityType: (entityType: string, params?: AuditListParams): Promise<AuditLogListResponseDto> => {
+  getAuditsByEntityType: (entityType: string, params?: AuditListParams): Promise<AuditLogListResponse> => {
     const defaultParams = {
       page: 1,
       limit: 20,
@@ -105,7 +126,7 @@ export const auditApi = {
   },
 
   // Buscar registros de auditoría por término en detalles (solo admin)
-  search: (params: AuditSearchParams): Promise<AuditLogListResponseDto> => {
+  search: (params: AuditSearchParams): Promise<AuditLogListResponse> => {
     const defaultParams = {
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
