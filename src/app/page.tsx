@@ -12,7 +12,9 @@ export default function Home() {
 
   // Redirect to dashboard if authenticated (based on auth state, not just token)
   useEffect(() => {
+    console.log('🔄 Auth state changed:', { isAuthenticated, user: !!user, authLoading });
     if (!authLoading && isAuthenticated && user) {
+      console.log('🚀 Redirigiendo al dashboard...');
       router.push("/dashboard");
     }
   }, [isAuthenticated, user, authLoading, router]);
@@ -41,9 +43,9 @@ export default function Home() {
   }
 
   const handleLoginSuccess = () => {
-    // Redux automatically updates auth state after successful login
-    // Just redirect to dashboard
-    router.push("/dashboard");
+    // No hacer nada aquí, la redirección se maneja automáticamente
+    // cuando el estado de Redux se actualiza en el useEffect
+    console.log('🎯 Login success callback - esperando actualización del estado Redux...');
   };
 
 

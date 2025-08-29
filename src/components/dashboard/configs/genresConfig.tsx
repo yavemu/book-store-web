@@ -1,12 +1,14 @@
 import { Column } from "@/components/ui";
 import { genresApi } from "@/services/api/entities/genres";
-import { BookGenre, GenreListParams, GenreFiltersDto } from "@/types/genres";
+import { BookGenre, GenreListParams, GenreFiltersDto } from "@/types/api/entities";
 import { formatDate } from "@/utils/dateFormatter";
 
 export const genresManagementConfig = {
   title: "Panel Administrativo de Géneros",
   createButtonText: "Crear Género",
   createUrl: "/dashboard/genres/create",
+  editUrl: "/dashboard/genres/edit",
+  entityType: "genres" as const,
   emptyMessage: "No se encontraron géneros. Crea tu primer género para comenzar.",
   errorMessage: "Error al cargar los géneros",
   initialParams: {

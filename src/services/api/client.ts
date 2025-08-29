@@ -1,5 +1,5 @@
-import { environment } from '@/config/environment';
-import { ApiError } from '@/types/api';
+import { environment } from "@/config/environment";
+import { ApiError } from "@/types/api";
 import { authService } from "@/services/api";
 
 class ApiClient {
@@ -7,13 +7,9 @@ class ApiClient {
 
   constructor() {
     this.baseURL = environment.apiUrl;
-    console.log('🏗️ ApiClient: Inicializando con baseURL:', this.baseURL);
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const token = authService.getToken();
 
@@ -26,55 +22,115 @@ class ApiClient {
       ...options,
     };
 
-    console.log('🌐 ApiClient: Haciendo request a:', url, 'con config:', config);
-
     try {
       const response = await fetch(url, config);
-      console.log('📨 ApiClient: Respuesta recibida, status:', response.status);
-      
+
+      const contentType = response.headers.get("content-type");
+      let data: any = null;
+
+      // Si hay body, lo parseamos
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      }
+
       if (!response.ok) {
-        console.error('❌ ApiClient: Response no ok, status:', response.status);
+
+        // Adaptar error a un formato uniforme
         const errorData: ApiError = {
-          message: `HTTP ${response.status}: ${response.statusText}`,
-          status: response.status,
+          message: data?.message || response.statusText || "Error desconocido",
+          error: data?.error || "Request Error",
+          statusCode: data?.statusCode || response.status,
         };
+
         throw errorData;
       }
 
-      const data = await response.json();
-      console.log('✅ ApiClient: Data parseada:', data);
-      return data;
+      // El backend siempre devuelve respuestas exitosas en formato: {data: {...}, message: "..."}
+      // Extraemos automáticamente la propiedad 'data' para simplificar el manejo en toda la app
+      if (data && typeof data === "object" && "data" in data && "message" in data) {
+        // SOLUCIÓN TRANSVERSAL: Detectar y normalizar respuestas paginadas automáticamente
+        // Si data.data es un array directo, asumir que es una respuesta paginada que necesita meta
+        if (Array.isArray(data.data)) {
+          // Verificar si ya tiene la estructura correcta {data: [...], meta: {...}}
+          const hasCorrectStructure = data.data.length > 0 && typeof data.data[0] === "object" && "data" in data.data[0] && "meta" in data.data[0];
+
+          if (!hasCorrectStructure) {
+            // Crear estructura paginada estándar para CUALQUIER endpoint que devuelva array
+            const paginatedResponse = {
+              data: data.data,
+              meta: {
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: data.data.length,
+                itemsPerPage: data.data.length,
+                hasNextPage: false,
+                hasPrevPage: false,
+              },
+            };
+
+            return paginatedResponse as T;
+          }
+        }
+
+        // Si data.data no es array pero parece ser una respuesta paginada mal estructurada, normalizarla
+        if (data.data && typeof data.data === "object" && !Array.isArray(data.data)) {
+          // Si tiene 'data' pero no 'meta', agregamos meta por defecto
+          if ("data" in data.data && Array.isArray((data.data as any).data) && !("meta" in data.data)) {
+            const arrayData = (data.data as any).data;
+            const normalizedResponse = {
+              data: arrayData,
+              meta: {
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: arrayData.length,
+                itemsPerPage: arrayData.length,
+                hasNextPage: false,
+                hasPrevPage: false,
+              },
+            };
+            
+            return normalizedResponse as T;
+          }
+        }
+
+        return data.data as T;
+      }
+
+      return data as T;
     } catch (error) {
+
       if (error instanceof Error) {
         throw {
           message: error.message,
-          code: 'FETCH_ERROR',
+          error: "ClientError",
+          statusCode: 0,
         } as ApiError;
       }
+
       throw error;
     }
   }
 
   async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 

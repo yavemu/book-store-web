@@ -68,22 +68,8 @@ class AuthService {
 
   async getProfile(): Promise<UserProfileResponseDto> {
     try {
-      const headers = this.getAuthHeaders();
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await apiClient.get<UserProfileResponseDto>('/auth/me');
+      return response;
     } catch (error) {
       throw error;
     }

@@ -1,6 +1,6 @@
 import { Column } from "@/components/ui";
 import { auditApi } from "@/services/api/entities/audit";
-import { AuditLog, AuditListParams, AuditFiltersDto } from "@/types/audit";
+import { AuditLog, AuditListParams, AuditFiltersDto } from "@/types/api/entities";
 import { formatDate, formatTime } from "@/utils/dateFormatter";
 
 const getActionColor = (action: string) => {

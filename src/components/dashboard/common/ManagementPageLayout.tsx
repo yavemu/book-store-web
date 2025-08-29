@@ -14,15 +14,16 @@ interface ManagementPageLayoutProps<T extends Record<string, unknown>> {
   loading: boolean;
   error: string | null;
   emptyMessage: string;
-  createButtonText: string;
+  createButtonText?: string;
   onRefresh: () => void;
   onCreate?: () => void;
   createUrl?: string;
   onPageChange: (page: number) => void;
   onSort: (sortBy: string, sortOrder: "ASC" | "DESC") => void;
-  renderActions: (item: T) => ReactNode;
+  renderActions?: (item: T) => ReactNode;
   filters?: ReactNode;
   hideCreateButton?: boolean;
+  hideActions?: boolean;
 }
 
 export default function ManagementPageLayout<T extends Record<string, unknown>>({
@@ -42,6 +43,7 @@ export default function ManagementPageLayout<T extends Record<string, unknown>>(
   renderActions,
   filters,
   hideCreateButton = false,
+  hideActions = false,
 }: ManagementPageLayoutProps<T>) {
   const router = useRouter();
   if (error) {
@@ -70,7 +72,6 @@ export default function ManagementPageLayout<T extends Record<string, unknown>>(
           </Button>
           {!hideCreateButton && (
             <Button onClick={() => { 
-              console.log('Create button clicked!'); 
               if (createUrl) {
                 router.push(createUrl);
               } else if (onCreate) {
@@ -92,7 +93,7 @@ export default function ManagementPageLayout<T extends Record<string, unknown>>(
         loading={loading}
         onPageChange={onPageChange}
         onSort={onSort}
-        actions={renderActions}
+        actions={hideActions ? undefined : renderActions}
         emptyMessage={emptyMessage}
       />
     </div>

@@ -1,8 +1,5 @@
 import { apiClient } from '../client';
-import { 
-  AuditLogResponseDto,
-  AuditLogListResponseDto
-} from '@/types/audit';
+import { AuditLogResponseDto, AuditLogListResponseDto } from "@/types/api/entities";
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();

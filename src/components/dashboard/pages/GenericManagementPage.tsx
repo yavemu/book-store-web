@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useCallback, ReactNode } from "react";
+import React, { useCallback, ReactNode, useState } from "react";
 import { Column } from "@/components/ui";
 import { PaginationMeta } from "@/types/api";
 import { useManagementPage } from "@/hooks/useManagementPage";
 import { useIsClient } from "@/hooks/useIsClient";
-import { ManagementPageLayout, ManagementActions } from "../common";
+import { ManagementPageLayout } from "../common";
+import { CreateModalOptimized } from "../modals";
 import { ClientOnly } from "@/components";
 import HydrationGuard from "@/components/common/HydrationGuard";
 
@@ -33,6 +34,8 @@ export interface ManagementPageConfig<T, TParams extends ManagementPageParams, T
   title: string;
   createButtonText: string;
   createUrl?: string;
+  editUrl?: string;
+  entityType?: "authors" | "genres" | "publishers" | "books" | "users";
   emptyMessage: string;
   errorMessage: string;
   initialParams: TParams;
@@ -62,15 +65,11 @@ interface GenericManagementPageProps<T, TParams extends ManagementPageParams, TF
 function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters>({
   config,
   userRole,
-  onCreateModal,
-  onEditModal,
-  onDeleteModal,
-  onViewModal,
 }: GenericManagementPageProps<T, TParams, TFilters>) {
   const isClient = useIsClient();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
-  // Mover todos los hooks al inicio antes de cualquier return
-  // Siempre llamar el hook para evitar errores de hooks condicionales
+  // Always call hook for consistency (avoiding conditional hooks)
   const managementData = useManagementPage<T, TParams, TFilters>({
     initialParams: config?.initialParams || { page: 1, limit: 10 } as TParams,
     apiService: config?.apiService || {
@@ -79,69 +78,7 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
     errorMessage: config?.errorMessage || "Error al cargar los datos",
   });
 
-  const handleViewWithCallback = useCallback((item: T) => {
-    managementData.handleView(item);
-    onViewModal?.(item);
-  }, [managementData, onViewModal]);
-
-  const handleEditWithCallback = useCallback((item: T) => {
-    managementData.handleEdit(item);
-    onEditModal?.(item);
-  }, [managementData, onEditModal]);
-
-  const handleDeleteWithCallback = useCallback((item: T) => {
-    managementData.handleDelete(item);
-    onDeleteModal?.(item);
-  }, [managementData, onDeleteModal]);
-
-  const handleCreateWithCallback = useCallback(() => {
-    managementData.setShowCreateModal(true);
-    onCreateModal?.();
-  }, [managementData, onCreateModal]);
-
-  // Ahora añadir las funciones de permisos después de los hooks
-  const hasPermission = (permission: keyof RolePermissions): boolean => {
-    if (!config?.permissions) return true;
-    
-    if (config.permissions.roles && !config.permissions.roles.includes(userRole)) {
-      return false;
-    }
-    
-    const basePermission = config.permissions[permission];
-    
-    if (userRole === "admin") {
-      return basePermission !== false;
-    }
-    
-    if (userRole === "user") {
-      return permission === "canView" && basePermission !== false;
-    }
-    
-    return basePermission !== false;
-  };
-
-  const canCreate = hasPermission('canCreate');
-  const canEdit = hasPermission('canEdit');
-  const canDelete = hasPermission('canDelete');
-  const canView = hasPermission('canView');
-
-  const renderActions = useCallback(
-    (item: T) => {
-      if (config?.hideActions || (!canView && !canEdit && !canDelete)) return null;
-      
-      return (
-        <ManagementActions
-          item={item}
-          onView={canView ? handleViewWithCallback : undefined}
-          onEdit={canEdit ? handleEditWithCallback : undefined}
-          onDelete={canDelete ? handleDeleteWithCallback : undefined}
-        />
-      );
-    },
-    [handleViewWithCallback, handleEditWithCallback, handleDeleteWithCallback, config?.hideActions, canView, canEdit, canDelete],
-  );
-
-  // Verificaciones de errores
+  // Error checks
   if (!config) {
     return (
       <div className="p-6">
@@ -152,27 +89,6 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
     );
   }
 
-  if (!config.initialParams) {
-    return (
-      <div className="p-6">
-        <div className="text-red-600 bg-red-50 p-4 rounded-lg">
-          Error: Parámetros iniciales no definidos en la configuración
-        </div>
-      </div>
-    );
-  }
-
-  if (!config.apiService) {
-    return (
-      <div className="p-6">
-        <div className="text-red-600 bg-red-50 p-4 rounded-lg">
-          Error: Servicio API no definido en la configuración
-        </div>
-      </div>
-    );
-  }
-
-
   const {
     data,
     meta,
@@ -181,17 +97,20 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
     fetchData,
     handlePageChange,
     handleSort,
-    handleFilter,
-    handleClearFilters,
   } = managementData;
 
-  const filtersWithProps = isClient && config.filters && React.isValidElement(config.filters)
-    ? React.cloneElement(config.filters as React.ReactElement<Record<string, unknown>>, {
-        onFilter: handleFilter,
-        onClear: handleClearFilters,
-        loading: loading,
-      })
-    : isClient ? config.filters : null;
+  // Modal handlers
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    fetchData(); // Refresh data after successful creation
+  };
 
   return (
     <HydrationGuard fallback={
@@ -219,20 +138,23 @@ function GenericManagementPage<T, TParams extends ManagementPageParams, TFilters
           error={error}
           emptyMessage={config.emptyMessage}
           createButtonText={config.createButtonText}
-          createUrl={config.createUrl}
+          onCreate={handleOpenCreateModal}
           onRefresh={() => fetchData()}
-          onCreate={canCreate ? handleCreateWithCallback : () => {}}
           onPageChange={handlePageChange}
           onSort={handleSort}
-          renderActions={renderActions as (item: Record<string, unknown>) => ReactNode}
-          filters={filtersWithProps}
-          hideCreateButton={config.hideCreateButton || !canCreate}
+          hideCreateButton={config.hideCreateButton || false}
+          hideActions={config.hideActions || true}
         />
-        
-        {config.modals?.create}
-        {config.modals?.edit}
-        {config.modals?.delete}
-        {config.modals?.view}
+
+        {/* Create Modal */}
+        {config.entityType && (
+          <CreateModalOptimized
+            isOpen={isCreateModalOpen}
+            onClose={handleCloseCreateModal}
+            onSuccess={handleCreateSuccess}
+            entityType={config.entityType}
+          />
+        )}
       </ClientOnly>
     </HydrationGuard>
   );

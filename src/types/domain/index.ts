@@ -8,5 +8,3 @@ export interface BaseEntity {
   createdAt: string;
   updatedAt: string;
 }
-
-export * from './book-catalog';

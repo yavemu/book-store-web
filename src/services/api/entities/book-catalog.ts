@@ -52,19 +52,38 @@ export const bookCatalogApi = {
   },
 
   // Obtener libro por ID
-  getById: (id: string): Promise<BookCatalog> => apiClient.get(`/api/book-catalog/${id}`),
+  getById: (id: string): Promise<BookCatalog> => apiClient.get(`/book-catalog/${id}`),
 
   // Crear nuevo libro
-  create: (data: CreateBookCatalogDto): Promise<BookCatalog> => apiClient.post("/api/book-catalog", data),
+  create: (data: CreateBookCatalogDto): Promise<BookCatalog> => {
+    // Convertir el precio a decimal con 2 posiciones decimales para la BD
+    const dataWithDecimalPrice = {
+      ...data,
+      price: parseFloat(data.price.toFixed(2)),
+    };
+
+    console.log("📤 Enviando a API con precio decimal:", dataWithDecimalPrice);
+    return apiClient.post("/book-catalog", dataWithDecimalPrice);
+  },
 
   // Actualizar libro
-  update: (id: string, data: UpdateBookCatalogDto): Promise<BookCatalog> => apiClient.patch(`/api/book-catalog/${id}`, data),
+  update: (id: string, data: UpdateBookCatalogDto): Promise<BookCatalog> => {
+    // Si el precio está presente, convertirlo a decimal con 2 posiciones decimales
+    const dataWithDecimalPrice = data.price
+      ? {
+          ...data,
+          price: parseFloat(data.price.toFixed(2)),
+        }
+      : data;
+
+    return apiClient.patch(`/book-catalog/${id}`, dataWithDecimalPrice);
+  },
 
   // Eliminar libro (soft delete)
-  delete: (id: string): Promise<{ message: string }> => apiClient.delete(`/api/book-catalog/${id}`),
+  delete: (id: string): Promise<{ message: string }> => apiClient.delete(`/book-catalog/${id}`),
 
   // Verificar ISBN
-  checkIsbn: (isbn: string): Promise<IsbnCheckResponse> => apiClient.get(`/api/book-catalog/check-isbn/${isbn}`),
+  checkIsbn: (isbn: string): Promise<IsbnCheckResponse> => apiClient.get(`/book-catalog/check-isbn/${isbn}`),
 
   // Buscar libros
   search: (params: BookCatalogSearchParams): Promise<PaginatedResponse<BookCatalog>> => {
@@ -98,7 +117,7 @@ export const bookCatalogApi = {
     if (page) queryParams.page = page;
     if (limit) queryParams.limit = limit;
 
-    const url = buildUrl(`/api/book-catalog/by-genre/${genreId}`, queryParams);
+    const url = buildUrl(`/book-catalog/by-genre/${genreId}`, queryParams);
     return apiClient.get(url);
   },
 
@@ -108,7 +127,7 @@ export const bookCatalogApi = {
     if (page) queryParams.page = page;
     if (limit) queryParams.limit = limit;
 
-    const url = buildUrl(`/api/book-catalog/by-publisher/${publisherId}`, queryParams);
+    const url = buildUrl(`/book-catalog/by-publisher/${publisherId}`, queryParams);
     return apiClient.get(url);
   },
 };

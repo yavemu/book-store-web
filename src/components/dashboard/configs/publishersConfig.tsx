@@ -1,6 +1,6 @@
 import { Column } from "@/components/ui";
 import { publishingHousesApi } from "@/services/api/entities/publishing-houses";
-import type { PublishingHouse, PublishingHouseListParams, PublishingHouseFiltersDto } from "@/types/publishing-houses";
+import type { PublishingHouse, PublishingHouseListParams, PublishingHouseFiltersDto } from "@/types/api/entities";
 
 import type { ManagementPageConfig } from "../pages/GenericManagementPage";
 
@@ -8,6 +8,8 @@ export const publishersManagementConfig: ManagementPageConfig<PublishingHouse, P
   title: "Panel Administrativo de Editoriales",
   createButtonText: "Crear Editorial",
   createUrl: "/dashboard/publishers/create",
+  editUrl: "/dashboard/publishers/edit",
+  entityType: "publishers" as const,
   emptyMessage: "No se encontraron editoriales. Crea tu primera editorial para comenzar.",
   errorMessage: "Error al cargar las editoriales",
   initialParams: {

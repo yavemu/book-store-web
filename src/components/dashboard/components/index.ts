@@ -1,1 +1,1 @@
-export * from './BookFilters';
+// All CRUD filters have been removed

@@ -3,86 +3,56 @@ import { z } from 'zod';
 export const createAuthorSchema = z.object({
   firstName: z
     .string()
-    .min(1, 'El nombre es requerido')
-    .max(50, 'El nombre no puede exceder 50 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+    .min(1, "El nombre es requerido")
+    .max(50, "El nombre no puede exceder 50 caracteres")
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre solo puede contener letras y espacios"),
   lastName: z
     .string()
-    .min(1, 'Los apellidos son requeridos')
-    .max(50, 'Los apellidos no pueden exceder 50 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Los apellidos solo pueden contener letras y espacios'),
-  email: z
+    .min(1, "Los apellidos son requeridos")
+    .max(50, "Los apellidos no pueden exceder 50 caracteres")
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "Los apellidos solo pueden contener letras y espacios"),
+  nationality: z
     .string()
+    .max(50, "La nacionalidad no puede exceder 50 caracteres")
     .optional()
-    .refine((val) => !val || z.string().email().safeParse(val).success, 'El formato del email no es válido')
-    .refine((val) => !val || val.length <= 100, 'El email no puede exceder 100 caracteres'),
+    .or(z.literal('')),
+  birthDate: z
+    .string()
+    .refine((val) => !val || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
+    .refine((val) => !val || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura")
+    .optional()
+    .or(z.literal('')),
   biography: z
     .string()
     .optional()
-    .refine((val) => !val || val.length <= 1000, 'La biografía no puede exceder 1000 caracteres'),
-  birthDate: z
-    .string()
-    .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de nacimiento no es válida')
-    .refine((val) => !val || new Date(val) <= new Date(), 'La fecha de nacimiento no puede ser futura'),
-  nationality: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length <= 50, 'La nacionalidad no puede exceder 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'La nacionalidad solo puede contener letras y espacios'),
-  website: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, 'El formato de la URL no es válido'),
-  socialMedia: z
-    .record(z.string())
-    .optional(),
-  isActive: z
-    .boolean()
-    .optional()
-    .default(true),
+    .or(z.literal('')),
 });
 
 export const updateAuthorSchema = z.object({
   firstName: z
     .string()
     .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'El nombre debe tener entre 1 y 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'El nombre solo puede contener letras y espacios'),
+    .refine((val) => !val || (val.length >= 1 && val.length <= 50), "El nombre debe tener entre 1 y 50 caracteres")
+    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), "El nombre solo puede contener letras y espacios"),
   lastName: z
     .string()
     .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'Los apellidos deben tener entre 1 y 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'Los apellidos solo pueden contener letras y espacios'),
-  email: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().email().safeParse(val).success, 'El formato del email no es válido')
-    .refine((val) => !val || val.length <= 100, 'El email no puede exceder 100 caracteres'),
+    .refine((val) => !val || (val.length >= 1 && val.length <= 50), "Los apellidos deben tener entre 1 y 50 caracteres")
+    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), "Los apellidos solo pueden contener letras y espacios"),
   biography: z
     .string()
     .optional()
-    .refine((val) => !val || val.length <= 1000, 'La biografía no puede exceder 1000 caracteres'),
+    .refine((val) => !val || val.length <= 1000, "La biografía no puede exceder 1000 caracteres"),
   birthDate: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de nacimiento no es válida')
-    .refine((val) => !val || new Date(val) <= new Date(), 'La fecha de nacimiento no puede ser futura'),
+    .refine((val) => !val || !isNaN(Date.parse(val)), "La fecha de nacimiento no es válida")
+    .refine((val) => !val || new Date(val) <= new Date(), "La fecha de nacimiento no puede ser futura"),
   nationality: z
     .string()
     .optional()
-    .refine((val) => !val || val.length <= 50, 'La nacionalidad no puede exceder 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'La nacionalidad solo puede contener letras y espacios'),
-  website: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, 'El formato de la URL no es válido'),
-  socialMedia: z
-    .record(z.string())
-    .optional(),
-  isActive: z
-    .boolean()
-    .optional(),
+    .refine((val) => !val || val.length <= 50, "La nacionalidad no puede exceder 50 caracteres")
+    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), "La nacionalidad solo puede contener letras y espacios"),
 });
 
 export const authorSearchSchema = z.object({
@@ -120,16 +90,10 @@ export const bookAuthorAssignmentSchema = z.object({
     .string()
     .min(1, 'El ID del autor es requerido')
     .uuid('El ID del autor debe ser un UUID válido'),
-  role: z
+  authorRole: z
     .string()
     .optional()
-    .default('author')
-    .refine((val) => ['author', 'co-author', 'editor', 'translator'].includes(val), 'Rol no válido'),
-  order: z
-    .number()
-    .min(1, 'El orden debe ser mayor a 0')
-    .optional()
-    .default(1),
+    .refine((val) => !val || val.length <= 100, 'El rol no puede exceder 100 caracteres'),
 });
 
 export type CreateAuthorFormData = z.infer<typeof createAuthorSchema>;

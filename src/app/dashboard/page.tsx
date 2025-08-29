@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, JSX } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Layout, LoadingSpinner } from "@/components";
 import NavigationMenu from "@/components/navigation/NavigationMenu";
 import { useAppSelector, useAppDispatch } from "@/hooks";
@@ -11,9 +11,6 @@ import { logout } from "@/store/slices/authSlice";
 import SearchPage from "@/components/dashboard/pages/SearchPage";
 import ProfilePage from "@/components/dashboard/pages/ProfilePage";
 import GenericManagementPage from "@/components/dashboard/pages/GenericManagementPage";
-import { 
-  CreateBookModal, EditBookModal, DeleteBookModal, ViewBookModal
-} from "@/components/dashboard/modals";
 import {
   booksManagementConfig,
   authorsManagementConfig,
@@ -22,29 +19,17 @@ import {
   usersManagementConfig,
   auditManagementConfig,
 } from "@/components/dashboard/configs";
-import { BookCatalog } from "@/types/domain";
 
 export default function Dashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user, loading: authLoading } = useAppSelector((state) => state.auth);
-  const [activeMenuItem, setActiveMenuItem] = useState<string>("books");
+  const [activeMenuItem, setActiveMenuItem] = useState<string>(() => {
+    // Initialize from URL parameter if available, otherwise default to "books"
+    return searchParams.get("tab") || "books";
+  });
   const [pageLoading, setPageLoading] = useState(false);
-
-  // Modal states for books
-  const [selectedBook, setSelectedBook] = useState<BookCatalog | null>(null);
-  const [showCreateBookModal, setShowCreateBookModal] = useState(false);
-  const [showEditBookModal, setShowEditBookModal] = useState(false);
-  const [showDeleteBookModal, setShowDeleteBookModal] = useState(false);
-  const [showViewBookModal, setShowViewBookModal] = useState(false);
-  
-  // Note: Other entity modals converted to separate pages
-  
-  // Refresh key to force component updates after CRUD operations
-  const [refreshKey, setRefreshKey] = useState(0);
-  const forceRefresh = useCallback(() => {
-    setRefreshKey(prev => prev + 1);
-  }, []);
 
   // -----------------------
   // Auth redirect
@@ -54,6 +39,26 @@ export default function Dashboard() {
       router.push("/");
     }
   }, [authLoading, isAuthenticated, router]);
+
+  // -----------------------
+  // Handle tab parameter from URL
+  // -----------------------
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const validTabs = ["search", "profile", "books", "authors", "publishers", "genres", "users", "audit"];
+
+    if (tab) {
+      if (validTabs.includes(tab) && tab !== activeMenuItem) {
+        setActiveMenuItem(tab);
+      } else if (!validTabs.includes(tab)) {
+        // If invalid tab, redirect to books
+        router.push("/dashboard");
+      }
+    } else if (!tab && activeMenuItem !== "books") {
+      // If no tab parameter, ensure URL has the current active tab
+      router.push(`/dashboard?tab=${activeMenuItem}`);
+    }
+  }, [searchParams, activeMenuItem, router]);
 
   // -----------------------
   // Logout
@@ -72,13 +77,17 @@ export default function Dashboard() {
 
       setPageLoading(true);
 
+      // Update URL with the tab parameter
+      const newUrl = `/dashboard?tab=${menuItemId}`;
+      router.push(newUrl);
+
       // Simulate loading for better UX
       setTimeout(() => {
         setActiveMenuItem(menuItemId);
         setPageLoading(false);
       }, 300);
     },
-    [activeMenuItem],
+    [activeMenuItem, router],
   );
 
   // -----------------------
@@ -89,83 +98,12 @@ export default function Dashboard() {
   const pageComponents: Record<string, JSX.Element> = {
     search: <SearchPage />,
     profile: <ProfilePage user={user} />,
-    books: (
-      <>
-        <GenericManagementPage
-          key={`books-${refreshKey}`}
-          config={booksManagementConfig}
-          userRole={userRole}
-          onCreateModal={() => setShowCreateBookModal(true)}
-          onViewModal={(book) => {
-            setSelectedBook(book);
-            setShowViewBookModal(true);
-          }}
-          onEditModal={(book) => {
-            setSelectedBook(book);
-            setShowEditBookModal(true);
-          }}
-          onDeleteModal={(book) => {
-            setSelectedBook(book);
-            setShowDeleteBookModal(true);
-          }}
-        />
-
-        <CreateBookModal 
-          isOpen={showCreateBookModal} 
-          onClose={() => setShowCreateBookModal(false)} 
-          onSuccess={() => {
-            setShowCreateBookModal(false);
-            forceRefresh(); // Forzar actualización de la tabla
-          }} 
-        />
-
-        <EditBookModal
-          isOpen={showEditBookModal}
-          onClose={() => {
-            setShowEditBookModal(false);
-            setSelectedBook(null);
-          }}
-          onSuccess={() => {
-            setShowEditBookModal(false);
-            setSelectedBook(null);
-            forceRefresh(); // Forzar actualización de la tabla
-          }}
-          book={selectedBook}
-        />
-
-        <DeleteBookModal
-          isOpen={showDeleteBookModal}
-          onClose={() => {
-            setShowDeleteBookModal(false);
-            setSelectedBook(null);
-          }}
-          onSuccess={() => {
-            setShowDeleteBookModal(false);
-            setSelectedBook(null);
-            forceRefresh(); // Forzar actualización de la tabla
-          }}
-          book={selectedBook}
-        />
-
-        <ViewBookModal
-          isOpen={showViewBookModal}
-          onClose={() => {
-            setShowViewBookModal(false);
-            setSelectedBook(null);
-          }}
-          onEdit={() => {
-            setShowViewBookModal(false);
-            setShowEditBookModal(true);
-          }}
-          book={selectedBook}
-        />
-      </>
-    ),
-    authors: <GenericManagementPage key={`authors-${refreshKey}`} config={authorsManagementConfig} userRole={userRole} />,
-    publishers: <GenericManagementPage key={`publishers-${refreshKey}`} config={publishersManagementConfig} userRole={userRole} />,
-    genres: <GenericManagementPage key={`genres-${refreshKey}`} config={genresManagementConfig} userRole={userRole} />,
-    users: <GenericManagementPage key={`users-${refreshKey}`} config={usersManagementConfig} userRole={userRole} />,
-    audit: <GenericManagementPage key={`audit-${refreshKey}`} config={auditManagementConfig} userRole={userRole} />,
+    books: <GenericManagementPage config={booksManagementConfig} userRole={userRole} />,
+    authors: <GenericManagementPage config={authorsManagementConfig} userRole={userRole} />,
+    publishers: <GenericManagementPage config={publishersManagementConfig} userRole={userRole} />,
+    genres: <GenericManagementPage config={genresManagementConfig} userRole={userRole} />,
+    users: <GenericManagementPage config={usersManagementConfig} userRole={userRole} />,
+    audit: <GenericManagementPage config={auditManagementConfig} userRole={userRole} />,
   };
 
   const renderPageContent = () => {

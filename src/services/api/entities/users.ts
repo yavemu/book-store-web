@@ -7,7 +7,7 @@ import {
   CreateUserResponseDto,
   UpdateUserResponseDto,
   DeleteUserResponseDto,
-} from "@/types/users";
+} from "@/types/api/entities";
 
 /**
  * Construye una cadena de consulta URL a partir de un objeto de par metros

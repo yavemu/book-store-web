@@ -1,16 +1,11 @@
 import { z } from 'zod';
 
 export const createUserSchema = z.object({
-  firstName: z
+  username: z
     .string()
-    .min(1, 'El nombre es requerido')
-    .max(50, 'El nombre no puede exceder 50 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
-  lastName: z
-    .string()
-    .min(1, 'Los apellidos son requeridos')
-    .max(50, 'Los apellidos no pueden exceder 50 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Los apellidos solo pueden contener letras y espacios'),
+    .min(1, 'El nombre de usuario es requerido')
+    .max(50, 'El nombre de usuario no puede exceder 50 caracteres')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'El nombre de usuario solo puede contener letras, números, guiones y guiones bajos'),
   email: z
     .string()
     .min(1, 'El email es requerido')
@@ -19,45 +14,19 @@ export const createUserSchema = z.object({
   password: z
     .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(100, 'La contraseña no puede exceder 100 caracteres')
+    .max(255, 'La contraseña no puede exceder 255 caracteres')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'La contraseña debe contener al menos una minúscula, una mayúscula y un número'),
-  phone: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^\+?[\d\s-()]+$/.test(val), 'El formato del teléfono no es válido'),
-  birthDate: z
-    .string()
-    .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de nacimiento no es válida')
-    .refine((val) => !val || new Date(val) <= new Date(), 'La fecha de nacimiento no puede ser futura'),
-  address: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length <= 255, 'La dirección no puede exceder 255 caracteres'),
   roleId: z
     .string()
-    .optional()
-    .refine((val) => !val || z.string().uuid().safeParse(val).success, 'El ID del rol debe ser un UUID válido'),
-  isActive: z
-    .boolean()
-    .optional()
-    .default(true),
-  metadata: z
-    .record(z.any())
-    .optional(),
+    .uuid('El ID del rol debe ser un UUID válido'),
 });
 
 export const updateUserSchema = z.object({
-  firstName: z
+  username: z
     .string()
     .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'El nombre debe tener entre 1 y 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'El nombre solo puede contener letras y espacios'),
-  lastName: z
-    .string()
-    .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'Los apellidos deben tener entre 1 y 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'Los apellidos solo pueden contener letras y espacios'),
+    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'El nombre de usuario debe tener entre 1 y 50 caracteres')
+    .refine((val) => !val || /^[a-zA-Z0-9_-]+$/.test(val), 'El nombre de usuario solo puede contener letras, números, guiones y guiones bajos'),
   email: z
     .string()
     .optional()
@@ -67,31 +36,12 @@ export const updateUserSchema = z.object({
     .string()
     .optional()
     .refine((val) => !val || val.length >= 8, 'La contraseña debe tener al menos 8 caracteres')
-    .refine((val) => !val || val.length <= 100, 'La contraseña no puede exceder 100 caracteres')
+    .refine((val) => !val || val.length <= 255, 'La contraseña no puede exceder 255 caracteres')
     .refine((val) => !val || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(val), 'La contraseña debe contener al menos una minúscula, una mayúscula y un número'),
-  phone: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^\+?[\d\s-()]+$/.test(val), 'El formato del teléfono no es válido'),
-  birthDate: z
-    .string()
-    .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de nacimiento no es válida')
-    .refine((val) => !val || new Date(val) <= new Date(), 'La fecha de nacimiento no puede ser futura'),
-  address: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length <= 255, 'La dirección no puede exceder 255 caracteres'),
   roleId: z
     .string()
     .optional()
     .refine((val) => !val || z.string().uuid().safeParse(val).success, 'El ID del rol debe ser un UUID válido'),
-  isActive: z
-    .boolean()
-    .optional(),
-  metadata: z
-    .record(z.any())
-    .optional(),
 });
 
 export const userSearchSchema = z.object({
@@ -113,7 +63,7 @@ export const userSearchSchema = z.object({
   sortBy: z
     .string()
     .optional()
-    .default('lastName'),
+    .default('username'),
   sortOrder: z
     .enum(['ASC', 'DESC'])
     .optional()
@@ -121,9 +71,6 @@ export const userSearchSchema = z.object({
   roleId: z
     .string()
     .uuid('El ID del rol debe ser un UUID válido')
-    .optional(),
-  isActive: z
-    .boolean()
     .optional(),
 });
 

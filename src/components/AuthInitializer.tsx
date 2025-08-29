@@ -8,6 +8,8 @@ export function AuthInitializer() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    console.log('🔧 AuthInitializer: Inicializando autenticación...');
+    
     // Initialize auth state from localStorage
     dispatch(initializeAuth());
     

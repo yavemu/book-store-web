@@ -1,8 +1,4 @@
-export * from './CreateBookModal';
-export * from './EditBookModal';
-export * from './DeleteBookModal';
-export * from './ViewBookModal';
-export * from './CreateGenreModal';
-export * from './CreatePublisherModal';
-export * from './CreateAuthorModal';
-export * from './CreateUserModal';
+export { default as CreateModal } from './CreateModal';
+export { default as CreateModalOptimized } from './CreateModalOptimized';
+export { default as DeleteModal } from './DeleteModal';
+export { default as DeleteModalOptimized } from './DeleteModalOptimized';

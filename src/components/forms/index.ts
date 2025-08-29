@@ -2,6 +2,7 @@ export * from "./elements/Form";
 export * from "./elements/Input";
 export * from "./elements/Label";
 export * from "./elements/Select";
+export * from "./elements/SelectWithCreate";
 export * from "./elements/Textarea";
 export * from "./elements/Button";
 export * from "./elements/Fieldset";
@@ -11,15 +12,23 @@ export * from "./elements/Output";
 export * from "./elements/Option";
 export * from "./elements/Optgroup";
 export * from "./elements/SearchSelect";
+export * from "./elements/Message";
 
-export { default as LoginForm } from "./LoginForm";
-export { default as RegisterForm } from "./RegisterForm";
+export { default as SmartForm } from "./SmartForm";
 export { default as AuthForm } from "./AuthForm";
+export { default as CreateEditForm } from "./CreateEditForm";
+export { default as EntityForm } from "./EntityForm";
+export { default as AuthorForm } from "./AuthorForm";
+export { default as GenreForm } from "./GenreForm";
+export { default as PublisherForm } from "./PublisherForm";
+export { default as BookForm } from "./BookForm";
+export { default as UserForm } from "./UserForm";
 
-// Publisher Modals (only for viewing - create modals are in dashboard/modals)
-export { EditPublisherModal } from "./EditPublisherModal";
-export { DeletePublisherModal } from "./DeletePublisherModal";
-export { ViewPublisherModal } from "./ViewPublisherModal";
+export { default as AuthorFormOptimized } from "./AuthorFormOptimized";
+export { default as GenreFormOptimized } from "./GenreFormOptimized";
+export { default as PublisherFormOptimized } from "./PublisherFormOptimized";
+export { default as BookFormOptimized } from "./BookFormOptimized";
+export { default as UserFormOptimized } from "./UserFormOptimized";
 
 export * from "./types/FormProps";
 export * from "./types/InputProps";

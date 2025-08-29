@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { 
+import {
   CreateBookAuthorDto,
   UpdateBookAuthorDto,
   BookAuthorResponseDto,
@@ -8,8 +8,8 @@ import {
   UpdateBookAuthorResponseDto,
   DeleteBookAuthorResponseDto,
   CreateBookAuthorAssignmentDto,
-  UpdateBookAuthorAssignmentDto
-} from '@/types/authors';
+  UpdateBookAuthorAssignmentDto,
+} from "@/types/api/entities";
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();

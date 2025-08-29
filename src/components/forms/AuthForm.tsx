@@ -1,72 +1,109 @@
 "use client";
 
 import { useState } from "react";
-import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
+import { SmartForm, Message } from ".";
+import { loginSchema, registerSchema, LoginFormData, RegisterFormData } from "@/services/validation/schemas/auth";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import { useAuth } from "@/hooks";
+import { loginAsync, clearError } from "@/store/slices/authSlice";
 
 interface AuthFormProps {
   onSuccess?: () => void;
   defaultMode?: "login" | "register";
 }
 
-export default function AuthForm({ onSuccess, defaultMode = "login" }: AuthFormProps) {
-  const [mode, setMode] = useState<"login" | "register">(defaultMode);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+// Tipo genérico para campos tipados con Zod
+type TypedFormField<T> = {
+  name: keyof T;
+  label: string;
+  type: "text" | "email" | "password" | "number" | "textarea";
+  placeholder?: string;
+};
 
-  const handleToggleMode = () => {
-    setMode(mode === "login" ? "register" : "login");
-    setShowSuccessMessage(false);
+// Fields tipados con Zod schemas
+const loginFields: TypedFormField<LoginFormData>[] = [
+  { name: "email", label: "Correo electrónico", type: "email" },
+  { name: "password", label: "Contraseña", type: "password" }
+];
+
+const registerFields: TypedFormField<RegisterFormData>[] = [
+  { name: "username", label: "Nombre de usuario", type: "text" },
+  { name: "email", label: "Correo electrónico", type: "email" },
+  { name: "password", label: "Contraseña", type: "password" }
+];
+
+export default function AuthForm({ onSuccess, defaultMode = "login" }: AuthFormProps) {
+  const [currentMode, setCurrentMode] = useState(defaultMode);
+  
+  const dispatch = useAppDispatch();
+  const { loading: loginLoading, error: loginError } = useAppSelector(state => state.auth);
+  const { register, loading: registerLoading } = useAuth();
+
+  const handleModeChange = (newMode: string) => {
+    setCurrentMode(newMode as "login" | "register");
+    dispatch(clearError());
   };
 
-  const handleLoginSuccess = () => {
-    setShowSuccessMessage(false);
+  const handleLogin = async (validatedData: LoginFormData) => {
+    dispatch(clearError());
+    await dispatch(loginAsync(validatedData)).unwrap();
+    
+    if (onSuccess) onSuccess();
+  };
 
-    if (onSuccess) {
-      onSuccess();
-    }
+  const handleRegister = async (validatedData: RegisterFormData) => {
+    await register(validatedData);
   };
 
   const handleRegisterSuccess = () => {
-    setSuccessMessage("Usuario registrado exitosamente");
-    setShowSuccessMessage(true);
-
-    // Auto switch to login mode after successful registration
-    setTimeout(() => {
-      setMode("login");
-      setShowSuccessMessage(false);
-    }, 2000);
+    setCurrentMode("login");
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="p-6">
-          {/* Success message */}
-          {showSuccessMessage && <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{successMessage}</div>}
+  const authModes = {
+    login: {
+      schema: loginSchema,
+      fields: loginFields,
+      onSubmit: handleLogin,
+      submitText: "Iniciar sesión",
+      loadingText: "Ingresando..."
+    },
+    register: {
+      schema: registerSchema,
+      fields: registerFields,
+      onSubmit: handleRegister,
+      submitText: "Registrarse",
+      loadingText: "Registrando...",
+      autoSuccessMessage: "Usuario registrado exitosamente. Redirigiendo al login...",
+      onSuccess: handleRegisterSuccess
+    }
+  };
 
-          {/* Form based on current mode */}
-          {mode === "login" ? (
-            <>
-              <LoginForm onSuccess={handleLoginSuccess} showTitle={false} compact={true} />
-              <p className="text-center text-sm text-gray-600 mt-4">
-                ¿No tienes una cuenta?{" "}
-                <button onClick={handleToggleMode} className="text-primary hover:underline font-medium">
-                  Regístrate aquí
-                </button>
-              </p>
-            </>
-          ) : (
-            <>
-              <RegisterForm onSuccess={handleRegisterSuccess} showTitle={false} compact={true} />
-              <p className="text-center text-sm text-gray-600 mt-4">
-                ¿Ya tienes una cuenta?{" "}
-                <button onClick={handleToggleMode} className="text-primary hover:underline font-medium">
-                  Inicia sesión aquí
-                </button>
-              </p>
-            </>
-          )}
+  const modeToggleText = {
+    login: "¿No tienes una cuenta?",
+    register: "¿Ya tienes una cuenta?"
+  };
+
+  const topContent = (
+    <>
+      <Message type="error" show={currentMode === "login" && !!loginError}>
+        {loginError}
+      </Message>
+      <h2>{currentMode === "login" ? "Iniciar sesión" : "Registro"}</h2>
+    </>
+  );
+
+  return (
+    <div className="vertical-form">
+      <div className="auth-container">
+        <div className="auth-content">
+          <SmartForm
+            modes={authModes}
+            currentMode={currentMode}
+            onModeChange={handleModeChange}
+            modeToggleText={modeToggleText}
+            loading={currentMode === "login" ? loginLoading : registerLoading}
+            topProps={topContent}
+          />
         </div>
       </div>
     </div>

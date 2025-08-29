@@ -4,131 +4,100 @@ export const createBookSchema = z.object({
   title: z
     .string()
     .min(1, 'El título es requerido')
-    .max(200, 'El título no puede exceder 200 caracteres'),
-  subtitle: z
+    .max(255, 'El título no puede exceder 255 caracteres'),
+  isbnCode: z
     .string()
-    .optional()
-    .refine((val) => !val || val.length <= 200, 'El subtítulo no puede exceder 200 caracteres'),
-  isbn: z
-    .string()
-    .min(1, 'El ISBN es requerido')
-    .regex(/^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/, 'El formato del ISBN no es válido'),
-  description: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length <= 2000, 'La descripción no puede exceder 2000 caracteres'),
-  language: z
-    .string()
-    .min(1, 'El idioma es requerido')
-    .max(50, 'El idioma no puede exceder 50 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El idioma solo puede contener letras y espacios'),
-  publishedDate: z
-    .string()
-    .min(1, 'La fecha de publicación es requerida')
-    .refine((val) => !isNaN(Date.parse(val)), 'La fecha de publicación no es válida')
-    .refine((val) => new Date(val) <= new Date(), 'La fecha de publicación no puede ser futura'),
-  pages: z
-    .number()
-    .min(1, 'El número de páginas debe ser mayor a 0')
-    .max(10000, 'El número de páginas no puede exceder 10000'),
+    .min(1, 'El código ISBN es requerido')
+    .max(13, 'El código ISBN no puede exceder 13 caracteres')
+    .regex(/^[0-9-X]+$/, 'El ISBN debe contener solo números, guiones y X'),
   price: z
     .number()
     .min(0, 'El precio no puede ser negativo')
-    .max(999999.99, 'El precio no puede exceder 999999.99'),
-  stock: z
-    .number()
-    .min(0, 'El stock no puede ser negativo')
-    .max(999999, 'El stock no puede exceder 999999'),
-  format: z
-    .enum(['paperback', 'hardcover', 'ebook', 'audiobook'])
-    .default('paperback'),
-  coverImageUrl: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, 'El formato de la URL de portada no es válido'),
-  publishingHouseId: z
-    .string()
-    .min(1, 'La editorial es requerida')
-    .uuid('El ID de la editorial debe ser un UUID válido'),
-  genreId: z
-    .string()
-    .min(1, 'El género es requerido')
-    .uuid('El ID del género debe ser un UUID válido'),
+    .max(99999999.99, 'El precio es demasiado alto'),
   isAvailable: z
     .boolean()
-    .optional()
     .default(true),
-  isActive: z
-    .boolean()
+  stockQuantity: z
+    .number()
+    .int('La cantidad de stock debe ser un número entero')
+    .min(0, 'El stock no puede ser negativo')
+    .default(0),
+  coverImageUrl: z
+    .string()
+    .max(500, 'La URL de portada no puede exceder 500 caracteres')
+    .refine((val) => !val || val === '' || z.string().url().safeParse(val).success, 'El formato de la URL de portada no es válido')
     .optional()
-    .default(true),
-  metadata: z
-    .record(z.any())
-    .optional(),
+    .nullable(),
+  publicationDate: z
+    .string()
+    .refine((val) => !val || val === '' || !isNaN(Date.parse(val)), 'La fecha de publicación no es válida')
+    .optional()
+    .nullable(),
+  pageCount: z
+    .number()
+    .int('El número de páginas debe ser un número entero')
+    .min(1, 'El número de páginas debe ser mayor a 0')
+    .optional()
+    .nullable(),
+  summary: z
+    .string()
+    .optional()
+    .nullable(),
+  genreId: z
+    .string()
+    .min(1, 'Debe seleccionar un género')
+    .uuid('El ID del género debe ser un UUID válido'),
+  publisherId: z
+    .string()
+    .min(1, 'Debe seleccionar una editorial')
+    .uuid('El ID de la editorial debe ser un UUID válido'),
 });
 
 export const updateBookSchema = z.object({
   title: z
     .string()
-    .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 200), 'El título debe tener entre 1 y 200 caracteres'),
-  subtitle: z
+    .min(1, 'El título es requerido')
+    .max(255, 'El título no puede exceder 255 caracteres')
+    .optional(),
+  isbnCode: z
     .string()
-    .optional()
-    .refine((val) => !val || val.length <= 200, 'El subtítulo no puede exceder 200 caracteres'),
-  isbn: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/.test(val), 'El formato del ISBN no es válido'),
-  description: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length <= 2000, 'La descripción no puede exceder 2000 caracteres'),
-  language: z
-    .string()
-    .optional()
-    .refine((val) => !val || (val.length >= 1 && val.length <= 50), 'El idioma debe tener entre 1 y 50 caracteres')
-    .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), 'El idioma solo puede contener letras y espacios'),
-  publishedDate: z
-    .string()
-    .optional()
-    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de publicación no es válida')
-    .refine((val) => !val || new Date(val) <= new Date(), 'La fecha de publicación no puede ser futura'),
-  pages: z
-    .number()
-    .optional()
-    .refine((val) => !val || (val >= 1 && val <= 10000), 'El número de páginas debe estar entre 1 y 10000'),
+    .min(10, 'El ISBN debe tener al menos 10 caracteres')
+    .max(13, 'El ISBN no puede exceder 13 caracteres')
+    .regex(/^[0-9]{9,13}$/, 'El ISBN debe contener solo números y tener entre 9 y 13 dígitos')
+    .optional(),
   price: z
     .number()
-    .optional()
-    .refine((val) => !val || (val >= 0 && val <= 999999.99), 'El precio debe estar entre 0 y 999999.99'),
-  stock: z
-    .number()
-    .optional()
-    .refine((val) => !val || (val >= 0 && val <= 999999), 'El stock debe estar entre 0 y 999999'),
-  format: z
-    .enum(['paperback', 'hardcover', 'ebook', 'audiobook'])
+    .min(0, 'El precio no puede ser negativo')
     .optional(),
-  coverImageUrl: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, 'El formato de la URL de portada no es válido'),
-  publishingHouseId: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().uuid().safeParse(val).success, 'El ID de la editorial debe ser un UUID válido'),
-  genreId: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().uuid().safeParse(val).success, 'El ID del género debe ser un UUID válido'),
   isAvailable: z
     .boolean()
     .optional(),
-  isActive: z
-    .boolean()
+  stockQuantity: z
+    .number()
+    .min(0, 'El stock no puede ser negativo')
     .optional(),
-  metadata: z
-    .record(z.any())
+  coverImageUrl: z
+    .string()
+    .url('El formato de la URL de portada no es válido')
+    .optional(),
+  publicationDate: z
+    .string()
+    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de publicación no es válida')
+    .optional(),
+  pageCount: z
+    .number()
+    .min(1, 'El número de páginas debe ser mayor a 0')
+    .optional(),
+  summary: z
+    .string()
+    .optional(),
+  genreId: z
+    .string()
+    .uuid('El ID del género debe ser un UUID válido')
+    .optional(),
+  publisherId: z
+    .string()
+    .uuid('El ID de la editorial debe ser un UUID válido')
     .optional(),
 });
 
@@ -163,20 +132,9 @@ export const bookFilterSchema = z.object({
     .string()
     .uuid('El ID del género debe ser un UUID válido')
     .optional(),
-  publishingHouseId: z
+  publisherId: z
     .string()
     .uuid('El ID de la editorial debe ser un UUID válido')
-    .optional(),
-  authorId: z
-    .string()
-    .uuid('El ID del autor debe ser un UUID válido')
-    .optional(),
-  language: z
-    .string()
-    .max(50, 'El idioma no puede exceder 50 caracteres')
-    .optional(),
-  format: z
-    .enum(['paperback', 'hardcover', 'ebook', 'audiobook'])
     .optional(),
   minPrice: z
     .number()
@@ -189,11 +147,11 @@ export const bookFilterSchema = z.object({
   isAvailable: z
     .boolean()
     .optional(),
-  publishedAfter: z
+  publicationDateAfter: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha no es válida')
     .optional(),
-  publishedBefore: z
+  publicationDateBefore: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha no es válida')
     .optional(),
@@ -218,7 +176,7 @@ export const bookFilterSchema = z.object({
     .default('ASC'),
 })
 .refine((data) => !data.minPrice || !data.maxPrice || data.minPrice <= data.maxPrice, 'El precio mínimo no puede ser mayor al máximo')
-.refine((data) => !data.publishedAfter || !data.publishedBefore || new Date(data.publishedAfter) <= new Date(data.publishedBefore), 'La fecha inicial no puede ser posterior a la final');
+.refine((data) => !data.publicationDateAfter || !data.publicationDateBefore || new Date(data.publicationDateAfter) <= new Date(data.publicationDateBefore), 'La fecha inicial no puede ser posterior a la final');
 
 export type CreateBookFormData = z.infer<typeof createBookSchema>;
 export type UpdateBookFormData = z.infer<typeof updateBookSchema>;

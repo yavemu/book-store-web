@@ -8,6 +8,9 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
+  console.log('🏗️ Layout: Renderizando con user:', user);
+  console.log('🔑 Layout: Role del usuario:', user?.role);
+  
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                     className="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none"
                   >
                     <span className="hidden md:block">
-                      {user.username} - [{user.role.name.toUpperCase()}]
+                      {user.username} - [{user.role?.name?.toUpperCase() || 'USER'}]
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

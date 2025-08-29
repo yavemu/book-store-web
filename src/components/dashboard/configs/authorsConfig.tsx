@@ -1,12 +1,14 @@
 import { Column } from "@/components/ui";
 import { authorsApi } from "@/services/api/entities/authors";
-import { BookAuthor, AuthorListParams, AuthorFiltersDto } from "@/types/authors";
+import { BookAuthor, AuthorListParams, AuthorFiltersDto } from "@/types/api/entities";
 import { formatDate } from "@/utils/dateFormatter";
 
 export const authorsManagementConfig = {
   title: "Panel Administrativo de Autores",
   createButtonText: "Crear Autor",
   createUrl: "/dashboard/authors/create",
+  editUrl: "/dashboard/authors/edit",
+  entityType: "authors" as const,
   emptyMessage: "No se encontraron autores. Crea tu primer autor para comenzar.",
   errorMessage: "Error al cargar los autores",
   initialParams: {

@@ -379,3 +379,94 @@ output {
 .upload-box:hover {
   border-color: var(--color-primary);
 }
+
+/* ----------------- Form Container Classes ----------------- */
+.vertical-form {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.auth-container {
+  background-color: var(--color-card);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+}
+
+.auth-content {
+  padding: 1.5rem;
+}
+
+/* ----------------- Message Components ----------------- */
+.message-success {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f0f9ff;
+  border: 1px solid #7dd3fc;
+  color: #0c4a6e;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.message-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.message-info {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.message-warning {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+
+/* ----------------- Form Spacing ----------------- */
+.form-spacing-compact {
+  gap: 0.75rem;
+}
+
+.form-spacing-normal {
+  gap: 1rem;
+}
+
+.form-spacing-relaxed {
+  gap: 1.5rem;
+}
+
+/* ----------------- Form Content Areas ----------------- */
+.form-top-content {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-top-content h1,
+.form-top-content h2,
+.form-top-content h3 {
+  color: var(--color-header);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.form-bottom-content {
+  margin-top: 1.5rem;
+}

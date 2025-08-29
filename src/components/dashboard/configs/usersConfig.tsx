@@ -1,12 +1,13 @@
 import { Column } from "@/components/ui";
 import { usersApi } from "@/services/api/entities/users";
-import { User, UserListParams, UserFiltersDto } from "@/types/users";
+import { User, UserListParams, UserFiltersDto } from "@/types/api/entities";
 import { formatDate } from "@/utils/dateFormatter";
 
 export const usersManagementConfig = {
   title: "Panel Administrativo de Usuarios",
   createButtonText: "Crear Usuario",
   createUrl: "/dashboard/users/create",
+  entityType: "users" as const,
   emptyMessage: "No se encontraron usuarios. Crea tu primer usuario para comenzar.",
   errorMessage: "Error al cargar los usuarios",
   initialParams: {
@@ -38,26 +39,34 @@ export const usersManagementConfig = {
     {
       key: "role",
       label: "Rol",
-      render: (user: User) => (
-        <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${
-            user.role.name === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
-          }`}
-        >
-          {user.role.name === "admin" ? "Administrador" : "Usuario"}
-        </span>
-      ),
+      render: (user: User) => {
+        const roleName = user.role?.name?.toLowerCase() || "usuario";
+        return (
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${
+              roleName === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+            }`}
+          >
+            {roleName === "admin" ? "Administrador" : "Usuario"}
+          </span>
+        );
+      },
       className: "text-center min-w-32",
     },
     {
       key: "role",
       label: "Estado del rol",
       className: "text-center",
-      render: (user: User) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.role.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-          {user.role.isActive ? "Activo" : "Inactivo"}
-        </span>
-      ),
+      render: (user: User) => {
+        const isActive = user.role?.isActive ?? false;
+        return (
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+          >
+            {isActive ? "Activo" : "Inactivo"}
+          </span>
+        );
+      },
     },
     {
       key: "createdAt",

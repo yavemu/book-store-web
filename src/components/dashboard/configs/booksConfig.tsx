@@ -1,11 +1,13 @@
 import { Column } from "@/components/ui";
 import { bookCatalogApi } from "@/services/api";
 import { BookCatalog, BookCatalogListParams, BookFiltersDto } from "@/types/domain";
-import { BookFilters } from "../components";
 
 export const booksManagementConfig = {
   title: "Panel Administrativo de Libros",
   createButtonText: "Crear Libro",
+  createUrl: "/dashboard/books/create",
+  editUrl: "/dashboard/books/edit",
+  entityType: "books" as const,
   emptyMessage: "No se encontraron libros. Crea tu primer libro para comenzar.",
   errorMessage: "Error al cargar los libros",
   initialParams: {
@@ -90,5 +92,5 @@ export const booksManagementConfig = {
       ),
     },
   ] as Column<BookCatalog>[],
-  filters: <BookFilters onFilter={() => {}} onClear={() => {}} loading={false} />,
+  // filters: removed - CRUD functionality disabled
 };

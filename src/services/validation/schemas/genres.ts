@@ -4,16 +4,12 @@ export const createGenreSchema = z.object({
   name: z
     .string()
     .min(1, 'El nombre del género es requerido')
-    .max(100, 'El nombre no puede exceder 100 caracteres')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+    .max(50, 'El nombre no puede exceder 50 caracteres')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s&.-]+$/, 'El nombre contiene caracteres no válidos'),
   description: z
     .string()
     .optional()
-    .refine((val) => !val || val.length <= 500, 'La descripción no puede exceder 500 caracteres'),
-  isActive: z
-    .boolean()
-    .optional()
-    .default(true),
+    .or(z.literal('')),
 });
 
 export const updateGenreSchema = z.object({
@@ -26,9 +22,6 @@ export const updateGenreSchema = z.object({
     .string()
     .optional()
     .refine((val) => !val || val.length <= 500, 'La descripción no puede exceder 500 caracteres'),
-  isActive: z
-    .boolean()
-    .optional(),
 });
 
 export const genreSearchSchema = z.object({
