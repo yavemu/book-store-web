@@ -1,6 +1,5 @@
 import { environment } from "@/config/environment";
 import { ApiError } from "@/types/api";
-import { authService } from "@/services/api";
 
 class ApiClient {
   private baseURL: string;
@@ -11,14 +10,29 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    const token = authService.getToken();
+    
+    // Obtener token solo si existe (evita dependencia circular)
+    let token = null;
+    try {
+      token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    } catch (error) {
+      // Si no puede acceder al localStorage, continúa sin token
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...options.headers as Record<string, string>,
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+      console.log('API call with token:', endpoint, 'Token length:', token.length);
+    } else {
+      console.log('API call without token:', endpoint);
+    }
 
     const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       ...options,
     };
 
@@ -99,7 +113,7 @@ class ApiClient {
                 hasPrevPage: false,
               },
             };
-            
+
             return normalizedResponse as T;
           }
         }
@@ -109,7 +123,6 @@ class ApiClient {
 
       return data as T;
     } catch (error) {
-
       if (error instanceof Error) {
         throw {
           message: error.message,
@@ -123,6 +136,7 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string): Promise<T> {
+    console.log("===endpoint", endpoint);
     return this.request<T>(endpoint, { method: "GET" });
   }
 
