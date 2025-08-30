@@ -59,15 +59,22 @@ export default function Modal({
 
   return (
     <div className="modal-overlay">
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className={`modal-content ${sizeClasses[size]}`}>
+      <div className="modal-backdrop" onClick={onClose} data-testid="modal-backdrop" />
+      <div 
+        className={`modal-content ${sizeClasses[size]}`}
+        role="dialog"
+        aria-labelledby="modal-title"
+        tabIndex={-1}
+        ref={(el) => el?.focus()}
+      >
         <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
+          <h2 id="modal-title" className="modal-title">{title}</h2>
           {showCloseButton && (
             <Button
               variant="link"
               onClick={onClose}
               className="modal-close-button"
+              aria-label="Cerrar modal"
             >
               ✕
             </Button>

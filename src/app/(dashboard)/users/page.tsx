@@ -8,11 +8,15 @@ import PageWrapper from '@/components/PageWrapper';
 import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
 import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
 import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
+import BookMovementsModal from '@/components/BookMovementsModal';
 
 export default function UsersPage() {
   const [params, setParams] = useState<UserListParams>({ page: 1, limit: 10 });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false);
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const { loading, error, data, execute } = useApiRequest({
     endpoint: '/users',
@@ -35,6 +39,12 @@ export default function UsersPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    
+    // Check if any filters are active
+    const hasSearch = value && value.trim() !== '';
+    const hasFilters = Object.values(searchFilters).some(filterValue => filterValue && filterValue !== '');
+    setHasActiveFilters(hasSearch || hasFilters);
+    
     // Implementar búsqueda con debounce
   };
 
@@ -44,6 +54,43 @@ export default function UsersPage() {
 
   const handleEditUser = (record: any) => {
     console.log('Editar usuario:', record);
+  };
+
+  const handleViewMovements = (user: any) => {
+    setSelectedUser(user);
+    setIsMovementsModalOpen(true);
+  };
+
+  const handleCloseMovementsModal = () => {
+    setIsMovementsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleDownloadCSV = () => {
+    if (!hasActiveFilters) return;
+    
+    // Create query parameters from current filters and search
+    const queryParams = new URLSearchParams();
+    
+    // Add search filters
+    Object.entries(searchFilters).forEach(([key, value]) => {
+      if (value && value !== '') {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    // Add search term if exists
+    if (searchTerm && searchTerm.trim() !== '') {
+      queryParams.append('search', searchTerm.trim());
+    }
+
+    // Call CSV export endpoint
+    const csvEndpoint = `/users/export/csv?${queryParams.toString()}`;
+    console.log('Downloading CSV with filters:', csvEndpoint);
+    
+    // TODO: Implement actual CSV download
+    // This would typically trigger a download via the API
+    alert(`CSV download would be triggered for: ${csvEndpoint}`);
   };
 
   // Advanced Search Fields for Users
@@ -84,12 +131,20 @@ export default function UsersPage() {
     setSearchFilters(filters);
     console.log('Advanced search filters for users:', filters);
     setParams({ ...params, page: 1 });
+    
+    // Check if any filters are active
+    const hasFilters = Object.values(filters).some(value => value && value !== '');
+    const hasSearch = searchTerm && searchTerm.trim() !== '';
+    setHasActiveFilters(hasFilters || hasSearch);
+    
     // TODO: Add filters to API request
   };
 
   const handleClearAdvancedSearch = () => {
     setSearchFilters({});
+    setSearchTerm('');
     setParams({ page: 1, limit: 10 });
+    setHasActiveFilters(false);
     // TODO: Clear filters from API request
   };
 
@@ -97,6 +152,12 @@ export default function UsersPage() {
     const newFilters = { ...searchFilters };
     delete newFilters[key];
     setSearchFilters(newFilters);
+    
+    // Check if any filters are still active
+    const hasFilters = Object.values(newFilters).some(value => value && value !== '');
+    const hasSearch = searchTerm && searchTerm.trim() !== '';
+    setHasActiveFilters(hasFilters || hasSearch);
+    
     // TODO: Update API request without this filter
   };
 
@@ -117,6 +178,11 @@ export default function UsersPage() {
   ];
 
   const actions = [
+    {
+      label: 'Ver Movimientos',
+      onClick: handleViewMovements,
+      variant: 'secondary' as const
+    },
     {
       label: 'Editar',
       onClick: handleEditUser,
@@ -152,6 +218,9 @@ export default function UsersPage() {
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar usuarios..."
+      showCsvDownload
+      onCsvDownload={handleDownloadCSV}
+      csvDownloadEnabled={hasActiveFilters}
     >
       {/* Advanced Search Form */}
       <AdvancedSearchForm
@@ -182,6 +251,13 @@ export default function UsersPage() {
         showCreateButton
         onCreateClick={handleCreateUser}
         entityName="usuario"
+      />
+
+      {/* Modal de Movimientos de Inventario */}
+      <BookMovementsModal
+        isOpen={isMovementsModalOpen}
+        onClose={handleCloseMovementsModal}
+        book={selectedUser}
       />
     </PageWrapper>
   );

@@ -50,6 +50,14 @@ export default function Navigation() {
   return (
     <aside className="sidebar-boutique">
       <h2 className="sidebar-brand">📚 Librería Boutique</h2>
+      
+      {/* User Info Section - Prominent display */}
+      <div className="sidebar-user-info">
+        <div className="sidebar-user-display">
+          {user?.username || 'Usuario'} - [{userRole}]
+        </div>
+      </div>
+      
       <nav className="sidebar-nav">
         {navItems.filter(canAccess).map((item) => (
           <Link
@@ -62,12 +70,6 @@ export default function Navigation() {
         ))}
         
         <div className="sidebar-user-section">
-          <div className="sidebar-username">
-            {user?.username || 'Usuario'}
-          </div>
-          <div className="sidebar-role">
-            {userRole}
-          </div>
           <Button 
             variant="secondary" 
             onClick={handleLogout}

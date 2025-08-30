@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useAppSelector } from '@/store/hooks';
 
 export interface PageWrapperProps {
   title: string;
@@ -10,6 +11,9 @@ export interface PageWrapperProps {
   searchPlaceholder?: string;
   filters?: ReactNode;
   breadcrumbs?: string[];
+  showCsvDownload?: boolean;
+  onCsvDownload?: () => void;
+  csvDownloadEnabled?: boolean;
 }
 
 export default function PageWrapper({
@@ -19,8 +23,22 @@ export default function PageWrapper({
   onSearchChange,
   searchPlaceholder = "🔎 Buscar...",
   filters,
-  breadcrumbs
+  breadcrumbs,
+  showCsvDownload = false,
+  onCsvDownload,
+  csvDownloadEnabled = false
 }: PageWrapperProps) {
+  const { user } = useAppSelector((state) => state.auth);
+  
+  // Handle role as string or object
+  const userRole = typeof user?.role === 'string' 
+    ? user.role 
+    : (typeof user?.role === 'object' && user?.role?.name) 
+    ? user.role.name 
+    : 'USER';
+
+  // CSV download is only available for admin users
+  const canShowCsvDownload = showCsvDownload && userRole === 'ADMIN';
   return (
     <div className="main-content">
       {breadcrumbs && (
@@ -34,7 +52,19 @@ export default function PageWrapper({
         </div>
       )}
 
-      <h1 className="page-title">{title}</h1>
+      <div className="page-header">
+        <h1 className="page-title">{title}</h1>
+        {canShowCsvDownload && (
+          <button
+            onClick={onCsvDownload}
+            disabled={!csvDownloadEnabled}
+            className={`csv-download-button ${!csvDownloadEnabled ? 'disabled' : ''}`}
+            title={csvDownloadEnabled ? 'Descargar CSV' : 'Realiza una búsqueda para habilitar la descarga'}
+          >
+            📥 CSV
+          </button>
+        )}
+      </div>
 
       {(showSearch || filters) && (
         <div className="filters-container">

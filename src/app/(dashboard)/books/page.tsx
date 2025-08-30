@@ -8,10 +8,15 @@ import PageWrapper from '@/components/PageWrapper';
 import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
 import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
 import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
+import BookMovementsModal from '@/components/BookMovementsModal';
 
 export default function BooksPage() {
   const [params, setParams] = useState<BookListParams>({ page: 1, limit: 10 });
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
+  const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false);
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { loading, error, data, execute } = useApiRequest({
     endpoint: '/book-catalog',
@@ -40,7 +45,14 @@ export default function BooksPage() {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
+    
+    // Check if any filters are active
+    const hasSearch = term && term.trim() !== '';
+    const hasFilters = Object.values(searchFilters).some(filterValue => filterValue && filterValue !== '');
+    setHasActiveFilters(hasSearch || hasFilters);
+    
     // TODO: Implement search functionality
+    console.log('Search term:', term);
   };
 
   const handleCreate = () => {
@@ -61,6 +73,43 @@ export default function BooksPage() {
   const handleView = (book: any) => {
     console.log('View book:', book);
     // TODO: Implement view functionality
+  };
+
+  const handleViewMovements = (book: any) => {
+    setSelectedBook(book);
+    setIsMovementsModalOpen(true);
+  };
+
+  const handleCloseMovementsModal = () => {
+    setIsMovementsModalOpen(false);
+    setSelectedBook(null);
+  };
+
+  const handleDownloadCSV = () => {
+    if (!hasActiveFilters) return;
+    
+    // Create query parameters from current filters and search
+    const queryParams = new URLSearchParams();
+    
+    // Add search filters
+    Object.entries(searchFilters).forEach(([key, value]) => {
+      if (value && value !== '') {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    // Add search term if exists
+    if (searchTerm && searchTerm.trim() !== '') {
+      queryParams.append('search', searchTerm.trim());
+    }
+
+    // Call CSV export endpoint
+    const csvEndpoint = `/book-catalog/export/csv?${queryParams.toString()}`;
+    console.log('Downloading CSV with filters:', csvEndpoint);
+    
+    // TODO: Implement actual CSV download
+    // This would typically trigger a download via the API
+    alert(`CSV download would be triggered for: ${csvEndpoint}`);
   };
 
   // Advanced Search Fields for Books
@@ -167,6 +216,11 @@ export default function BooksPage() {
       variant: 'primary' as const
     },
     {
+      label: 'Ver Movimientos',
+      onClick: handleViewMovements,
+      variant: 'secondary' as const
+    },
+    {
       label: 'Editar',
       onClick: handleEdit,
       variant: 'secondary' as const
@@ -182,12 +236,20 @@ export default function BooksPage() {
     setSearchFilters(filters);
     console.log('Advanced search filters for books:', filters);
     setParams({ ...params, page: 1 });
+    
+    // Check if any filters are active
+    const hasFilters = Object.values(filters).some(value => value && value !== '');
+    const hasSearch = searchTerm && searchTerm.trim() !== '';
+    setHasActiveFilters(hasFilters || hasSearch);
+    
     // TODO: Add filters to API request
   };
 
   const handleClearAdvancedSearch = () => {
     setSearchFilters({});
+    setSearchTerm('');
     setParams({ page: 1, limit: 10 });
+    setHasActiveFilters(false);
     // TODO: Clear filters from API request
   };
 
@@ -195,6 +257,12 @@ export default function BooksPage() {
     const newFilters = { ...searchFilters };
     delete newFilters[key];
     setSearchFilters(newFilters);
+    
+    // Check if any filters are still active
+    const hasFilters = Object.values(newFilters).some(value => value && value !== '');
+    const hasSearch = searchTerm && searchTerm.trim() !== '';
+    setHasActiveFilters(hasFilters || hasSearch);
+    
     // TODO: Update API request without this filter
   };
 
@@ -210,7 +278,6 @@ export default function BooksPage() {
           onRetry={() => execute()}
           onReset={() => {
             setParams({ page: 1, limit: 10 });
-            setSearchTerm('');
             execute();
           }}
           title="Error cargando libros"
@@ -227,6 +294,9 @@ export default function BooksPage() {
       breadcrumbs={['Libros']}
       onSearch={handleSearch}
       searchPlaceholder="Buscar libros por título, ISBN..."
+      showCsvDownload
+      onCsvDownload={handleDownloadCSV}
+      csvDownloadEnabled={hasActiveFilters}
     >
       {/* Advanced Search Form */}
       <AdvancedSearchForm
@@ -258,6 +328,13 @@ export default function BooksPage() {
         onCreateClick={handleCreate}
         createButtonLabel="Nuevo Libro"
         entityName="libro"
+      />
+
+      {/* Modal de Movimientos de Inventario */}
+      <BookMovementsModal
+        isOpen={isMovementsModalOpen}
+        onClose={handleCloseMovementsModal}
+        book={selectedBook}
       />
     </PageWrapper>
   );
