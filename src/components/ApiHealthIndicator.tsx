@@ -168,15 +168,7 @@ export default function ApiHealthIndicator({
             </div>
 
             {status.error && (
-              <div style={{
-                backgroundColor: '#f8d7da',
-                border: '1px solid #f5c6cb',
-                borderRadius: '4px',
-                padding: '8px',
-                marginTop: '8px',
-                fontSize: '12px',
-                color: '#721c24'
-              }}>
+              <div className="error-display compact">
                 <strong>Error:</strong> {status.error}
               </div>
             )}

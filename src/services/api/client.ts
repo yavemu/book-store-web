@@ -15,7 +15,7 @@ class ApiClient {
     let token = null;
     try {
       token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    } catch (error) {
+    } catch {
       // Si no puede acceder al localStorage, continúa sin token
     }
 
@@ -26,9 +26,6 @@ class ApiClient {
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      console.log('API call with token:', endpoint, 'Token length:', token.length);
-    } else {
-      console.log('API call without token:', endpoint);
     }
 
     const config: RequestInit = {
@@ -40,22 +37,21 @@ class ApiClient {
       const response = await fetch(url, config);
 
       const contentType = response.headers.get("content-type");
-      let data: any = null;
+      let data: unknown = null;
 
-      // Si hay body, lo parseamos
       if (contentType && contentType.includes("application/json")) {
         data = await response.json();
       }
 
       if (!response.ok) {
-        // Adaptar error a un formato uniforme
-        // El backend puede devolver message como string o array de strings
+        const responseData = data as any;
         let errorMessage = "Error desconocido";
-        if (data?.message) {
-          if (Array.isArray(data.message)) {
-            errorMessage = data.message.join(", ");
+        
+        if (responseData?.message) {
+          if (Array.isArray(responseData.message)) {
+            errorMessage = (responseData.message || []).join(", ");
           } else {
-            errorMessage = data.message;
+            errorMessage = responseData.message;
           }
         } else {
           errorMessage = response.statusText || "Error desconocido";
@@ -63,8 +59,8 @@ class ApiClient {
 
         const errorData: ApiError = {
           message: errorMessage,
-          error: data?.error || "Request Error",
-          statusCode: data?.statusCode || response.status,
+          error: responseData?.error || "Request Error",
+          statusCode: responseData?.statusCode || response.status,
         };
 
         throw errorData;
@@ -118,7 +114,7 @@ class ApiClient {
           }
         }
 
-        return data.data as T;
+        return (data as any).data as T;
       }
 
       return data as T;
@@ -146,22 +142,29 @@ class ApiClient {
           statusCode: statusCode,
         };
 
-        console.error('API Client Error:', {
-          url,
-          method: options.method || 'GET',
-          error: apiError,
-          originalError: error
-        });
 
         throw apiError;
       }
 
-      throw error;
+      // Si el error no es una instancia de Error, lo convertimos en un ApiError estructurado
+      const fallbackError: ApiError = {
+        message: typeof error === 'string' 
+          ? error 
+          : error && typeof error === 'object' && 'message' in error 
+            ? String(error.message)
+            : 'Error desconocido en la comunicación con el servidor',
+        error: 'UnknownError',
+        statusCode: error && typeof error === 'object' && 'statusCode' in error 
+          ? Number(error.statusCode) || 0 
+          : 0,
+      };
+
+
+      throw fallbackError;
     }
   }
 
   async get<T>(endpoint: string): Promise<T> {
-    console.log("===endpoint", endpoint);
     return this.request<T>(endpoint, { method: "GET" });
   }
 

@@ -96,7 +96,19 @@ export const changePasswordSchema = z.object({
   path: ['newPassword'],
 });
 
+export const userAdvancedSearchSchema = z.object({
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(100).default(10).optional(),
+  username: z.string().optional(),
+  email: z.string().optional(),
+  role: z.string().optional(),
+  isActive: z.boolean().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
 export type CreateUserFormData = z.infer<typeof createUserSchema>;
 export type UpdateUserFormData = z.infer<typeof updateUserSchema>;
 export type UserSearchFormData = z.infer<typeof userSearchSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export type UserAdvancedSearchParams = z.infer<typeof userAdvancedSearchSchema>;

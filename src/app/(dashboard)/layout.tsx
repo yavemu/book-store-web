@@ -8,11 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div>
+      <div className="dashboard-layout">
         <Navigation />
-        <main>
-          {children}
-        </main>
+        <>{children}</>
       </div>
     </ProtectedRoute>
   );

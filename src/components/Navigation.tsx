@@ -17,8 +17,9 @@ const navItems: NavItem[] = [
   { label: 'Géneros', path: '/genres' },
   { label: 'Autores', path: '/authors' },
   { label: 'Editoriales', path: '/publishers' },
+  { label: 'Movimientos', path: '/inventory-movements' },
   { label: 'Usuarios', path: '/users', requiredRole: 'ADMIN' },
-  { label: 'Auditoría', path: '/audit', requiredRole: 'ADMIN' }
+  { label: 'Auditoría', path: '/audit' }
 ];
 
 export default function Navigation() {
@@ -47,55 +48,34 @@ export default function Navigation() {
   };
 
   return (
-    <nav style={{ 
-      padding: '20px',
-      backgroundColor: '#f8f9fa',
-      borderBottom: '1px solid #dee2e6'
-    }}>
-      <div style={{ 
-        display: 'flex',
-        gap: '20px',
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: '#007bff',
-          marginRight: '30px'
-        }}>
-          Book Store Admin
-        </div>
-        
+    <aside className="sidebar-boutique">
+      <h2 className="sidebar-brand">📚 Librería Boutique</h2>
+      <nav className="sidebar-nav">
         {navItems.filter(canAccess).map((item) => (
           <Link
             key={item.path}
             href={item.path}
-            style={{
-              padding: '8px 16px',
-              textDecoration: 'none',
-              borderRadius: '4px',
-              backgroundColor: isActive(item.path) ? '#007bff' : 'transparent',
-              color: isActive(item.path) ? 'white' : '#007bff',
-              border: '1px solid #007bff',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}
+            className={`sidebar-nav-item ${isActive(item.path) ? 'active' : ''}`}
           >
             {item.label}
           </Link>
         ))}
         
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', color: '#6c757d' }}>
-            {user?.username || 'Usuario'} ({userRole})
-          </span>
-          <Button variant="secondary" onClick={handleLogout}>
+        <div className="sidebar-user-section">
+          <div className="sidebar-username">
+            {user?.username || 'Usuario'}
+          </div>
+          <div className="sidebar-role">
+            {userRole}
+          </div>
+          <Button 
+            variant="secondary" 
+            onClick={handleLogout}
+          >
             Cerrar Sesión
           </Button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </aside>
   );
 }

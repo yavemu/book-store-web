@@ -5,10 +5,14 @@ import { useApiRequest } from '@/hooks';
 import { genresApi, GenreListParams } from '@/services/api/entities/genres';
 import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
+import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
+import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
+import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
 
 export default function GenresPage() {
   const [params, setParams] = useState<GenreListParams>({ page: 1, limit: 10 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
     endpoint: '/genres',
@@ -42,6 +46,42 @@ export default function GenresPage() {
     console.log('Editar género:', record);
   };
 
+  // Advanced Search Fields for Genres
+  const searchFields: SearchField[] = [
+    {
+      key: 'name',
+      label: 'Nombre',
+      type: 'text',
+      placeholder: 'Buscar por nombre...'
+    },
+    {
+      key: 'description',
+      label: 'Descripción',
+      type: 'text',
+      placeholder: 'Buscar por descripción...'
+    }
+  ];
+
+  const handleAdvancedSearch = (filters: SearchFilters) => {
+    setSearchFilters(filters);
+    console.log('Advanced search filters for genres:', filters);
+    setParams({ ...params, page: 1 });
+    // TODO: Add filters to API request
+  };
+
+  const handleClearAdvancedSearch = () => {
+    setSearchFilters({});
+    setParams({ page: 1, limit: 10 });
+    // TODO: Clear filters from API request
+  };
+
+  const handleRemoveFilter = (key: string) => {
+    const newFilters = { ...searchFilters };
+    delete newFilters[key];
+    setSearchFilters(newFilters);
+    // TODO: Update API request without this filter
+  };
+
   const columns: TableColumn[] = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Nombre' },
@@ -61,14 +101,28 @@ export default function GenresPage() {
   const actions = [
     {
       label: 'Editar',
-      onClick: handleEditGenre
+      onClick: handleEditGenre,
+      variant: 'secondary' as const
     }
   ];
 
   if (error) {
     return (
       <PageWrapper title="Géneros">
-        <div>Error: {error}</div>
+        <ApiErrorState
+          error={error}
+          canRetry={error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch')}
+          isRetrying={loading}
+          onRetry={() => execute()}
+          onReset={() => {
+            setParams({ page: 1, limit: 10 });
+            setSearchTerm('');
+            execute();
+          }}
+          title="Error cargando géneros"
+          description="No se pudieron cargar los géneros del sistema."
+          showTechnicalDetails={true}
+        />
       </PageWrapper>
     );
   }
@@ -81,6 +135,25 @@ export default function GenresPage() {
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar géneros..."
     >
+      {/* Advanced Search Form */}
+      <AdvancedSearchForm
+        fields={searchFields}
+        onSearch={handleAdvancedSearch}
+        onClear={handleClearAdvancedSearch}
+        loading={loading}
+        entityName="géneros"
+        initialFilters={searchFilters}
+      />
+
+      {/* Active Filters Display */}
+      <ActiveFiltersDisplay
+        filters={searchFilters}
+        searchFields={searchFields}
+        tableColumns={columns}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAll={handleClearAdvancedSearch}
+      />
+
       <DynamicTable
         data={data?.data || []}
         columns={columns}

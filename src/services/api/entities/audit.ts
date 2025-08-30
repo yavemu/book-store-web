@@ -56,6 +56,15 @@ export interface AuditSearchParams {
   sortOrder?: 'ASC' | 'DESC';
 }
 
+export interface AuditAdvancedSearchParams extends AuditListParams {
+  action?: string;
+  entityType?: string;
+  entityId?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
 
 export const auditApi = {

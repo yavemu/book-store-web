@@ -87,7 +87,22 @@ export const bookFilterSchema = z.object({
     .optional()
 });
 
+export const bookAdvancedSearchSchema = z.object({
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(100).default(10).optional(),
+  title: z.string().optional(),
+  isbn: z.string().optional(),
+  price: z.number().min(0).optional(),
+  stock: z.number().min(0).optional(),
+  isAvailable: z.boolean().optional(),
+  genre: z.string().optional(),
+  publisher: z.string().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
 export type CreateBookFormData = z.infer<typeof createBookSchema>;
 export type UpdateBookFormData = z.infer<typeof updateBookSchema>;
 export type BookSearchFormData = z.infer<typeof bookSearchSchema>;
 export type BookFilterFormData = z.infer<typeof bookFilterSchema>;
+export type BookAdvancedSearchParams = z.infer<typeof bookAdvancedSearchSchema>;

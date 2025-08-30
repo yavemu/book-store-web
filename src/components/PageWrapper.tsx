@@ -17,14 +17,14 @@ export default function PageWrapper({
   children,
   showSearch = false,
   onSearchChange,
-  searchPlaceholder = "Buscar...",
+  searchPlaceholder = "🔎 Buscar...",
   filters,
   breadcrumbs
 }: PageWrapperProps) {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="main-content">
       {breadcrumbs && (
-        <div style={{ marginBottom: '10px', fontSize: '14px', color: '#6c757d' }}>
+        <div className="breadcrumbs">
           {breadcrumbs.map((crumb, index) => (
             <span key={index}>
               {crumb}
@@ -34,48 +34,26 @@ export default function PageWrapper({
         </div>
       )}
 
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ 
-          fontSize: '2rem', 
-          fontWeight: 'bold', 
-          margin: '0 0 20px 0',
-          color: '#212529'
-        }}>
-          {title}
-        </h1>
+      <h1 className="page-title">{title}</h1>
 
-        {(showSearch || filters) && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '15px', 
-            alignItems: 'center',
-            flexWrap: 'wrap'
-          }}>
-            {showSearch && (
-              <div>
-                <input
-                  type="text"
-                  placeholder={searchPlaceholder}
-                  onChange={(e) => onSearchChange?.(e.target.value)}
-                  style={{
-                    padding: '8px 12px',
-                    border: '1px solid #ced4da',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    minWidth: '250px'
-                  }}
-                />
-              </div>
-            )}
-            
-            {filters && (
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                {filters}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {(showSearch || filters) && (
+        <div className="filters-container">
+          {showSearch && (
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              className="search-input"
+            />
+          )}
+          
+          {filters && (
+            <div className="filters-group">
+              {filters}
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         {children}

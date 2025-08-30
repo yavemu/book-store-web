@@ -22,6 +22,8 @@ export default function AuthForm() {
   
   const dispatch = useAppDispatch();
 
+  const [loginError, setLoginError] = useState<string | null>(null);
+  
   const { loading: loginLoading, execute: executeLogin, validationErrors: loginValidationErrors } = useApiRequest<LoginFormData>({
     endpoint: '/auth/login',
     method: 'POST',
@@ -30,27 +32,33 @@ export default function AuthForm() {
       console.log('Login response:', response);
       console.log('User object:', response.user);
       console.log('User role:', response.user?.role);
+      setLoginError(null);
       dispatch(loginSuccess({
         token: response.access_token || response.token,
         user: response.user
       }));
     },
     onError: (error) => {
-      alert('Error en login: ' + error.message);
+      setLoginError(error.message || 'Error al iniciar sesión');
     }
   });
 
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
+  
   const { loading: registerLoading, execute: executeRegister, validationErrors: registerValidationErrors } = useApiRequest<RegisterFormData>({
     endpoint: '/auth/register',
     method: 'POST',
     schema: registerSchema,
     onSuccess: (response: any) => {
-      alert('Registro exitoso. Por favor inicia sesión.');
+      setRegisterError(null);
+      setRegisterSuccess('Registro exitoso. Por favor inicia sesión.');
       setMode('login');
       setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     },
     onError: (error) => {
-      alert('Error en registro: ' + error.message);
+      setRegisterSuccess(null);
+      setRegisterError(error.message || 'Error al registrarse');
     }
   });
 
@@ -58,10 +66,15 @@ export default function AuthForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear any previous error messages
+    setLoginError(null);
+    setRegisterError(null);
+    setRegisterSuccess(null);
 
     if (mode === 'register') {
       if (formData.password !== formData.confirmPassword) {
-        alert('Las contraseñas no coinciden');
+        setRegisterError('Las contraseñas no coinciden');
         return;
       }
       
@@ -81,21 +94,27 @@ export default function AuthForm() {
   const toggleMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
     setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+    // Clear any error/success messages when switching modes
+    setLoginError(null);
+    setRegisterError(null);
+    setRegisterSuccess(null);
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f8f9fa',
-      padding: '20px'
-    }}>
-      <Card title={mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}>
-        <form onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <div className="auth-card-wrapper">
+        <div className="auth-header">
+          <h1 className="auth-title">
+            {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
+          </h1>
+          <p className="auth-subtitle">
+            {mode === 'login' ? 'Bienvenido a Librería Boutique' : 'Únete a nuestra Librería Boutique'}
+          </p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="auth-form">
           {mode === 'register' && (
-            <div style={{ marginBottom: '16px' }}>
+            <div className="form-field">
               <Input
                 type="text"
                 placeholder="Nombre de usuario"
@@ -105,14 +124,14 @@ export default function AuthForm() {
                 disabled={loading}
               />
               {registerValidationErrors?.username && (
-                <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '4px' }}>
-                  {registerValidationErrors.username.join(', ')}
+                <div className="form-error">
+                  {(registerValidationErrors.username || []).join(', ')}
                 </div>
               )}
             </div>
           )}
 
-          <div style={{ marginBottom: '16px' }}>
+          <div className="form-field">
             <Input
               type="email"
               placeholder="Email"
@@ -122,13 +141,13 @@ export default function AuthForm() {
               disabled={loading}
             />
             {((mode === 'login' && loginValidationErrors?.email) || (mode === 'register' && registerValidationErrors?.email)) && (
-              <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '4px' }}>
-                {mode === 'login' ? loginValidationErrors?.email?.join(', ') : registerValidationErrors?.email?.join(', ')}
+              <div className="form-error">
+                {mode === 'login' ? (loginValidationErrors?.email || []).join(', ') : (registerValidationErrors?.email || []).join(', ')}
               </div>
             )}
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
+          <div className="form-field">
             <Input
               type="password"
               placeholder="Contraseña"
@@ -138,14 +157,14 @@ export default function AuthForm() {
               disabled={loading}
             />
             {((mode === 'login' && loginValidationErrors?.password) || (mode === 'register' && registerValidationErrors?.password)) && (
-              <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '4px' }}>
-                {mode === 'login' ? loginValidationErrors?.password?.join(', ') : registerValidationErrors?.password?.join(', ')}
+              <div className="form-error">
+                {mode === 'login' ? (loginValidationErrors?.password || []).join(', ') : (registerValidationErrors?.password || []).join(', ')}
               </div>
             )}
           </div>
 
           {mode === 'register' && (
-            <div style={{ marginBottom: '16px' }}>
+            <div className="form-field">
               <Input
                 type="password"
                 placeholder="Confirmar Contraseña"
@@ -154,20 +173,51 @@ export default function AuthForm() {
                 required
                 disabled={loading}
               />
+              {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <div className="form-error">
+                  Las contraseñas no coinciden
+                </div>
+              )}
             </div>
           )}
 
-          <div style={{ marginBottom: '16px' }}>
+          {/* Global error messages - positioned above submit button */}
+          {loginError && mode === 'login' && (
+            <div className="form-error">
+              {loginError}
+            </div>
+          )}
+          
+          {registerError && mode === 'register' && (
+            <div className="form-error">
+              {registerError}
+            </div>
+          )}
+          
+          {registerSuccess && (
+            <div className="form-success">
+              {registerSuccess}
+            </div>
+          )}
+
+          <div className="form-actions">
             <Button
               type="submit"
               disabled={loading}
               fullWidth
             >
-              {loading ? 'Cargando...' : (mode === 'login' ? 'Iniciar Sesión' : 'Registrarse')}
+              {loading ? (
+                <span className="loading-text">
+                  <span className="loading-spinner"></span>
+                  Procesando...
+                </span>
+              ) : (
+                mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'
+              )}
             </Button>
           </div>
 
-          <div style={{ textAlign: 'center' }}>
+          <div className="auth-toggle">
             <Button
               variant="link"
               onClick={toggleMode}
@@ -177,7 +227,7 @@ export default function AuthForm() {
             </Button>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

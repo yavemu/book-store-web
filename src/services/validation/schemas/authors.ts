@@ -102,7 +102,19 @@ export const bookAuthorAssignmentSchema = z.object({
     .refine((val) => !val || val.length <= 100, 'El rol no puede exceder 100 caracteres'),
 });
 
+export const authorAdvancedSearchSchema = z.object({
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(100).default(10).optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  nationality: z.string().optional(),
+  birthDate: z.string().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
 export type CreateAuthorFormData = z.infer<typeof createAuthorSchema>;
 export type UpdateAuthorFormData = z.infer<typeof updateAuthorSchema>;
 export type AuthorSearchFormData = z.infer<typeof authorSearchSchema>;
 export type BookAuthorAssignmentFormData = z.infer<typeof bookAuthorAssignmentSchema>;
+export type AuthorAdvancedSearchParams = z.infer<typeof authorAdvancedSearchSchema>;

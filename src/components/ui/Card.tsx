@@ -1,30 +1,61 @@
 interface CardProps {
   children: React.ReactNode;
   title?: string;
+  className?: string;
 }
 
-export default function Card({ children, title }: CardProps) {
+interface CardHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function Card({ children, title, className = '' }: CardProps) {
   return (
-    <div style={{
-      backgroundColor: 'white',
-      padding: '24px',
-      borderRadius: '8px',
-      border: '1px solid #ddd',
-      maxWidth: '400px',
-      margin: '0 auto'
-    }}>
+    <div className={`card-boutique ${className}`}>
       {title && (
-        <h2 style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          marginBottom: '24px',
-          color: '#333'
-        }}>
-          {title}
-        </h2>
+        <div className="card-header">
+          <h2 className="card-title">
+            {title}
+          </h2>
+        </div>
       )}
       {children}
     </div>
   );
 }
+
+export function CardHeader({ children, className = '' }: CardHeaderProps) {
+  return (
+    <div className={`card-header ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+export function CardTitle({ children, className = '' }: CardTitleProps) {
+  return (
+    <h3 className={`card-title ${className}`}>
+      {children}
+    </h3>
+  );
+}
+
+export function CardContent({ children, className = '' }: CardContentProps) {
+  return (
+    <div className={`card-content ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+export default Card;

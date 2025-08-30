@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="antialiased">
+      <body>
         <Provider store={store}>
           <AuthProvider>
             <GlobalApiMonitor />

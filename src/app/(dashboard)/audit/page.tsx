@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useApiRequest } from '@/hooks';
-import { auditApi, AuditListParams } from '@/services/api/entities/audit';
-import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
-import PageWrapper from '@/components/PageWrapper';
+import DynamicTable, { PaginationMeta, TableColumn } from "@/components/DynamicTable";
+import PageWrapper from "@/components/PageWrapper";
+import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
+import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
+import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
+import { useApiRequest } from "@/hooks";
+import { AuditListParams } from "@/services/api/entities/audit";
+import { useEffect, useState } from "react";
 
 export default function AuditPage() {
   const [params, setParams] = useState<AuditListParams>({ page: 1, limit: 10 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
     endpoint: '/audit',
@@ -34,6 +38,71 @@ export default function AuditPage() {
     // Implementar búsqueda con debounce
   };
 
+  // Advanced Search Fields for Audit
+  const searchFields: SearchField[] = [
+    {
+      key: 'action',
+      label: 'Acción',
+      type: 'text',
+      placeholder: 'Buscar por acción...'
+    },
+    {
+      key: 'entityType',
+      label: 'Tipo Entidad',
+      type: 'select',
+      options: [
+        { value: 'user', label: 'Usuario' },
+        { value: 'book', label: 'Libro' },
+        { value: 'author', label: 'Autor' },
+        { value: 'genre', label: 'Género' }
+      ]
+    },
+    {
+      key: 'entityId',
+      label: 'ID Entidad',
+      type: 'text',
+      placeholder: 'ID de la entidad...'
+    },
+    {
+      key: 'userId',
+      label: 'Usuario ID',
+      type: 'text',
+      placeholder: 'ID del usuario...'
+    },
+    {
+      key: 'startDate',
+      label: 'Fecha Inicio',
+      type: 'date',
+      placeholder: 'Fecha inicio...'
+    },
+    {
+      key: 'endDate',
+      label: 'Fecha Fin',
+      type: 'date',
+      placeholder: 'Fecha fin...'
+    }
+  ];
+
+  const handleAdvancedSearch = (filters: SearchFilters) => {
+    setSearchFilters(filters);
+    console.log('Advanced search filters for audit:', filters);
+    setParams({ ...params, page: 1 });
+    // TODO: Add filters to API request
+  };
+
+  const handleClearAdvancedSearch = () => {
+    setSearchFilters({});
+    setParams({ page: 1, limit: 10 });
+    // TODO: Clear filters from API request
+  };
+
+  const handleRemoveFilter = (key: string) => {
+    const newFilters = { ...searchFilters };
+    delete newFilters[key];
+    setSearchFilters(newFilters);
+    // TODO: Update API request without this filter
+  };
+
   const columns: TableColumn[] = [
     { key: 'id', label: 'ID' },
     { key: 'action', label: 'Acción' },
@@ -55,7 +124,20 @@ export default function AuditPage() {
   if (error) {
     return (
       <PageWrapper title="Auditoría">
-        <div>Error: {error}</div>
+        <ApiErrorState
+          error={error}
+          canRetry={error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch')}
+          isRetrying={loading}
+          onRetry={() => execute()}
+          onReset={() => {
+            setParams({ page: 1, limit: 10 });
+            setSearchTerm('');
+            execute();
+          }}
+          title="Error cargando auditoría"
+          description="No se pudieron cargar los registros de auditoría del sistema."
+          showTechnicalDetails={true}
+        />
       </PageWrapper>
     );
   }
@@ -68,6 +150,25 @@ export default function AuditPage() {
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar en logs..."
     >
+      {/* Advanced Search Form */}
+      <AdvancedSearchForm
+        fields={searchFields}
+        onSearch={handleAdvancedSearch}
+        onClear={handleClearAdvancedSearch}
+        loading={loading}
+        entityName="logs de auditoría"
+        initialFilters={searchFilters}
+      />
+
+      {/* Active Filters Display */}
+      <ActiveFiltersDisplay
+        filters={searchFilters}
+        searchFields={searchFields}
+        tableColumns={columns}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAll={handleClearAdvancedSearch}
+      />
+
       <DynamicTable
         data={data?.data || []}
         columns={columns}

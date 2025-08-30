@@ -6,6 +6,18 @@ export interface BookListParams {
   offset?: number;
 }
 
+export interface BookAdvancedSearchParams extends BookListParams {
+  title?: string;
+  isbn?: string;
+  price?: number;
+  stock?: number;
+  isAvailable?: boolean;
+  genre?: string;
+  publisher?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface Book {
   id: string;
   title: string;

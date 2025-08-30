@@ -40,6 +40,15 @@ export interface UserListParams {
   sortOrder?: "ASC" | "DESC";
 }
 
+export interface UserAdvancedSearchParams extends UserListParams {
+  username?: string;
+  email?: string;
+  role?: string;
+  isActive?: boolean;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const usersApi = {
   // Crear nuevo usuario (solo admin)
   create: (data: CreateUserDto): Promise<CreateUserResponseDto> => {

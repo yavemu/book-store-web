@@ -11,7 +11,7 @@ export interface TableColumn {
 export interface TableAction {
   label: string;
   onClick: (record: any) => void;
-  className?: string;
+  variant?: 'primary' | 'secondary' | 'danger';
 }
 
 export interface PaginationMeta {
@@ -34,6 +34,12 @@ export interface DynamicTableProps {
   onCreateClick?: () => void;
   createButtonLabel?: string;
   entityName?: string;
+  showForm?: boolean;
+  formComponent?: React.ReactNode;
+  onFormToggle?: () => void;
+  isEditing?: boolean;
+  editingRecord?: any;
+  onEditClick?: (record: any) => void;
 }
 
 export default function DynamicTable({
@@ -46,7 +52,13 @@ export default function DynamicTable({
   showCreateButton = false,
   onCreateClick,
   createButtonLabel,
-  entityName = 'registro'
+  entityName = 'registro',
+  showForm = false,
+  formComponent,
+  onFormToggle,
+  isEditing = false,
+  editingRecord,
+  onEditClick
 }: DynamicTableProps) {
   const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);
 
@@ -56,7 +68,7 @@ export default function DynamicTable({
   };
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return <div className="loading-text">Cargando...</div>;
   }
 
   const renderPagination = () => {
@@ -68,14 +80,7 @@ export default function DynamicTable({
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          style={{
-            padding: '5px 10px',
-            margin: '0 2px',
-            backgroundColor: i === currentPage ? '#007bff' : '#f8f9fa',
-            color: i === currentPage ? 'white' : 'black',
-            border: '1px solid #dee2e6',
-            cursor: 'pointer'
-          }}
+          className={`pagination-btn ${i === currentPage ? 'active' : ''}`}
         >
           {i}
         </button>
@@ -83,17 +88,11 @@ export default function DynamicTable({
     }
 
     return (
-      <div style={{ margin: '20px 0', textAlign: 'center' }}>
+      <div className="pagination-container">
         <button
           onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
           disabled={!meta.hasPrevPage}
-          style={{
-            padding: '5px 10px',
-            marginRight: '10px',
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #dee2e6',
-            cursor: meta.hasPrevPage ? 'pointer' : 'not-allowed'
-          }}
+          className="pagination-btn"
         >
           Anterior
         </button>
@@ -101,13 +100,7 @@ export default function DynamicTable({
         <button
           onClick={() => handlePageChange(Math.min(meta.totalPages, currentPage + 1))}
           disabled={!meta.hasNextPage}
-          style={{
-            padding: '5px 10px',
-            marginLeft: '10px',
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #dee2e6',
-            cursor: meta.hasNextPage ? 'pointer' : 'not-allowed'
-          }}
+          className="pagination-btn"
         >
           Siguiente
         </button>
@@ -116,13 +109,24 @@ export default function DynamicTable({
   };
 
   const renderActions = (record: any) => {
-    const allActions = [
+    // Always use default actions unless custom actions are provided
+    const defaultActions = [
       {
         label: 'Ver',
         onClick: (record: any) => console.log('Ver', record),
-        className: 'btn-view'
+        variant: 'ver' as const
       },
-      ...actions,
+      {
+        label: 'Editar',
+        onClick: (record: any) => {
+          if (onEditClick) {
+            onEditClick(record);
+          } else {
+            console.log('Editar', record);
+          }
+        },
+        variant: 'editar' as const
+      },
       {
         label: 'Eliminar',
         onClick: (record: any) => {
@@ -130,27 +134,29 @@ export default function DynamicTable({
             console.log('Eliminar', record);
           }
         },
-        className: 'btn-delete'
+        variant: 'eliminar' as const
       }
     ];
 
+    // Use custom actions if provided, otherwise use defaults
+    const actionsToRender = actions && actions.length > 0 ? actions : defaultActions;
+
+    const getButtonClassName = (variant?: string) => {
+      switch (variant) {
+        case 'primary': return 'btn-action-ver';
+        case 'secondary': return 'btn-action-editar';
+        case 'danger': return 'btn-action-eliminar';
+        default: return 'btn-action-ver';
+      }
+    };
+
     return (
-      <div>
-        {allActions.map((action, index) => (
+      <div className="table-actions">
+        {actionsToRender.map((action, index) => (
           <button
             key={index}
             onClick={() => action.onClick(record)}
-            style={{
-              padding: '3px 8px',
-              margin: '2px',
-              fontSize: '12px',
-              backgroundColor: action.className === 'btn-delete' ? '#dc3545' : 
-                             action.className === 'btn-view' ? '#17a2b8' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer'
-            }}
+            className={getButtonClassName(action.variant)}
           >
             {action.label}
           </button>
@@ -160,110 +166,95 @@ export default function DynamicTable({
   };
 
   return (
-    <div>
-      {showCreateButton && (
-        <div style={{ marginBottom: '20px' }}>
-          <button
-            onClick={onCreateClick}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            {createButtonLabel || `Crear ${entityName}`}
-          </button>
-        </div>
-      )}
-
-      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #dee2e6' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f8f9fa' }}>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                style={{
-                  padding: '12px',
-                  textAlign: 'left',
-                  borderBottom: '2px solid #dee2e6',
-                  fontWeight: 'bold'
-                }}
+    <div className="table-container">
+      <div className="table-header">
+        {meta && (
+          <div className="table-stats">
+            <div className="stat-item">
+              <span className="stat-label">Total:</span>
+              <span className="stat-value">{meta.totalItems}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Páginas:</span>
+              <span className="stat-value">{meta.totalPages}</span>
+            </div>
+          </div>
+        )}
+        
+        <div className="header-right">
+          {showCreateButton && (
+            <div className="create-section">
+              <button
+                onClick={onFormToggle || onCreateClick}
+                className="btn-create"
               >
-                {column.label}
-              </th>
-            ))}
-            <th
-              style={{
-                padding: '12px',
-                textAlign: 'left',
-                borderBottom: '2px solid #dee2e6',
-                fontWeight: 'bold'
-              }}
-            >
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
-            <tr>
-              <td
-                colSpan={columns.length + 1}
-                style={{
-                  padding: '20px',
-                  textAlign: 'center',
-                  color: '#6c757d'
-                }}
-              >
-                No hay datos disponibles
-              </td>
-            </tr>
-          ) : (
-            data.map((record, index) => (
-              <tr
-                key={record.id || index}
-                style={{
-                  backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa'
-                }}
-              >
-                {columns.map((column) => (
-                  <td
-                    key={column.key}
-                    style={{
-                      padding: '12px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}
-                  >
-                    {column.render
-                      ? column.render(record[column.key], record)
-                      : record[column.key]
-                    }
-                  </td>
-                ))}
-                <td
-                  style={{
-                    padding: '12px',
-                    borderBottom: '1px solid #dee2e6'
-                  }}
-                >
-                  {renderActions(record)}
-                </td>
-              </tr>
-            ))
+                {showForm ? (isEditing ? `✏️ Editando ${entityName}` : `🔧 Creando ${entityName}`) : `${createButtonLabel || `+ Crear ${entityName}`}`}
+              </button>
+            </div>
           )}
-        </tbody>
-      </table>
+        </div>
+      </div>
 
-      {renderPagination()}
-
-      {meta && (
-        <div style={{ marginTop: '10px', color: '#6c757d', fontSize: '14px' }}>
-          Mostrando {((meta.currentPage - 1) * meta.itemsPerPage) + 1} - {Math.min(meta.currentPage * meta.itemsPerPage, meta.totalItems)} de {meta.totalItems} registros
+      {showForm && formComponent && (
+        <div className="card-boutique form-card">
+          <div className="card-content">
+            {formComponent}
+          </div>
         </div>
       )}
+
+      <div className="card-boutique">
+        <div className="card-content">
+          <table className="table-dashboard">
+            <thead>
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.key}>
+                    {column.label}
+                  </th>
+                ))}
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length + 1}
+                    className="no-data-text"
+                  >
+                    No hay datos disponibles
+                  </td>
+                </tr>
+              ) : (
+                data.map((record, index) => (
+                  <tr key={record.id || index}>
+                    {columns.map((column) => (
+                      <td key={column.key}>
+                        {column.render
+                          ? column.render(record[column.key], record)
+                          : record[column.key]
+                        }
+                      </td>
+                    ))}
+                    <td>
+                      {renderActions(record)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {renderPagination()}
+
+        {meta && (
+          <div className="pagination-info">
+            Mostrando {((meta.currentPage - 1) * meta.itemsPerPage) + 1} - {Math.min(meta.currentPage * meta.itemsPerPage, meta.totalItems)} de {meta.totalItems} registros
+          </div>
+        )}
+      </div>
     </div>
   );
 }

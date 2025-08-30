@@ -50,6 +50,16 @@ export const genreSearchSchema = z.object({
     .default('ASC'),
 });
 
+export const genreAdvancedSearchSchema = z.object({
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(100).default(10).optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
 export type CreateGenreFormData = z.infer<typeof createGenreSchema>;
 export type UpdateGenreFormData = z.infer<typeof updateGenreSchema>;
 export type GenreSearchFormData = z.infer<typeof genreSearchSchema>;
+export type GenreAdvancedSearchParams = z.infer<typeof genreAdvancedSearchSchema>;

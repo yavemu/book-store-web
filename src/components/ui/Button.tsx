@@ -5,6 +5,8 @@ interface ButtonProps {
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'link';
   fullWidth?: boolean;
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export default function Button({
@@ -13,43 +15,33 @@ export default function Button({
   type = 'button',
   disabled = false,
   variant = 'primary',
-  fullWidth = false
+  fullWidth = false,
+  className = '',
+  size = 'md'
 }: ButtonProps) {
-  const getStyles = () => {
-    const baseStyles = {
-      padding: '12px 24px',
-      border: 'none',
-      borderRadius: '4px',
-      fontSize: '16px',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      width: fullWidth ? '100%' : 'auto',
-      opacity: disabled ? 0.6 : 1
-    };
-
+  const getClassName = () => {
+    let classes = '';
+    
+    // Use existing CSS classes from globals.css
     switch (variant) {
       case 'primary':
-        return {
-          ...baseStyles,
-          backgroundColor: '#007bff',
-          color: 'white'
-        };
+        classes += 'btn-create ';
+        break;
       case 'secondary':
-        return {
-          ...baseStyles,
-          backgroundColor: '#6c757d',
-          color: 'white'
-        };
+        classes += 'button secondary ';
+        break;
       case 'link':
-        return {
-          ...baseStyles,
-          backgroundColor: 'transparent',
-          color: '#007bff',
-          textDecoration: 'underline',
-          padding: '0'
-        };
-      default:
-        return baseStyles;
+        classes += 'button ';
+        break;
     }
+    
+    if (size === 'sm') {
+      if (variant === 'primary') {
+        classes += 'btn-action-ver '; // Reuse existing small button styles
+      }
+    }
+    
+    return classes + className;
   };
 
   return (
@@ -57,7 +49,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      style={getStyles()}
+      className={getClassName()}
     >
       {children}
     </button>

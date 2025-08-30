@@ -24,41 +24,76 @@ export default function Loading({
     }
   }, [variant]);
 
-  const getSizeClasses = () => {
+  const getSpinnerSize = () => {
     switch (size) {
-      case 'sm': return 'w-4 h-4';
-      case 'lg': return 'w-12 h-12';
-      default: return 'w-8 h-8';
+      case 'sm': return { width: '16px', height: '16px' };
+      case 'lg': return { width: '48px', height: '48px' };
+      default: return { width: '32px', height: '32px' };
     }
   };
 
   const getTextSize = () => {
     switch (size) {
-      case 'sm': return 'text-sm';
-      case 'lg': return 'text-xl';
-      default: return 'text-base';
+      case 'sm': return '14px';
+      case 'lg': return '20px';
+      default: return '16px';
     }
   };
 
+  const spinnerStyle = {
+    ...getSpinnerSize(),
+    border: '4px solid #e5e5e5',
+    borderTop: '4px solid #007bff',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite'
+  };
+
   const renderSpinner = () => (
-    <div className={`${getSizeClasses()} border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin`} />
+    <>
+      <div style={spinnerStyle} />
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </>
   );
 
   const renderDots = () => (
-    <div className="flex space-x-1">
+    <div style={{ display: 'flex', gap: '4px' }}>
       {[1, 2, 3].map(dot => (
         <div 
           key={dot}
-          className={`w-2 h-2 bg-blue-600 rounded-full ${
-            dot <= dots ? 'opacity-100' : 'opacity-30'
-          } transition-opacity duration-300`}
+          style={{
+            width: '8px',
+            height: '8px',
+            backgroundColor: '#007bff',
+            borderRadius: '50%',
+            opacity: dot <= dots ? 1 : 0.3,
+            transition: 'opacity 0.3s ease'
+          }}
         />
       ))}
     </div>
   );
 
   const renderPulse = () => (
-    <div className={`${getSizeClasses()} bg-blue-600 rounded-full animate-pulse`} />
+    <>
+      <div style={{
+        ...getSpinnerSize(),
+        backgroundColor: '#007bff',
+        borderRadius: '50%',
+        animation: 'pulse 2s infinite'
+      }} />
+      <style jsx>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
+    </>
   );
 
   const renderLoadingElement = () => {
@@ -70,9 +105,21 @@ export default function Loading({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 p-8">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px',
+      padding: '32px'
+    }}>
       {renderLoadingElement()}
-      <p className={`text-gray-600 ${getTextSize()} text-center`}>
+      <p style={{
+        color: '#6c757d',
+        fontSize: getTextSize(),
+        textAlign: 'center',
+        margin: 0
+      }}>
         {message}
       </p>
     </div>

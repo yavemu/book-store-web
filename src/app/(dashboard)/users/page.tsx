@@ -5,10 +5,14 @@ import { useApiRequest } from '@/hooks';
 import { usersApi, UserListParams } from '@/services/api/entities/users';
 import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
+import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
+import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
+import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
 
 export default function UsersPage() {
   const [params, setParams] = useState<UserListParams>({ page: 1, limit: 10 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
     endpoint: '/users',
@@ -42,6 +46,60 @@ export default function UsersPage() {
     console.log('Editar usuario:', record);
   };
 
+  // Advanced Search Fields for Users
+  const searchFields: SearchField[] = [
+    {
+      key: 'username',
+      label: 'Usuario',
+      type: 'text',
+      placeholder: 'Buscar por usuario...'
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      type: 'email',
+      placeholder: 'Buscar por email...'
+    },
+    {
+      key: 'role',
+      label: 'Rol',
+      type: 'select',
+      options: [
+        { value: 'ADMIN', label: 'Administrador' },
+        { value: 'USER', label: 'Usuario' }
+      ]
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'select',
+      options: [
+        { value: 'true', label: 'Activo' },
+        { value: 'false', label: 'Inactivo' }
+      ]
+    }
+  ];
+
+  const handleAdvancedSearch = (filters: SearchFilters) => {
+    setSearchFilters(filters);
+    console.log('Advanced search filters for users:', filters);
+    setParams({ ...params, page: 1 });
+    // TODO: Add filters to API request
+  };
+
+  const handleClearAdvancedSearch = () => {
+    setSearchFilters({});
+    setParams({ page: 1, limit: 10 });
+    // TODO: Clear filters from API request
+  };
+
+  const handleRemoveFilter = (key: string) => {
+    const newFilters = { ...searchFilters };
+    delete newFilters[key];
+    setSearchFilters(newFilters);
+    // TODO: Update API request without this filter
+  };
+
   const columns: TableColumn[] = [
     { key: 'id', label: 'ID' },
     { key: 'username', label: 'Usuario' },
@@ -61,14 +119,28 @@ export default function UsersPage() {
   const actions = [
     {
       label: 'Editar',
-      onClick: handleEditUser
+      onClick: handleEditUser,
+      variant: 'secondary' as const
     }
   ];
 
   if (error) {
     return (
       <PageWrapper title="Usuarios">
-        <div>Error: {error}</div>
+        <ApiErrorState
+          error={error}
+          canRetry={error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch')}
+          isRetrying={loading}
+          onRetry={() => execute()}
+          onReset={() => {
+            setParams({ page: 1, limit: 10 });
+            setSearchTerm('');
+            execute();
+          }}
+          title="Error cargando usuarios"
+          description="No se pudieron cargar los usuarios del sistema."
+          showTechnicalDetails={true}
+        />
       </PageWrapper>
     );
   }
@@ -81,6 +153,25 @@ export default function UsersPage() {
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar usuarios..."
     >
+      {/* Advanced Search Form */}
+      <AdvancedSearchForm
+        fields={searchFields}
+        onSearch={handleAdvancedSearch}
+        onClear={handleClearAdvancedSearch}
+        loading={loading}
+        entityName="usuarios"
+        initialFilters={searchFilters}
+      />
+
+      {/* Active Filters Display */}
+      <ActiveFiltersDisplay
+        filters={searchFilters}
+        searchFields={searchFields}
+        tableColumns={columns}
+        onRemoveFilter={handleRemoveFilter}
+        onClearAll={handleClearAdvancedSearch}
+      />
+
       <DynamicTable
         data={data?.data || []}
         columns={columns}

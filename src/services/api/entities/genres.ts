@@ -31,6 +31,13 @@ export interface GenreSearchParams {
   limit?: number;
 }
 
+export interface GenreAdvancedSearchParams extends GenreListParams {
+  name?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const genresApi = {
   // Crear nuevo género (solo admin)
   create: (data: CreateBookGenreDto): Promise<{ message: string; genre: BookGenreResponseDto }> => {

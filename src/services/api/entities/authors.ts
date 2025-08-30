@@ -45,6 +45,15 @@ export interface AuthorSearchParams {
   sortOrder?: 'ASC' | 'DESC';
 }
 
+export interface AuthorAdvancedSearchParams extends AuthorListParams {
+  firstName?: string;
+  lastName?: string;
+  nationality?: string;
+  birthDate?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const authorsApi = {
   // Crear nuevo autor (solo admin)
   create: (data: CreateBookAuthorDto): Promise<CreateBookAuthorResponseDto> => {

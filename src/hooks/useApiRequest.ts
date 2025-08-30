@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { apiClient } from '@/services/api';
 import { ApiError } from '@/types/api';
+import { useAppDispatch } from '@/store/hooks';
+import { clearInvalidAuth } from '@/store/slices/authSlice';
 
 interface UseApiRequestOptions<TData, TResponse> {
   endpoint: string;
@@ -27,6 +29,7 @@ export function useApiRequest<TData = any, TResponse = any>({
   onSuccess,
   onError
 }: UseApiRequestOptions<TData, TResponse>) {
+  const dispatch = useAppDispatch();
   const [state, setState] = useState<ApiRequestState<TResponse>>({
     loading: false,
     error: null,
@@ -49,10 +52,10 @@ export function useApiRequest<TData = any, TResponse = any>({
           schema.parse(requestData);
         } catch (error) {
           if (error instanceof z.ZodError) {
-            const validationErrors = error.errors.reduce((acc, curr) => {
-              const path = curr.path.join('.');
+            const validationErrors = (error.errors || []).reduce((acc, curr) => {
+              const path = curr.path ? curr.path.join('.') : 'unknown';
               if (!acc[path]) acc[path] = [];
-              acc[path].push(curr.message);
+              acc[path].push(curr.message || 'Error de validación');
               return acc;
             }, {} as Record<string, string[]>);
             
@@ -97,9 +100,38 @@ export function useApiRequest<TData = any, TResponse = any>({
       return { success: true, data: response };
 
     } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Error desconocido';
+      // Normalizar el error para asegurar que siempre tengamos un mensaje útil
+      let errorMessage: string = '';
+      let structuredError: ApiError | Error;
+
+      if (error instanceof Error) {
+        errorMessage = error.message || `Error en ${endpoint}`;
+        structuredError = error;
+      } else if (error && typeof error === 'object') {
+        // Si es un objeto (como ApiError), extraer mensaje
+        if ('message' in error && typeof error.message === 'string' && error.message.trim()) {
+          errorMessage = error.message;
+          structuredError = error as ApiError;
+        } else if ('error' in error && typeof error.error === 'string' && error.error.trim()) {
+          errorMessage = error.error;
+          structuredError = error as ApiError;
+        } else {
+          // Solo loggear si el objeto no está vacío
+          const errorKeys = Object.keys(error);
+          if (errorKeys.length > 0) {
+            errorMessage = `Error en ${endpoint}: ${JSON.stringify(error)}`;
+          } else {
+            errorMessage = `Error de conexión en ${endpoint}`;
+          }
+          structuredError = new Error(errorMessage);
+        }
+      } else if (typeof error === 'string' && error.trim()) {
+        errorMessage = error;
+        structuredError = new Error(error);
+      } else {
+        errorMessage = `Error de conexión en ${endpoint}`;
+        structuredError = new Error(errorMessage);
+      }
 
       setState(prev => ({
         ...prev,
@@ -107,7 +139,36 @@ export function useApiRequest<TData = any, TResponse = any>({
         error: errorMessage
       }));
 
-      onError?.(error as ApiError | Error);
+      // Check for authentication errors and clear invalid auth data
+      if (structuredError && typeof structuredError === 'object' && 'statusCode' in structuredError) {
+        const statusCode = (structuredError as any).statusCode;
+        if (statusCode === 401 || statusCode === 403) {
+          console.log('Authentication error detected, clearing auth data');
+          dispatch(clearInvalidAuth());
+        }
+      }
+
+      // Also check for specific auth error messages
+      if (errorMessage.includes('Unauthorized') || 
+          errorMessage.includes('Invalid token') || 
+          errorMessage.includes('Token expired') ||
+          errorMessage.includes('Authentication failed')) {
+        console.log('Auth error in message, clearing auth data');
+        dispatch(clearInvalidAuth());
+      }
+
+      // Loggear error estructurado para debugging solo si hay contenido
+      if (errorMessage && errorMessage.trim().length > 0) {
+        console.error('useApiRequest Error:', {
+          endpoint,
+          method,
+          errorMessage,
+          originalError: error,
+          structuredError
+        });
+      }
+
+      onError?.(structuredError);
       return { success: false, error: errorMessage };
     }
   };

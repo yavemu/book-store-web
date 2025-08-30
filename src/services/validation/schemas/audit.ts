@@ -44,8 +44,18 @@ export const auditSearchParamsSchema = auditListParamsSchema.extend({
   term: z.string().min(1, 'El término de búsqueda es requerido'),
 });
 
+export const auditAdvancedSearchSchema = auditListParamsSchema.extend({
+  action: z.string().optional(),
+  entityType: z.string().optional(),
+  entityId: z.string().optional(),
+  userId: z.string().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
+
 export type AuditAction = z.infer<typeof auditActionSchema>;
 export type AuditLog = z.infer<typeof auditLogSchema>;
 export type AuditLogListResponse = z.infer<typeof auditLogListResponseSchema>;
 export type AuditListParams = z.infer<typeof auditListParamsSchema>;
 export type AuditSearchParams = z.infer<typeof auditSearchParamsSchema>;
+export type AuditAdvancedSearchParams = z.infer<typeof auditAdvancedSearchSchema>;

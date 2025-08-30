@@ -5,6 +5,7 @@ interface InputProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   required?: boolean;
+  className?: string;
 }
 
 export default function Input({
@@ -13,7 +14,8 @@ export default function Input({
   value,
   onChange,
   disabled = false,
-  required = false
+  required = false,
+  className = ''
 }: InputProps) {
   return (
     <input
@@ -23,14 +25,7 @@ export default function Input({
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       required={required}
-      style={{
-        width: '100%',
-        padding: '12px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '16px',
-        outline: 'none'
-      }}
+      className={`search-input ${className}`}
     />
   );
 }
