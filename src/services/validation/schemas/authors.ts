@@ -80,11 +80,59 @@ export const authorSearchSchema = z.object({
   sortBy: z
     .string()
     .optional()
-    .default('lastName'),
+    .default('createdAt'),
   sortOrder: z
     .enum(['ASC', 'DESC'])
     .optional()
-    .default('ASC'),
+    .default('DESC'),
+});
+
+// Schema para filtros de autores
+export const bookAuthorFiltersSchema = z.object({
+  name: z.string().optional(),
+  nationality: z.string().optional(),
+  birthYear: z.number().optional(),
+  isActive: z.boolean().optional(),
+  pagination: z.object({
+    page: z.number().min(1),
+    limit: z.number().min(1).max(100),
+    sortBy: z.string().optional(),
+    sortOrder: z.enum(['ASC', 'DESC']).optional(),
+  }).optional(),
+});
+
+// Schema para exportar autores a CSV
+export const bookAuthorExportSchema = z.object({
+  name: z.string().optional(),
+  nationality: z.string().optional(),
+  startDate: z.string().datetime('Fecha de inicio inválida').optional(),
+  endDate: z.string().datetime('Fecha de fin inválida').optional(),
+});
+
+// Schemas para asignaciones autor-libro
+export const createBookAuthorAssignmentSchema = z.object({
+  bookId: z.string().uuid('ID de libro inválido'),
+  authorId: z.string().uuid('ID de autor inválido'),
+  assignmentDate: z.string().datetime().optional(),
+});
+
+export const updateBookAuthorAssignmentSchema = z.object({
+  bookId: z.string().uuid('ID de libro inválido').optional(),
+  authorId: z.string().uuid('ID de autor inválido').optional(),
+  assignmentDate: z.string().datetime().optional(),
+});
+
+// Schema para filtros de asignaciones
+export const assignmentFiltersSchema = z.object({
+  bookId: z.string().uuid('ID de libro inválido').optional(),
+  authorId: z.string().uuid('ID de autor inválido').optional(),
+  assignmentDate: z.string().optional(),
+  pagination: z.object({
+    page: z.number().min(1),
+    limit: z.number().min(1).max(100),
+    sortBy: z.string().optional(),
+    sortOrder: z.enum(['ASC', 'DESC']).optional(),
+  }).optional(),
 });
 
 export const bookAuthorAssignmentSchema = z.object({
@@ -116,5 +164,10 @@ export const authorAdvancedSearchSchema = z.object({
 export type CreateAuthorFormData = z.infer<typeof createAuthorSchema>;
 export type UpdateAuthorFormData = z.infer<typeof updateAuthorSchema>;
 export type AuthorSearchFormData = z.infer<typeof authorSearchSchema>;
+export type BookAuthorFiltersFormData = z.infer<typeof bookAuthorFiltersSchema>;
+export type BookAuthorExportFormData = z.infer<typeof bookAuthorExportSchema>;
+export type CreateBookAuthorAssignmentFormData = z.infer<typeof createBookAuthorAssignmentSchema>;
+export type UpdateBookAuthorAssignmentFormData = z.infer<typeof updateBookAuthorAssignmentSchema>;
+export type AssignmentFiltersFormData = z.infer<typeof assignmentFiltersSchema>;
 export type BookAuthorAssignmentFormData = z.infer<typeof bookAuthorAssignmentSchema>;
 export type AuthorAdvancedSearchParams = z.infer<typeof authorAdvancedSearchSchema>;

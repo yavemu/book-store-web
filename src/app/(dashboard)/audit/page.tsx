@@ -6,7 +6,7 @@ import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
 import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
 import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
 import { useApiRequest } from "@/hooks";
-import { AuditListParams } from "@/services/api/entities/audit";
+import { auditApi, AuditListParams } from "@/services/api/entities/audit";
 import { useEffect, useState } from "react";
 
 export default function AuditPage() {
@@ -15,8 +15,7 @@ export default function AuditPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/audit',
-    method: 'GET',
+    apiFunction: () => auditApi.list(params),
     onSuccess: (response) => {
       console.log('Audit logs loaded:', response);
     },
@@ -35,7 +34,16 @@ export default function AuditPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    // Implementar búsqueda con debounce
+    
+    // Implementar búsqueda con debounce si hay texto
+    if (value && value.trim().length >= 3) {
+      // Use quick filter for real-time search
+      auditApi.filter({ filter: value.trim(), page: 1, limit: params.limit }).then(response => {
+        console.log('Quick filter response:', response);
+      }).catch(error => {
+        console.error('Quick filter error:', error);
+      });
+    }
   };
 
   // Advanced Search Fields for Audit
@@ -86,8 +94,27 @@ export default function AuditPage() {
   const handleAdvancedSearch = (filters: SearchFilters) => {
     setSearchFilters(filters);
     console.log('Advanced search filters for audit:', filters);
-    setParams({ ...params, page: 1 });
-    // TODO: Add filters to API request
+    
+    const newParams = { ...params, page: 1 };
+    setParams(newParams);
+    
+    // Execute advanced filter API call if there are filters
+    const hasFilters = Object.values(filters).some(value => value && value !== '');
+    if (hasFilters) {
+      const filterData = {
+        userId: filters.userId as string,
+        entityType: filters.entityType as string,
+        action: filters.action as string,
+        startDate: filters.startDate as string,
+        endDate: filters.endDate as string,
+      };
+      
+      auditApi.advancedFilter(filterData, newParams).then(response => {
+        console.log('Advanced filter response:', response);
+      }).catch(error => {
+        console.error('Advanced filter error:', error);
+      });
+    }
   };
 
   const handleClearAdvancedSearch = () => {
@@ -149,6 +176,25 @@ export default function AuditPage() {
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar en logs..."
+      showCsvDownload
+      onCsvDownload={async () => {
+        try {
+          const csvData = await auditApi.exportToCsv();
+          const blob = new Blob([csvData], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `auditoria_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Error downloading CSV:', error);
+          alert('Error al descargar el archivo CSV');
+        }
+      }}
+      csvDownloadEnabled={true}
     >
       {/* Advanced Search Form */}
       <AdvancedSearchForm

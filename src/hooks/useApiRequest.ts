@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { z } from 'zod';
-import { apiClient } from '@/services/api';
-import { ApiError } from '@/types/api';
-import { useAppDispatch } from '@/store/hooks';
-import { clearInvalidAuth } from '@/store/slices/authSlice';
+import { apiClient } from "@/services/api";
+import { useAppDispatch } from "@/store/hooks";
+import { clearInvalidAuth } from "@/store/slices/authSlice";
+import { ApiError } from "@/types/api";
+import { useState } from "react";
+import { z } from "zod";
 
 interface UseApiRequestOptions<TData, TResponse> {
   endpoint: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   schema?: z.ZodSchema<TData>;
   onSuccess?: (response: TResponse) => void;
   onError?: (error: ApiError | Error) => void;
@@ -24,25 +24,27 @@ interface ApiRequestState<TResponse> {
 
 export function useApiRequest<TData = any, TResponse = any>({
   endpoint,
-  method = 'POST',
+  method = "POST",
   schema,
   onSuccess,
-  onError
+  onError,
 }: UseApiRequestOptions<TData, TResponse>) {
+  console.log("Lo que llego a useApiRequest", endpoint, method, schema, onSuccess, onError);
+
   const dispatch = useAppDispatch();
   const [state, setState] = useState<ApiRequestState<TResponse>>({
     loading: false,
     error: null,
     data: null,
-    validationErrors: null
+    validationErrors: null,
   });
 
   const execute = async (requestData?: TData) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       loading: true,
       error: null,
-      validationErrors: null
+      validationErrors: null,
     }));
 
     try {
@@ -53,16 +55,16 @@ export function useApiRequest<TData = any, TResponse = any>({
         } catch (error) {
           if (error instanceof z.ZodError) {
             const validationErrors = (error.errors || []).reduce((acc, curr) => {
-              const path = curr.path ? curr.path.join('.') : 'unknown';
+              const path = curr.path ? curr.path.join(".") : "unknown";
               if (!acc[path]) acc[path] = [];
-              acc[path].push(curr.message || 'Error de validación');
+              acc[path].push(curr.message || "Error de validación");
               return acc;
             }, {} as Record<string, string[]>);
-            
-            setState(prev => ({
+
+            setState((prev) => ({
               ...prev,
               loading: false,
-              validationErrors
+              validationErrors,
             }));
             return { success: false, validationErrors };
           }
@@ -70,49 +72,50 @@ export function useApiRequest<TData = any, TResponse = any>({
         }
       }
 
+      console.log("Estoy en useAPiRequuest", endpoint);
+
       // Llamada API
       let response: TResponse;
       switch (method) {
-        case 'GET':
+        case "GET":
           response = await apiClient.get<TResponse>(endpoint);
           break;
-        case 'POST':
+        case "POST":
           response = await apiClient.post<TResponse>(endpoint, requestData);
           break;
-        case 'PUT':
+        case "PUT":
           response = await apiClient.put<TResponse>(endpoint, requestData);
           break;
-        case 'DELETE':
+        case "DELETE":
           response = await apiClient.delete<TResponse>(endpoint);
           break;
         default:
           throw new Error(`Método HTTP ${method} no soportado`);
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
         data: response,
-        error: null
+        error: null,
       }));
 
       onSuccess?.(response);
       return { success: true, data: response };
-
     } catch (error) {
       // Normalizar el error para asegurar que siempre tengamos un mensaje útil
-      let errorMessage: string = '';
+      let errorMessage: string = "";
       let structuredError: ApiError | Error;
 
       if (error instanceof Error) {
         errorMessage = error.message || `Error en ${endpoint}`;
         structuredError = error;
-      } else if (error && typeof error === 'object') {
+      } else if (error && typeof error === "object") {
         // Si es un objeto (como ApiError), extraer mensaje
-        if ('message' in error && typeof error.message === 'string' && error.message.trim()) {
+        if ("message" in error && typeof error.message === "string" && error.message.trim()) {
           errorMessage = error.message;
           structuredError = error as ApiError;
-        } else if ('error' in error && typeof error.error === 'string' && error.error.trim()) {
+        } else if ("error" in error && typeof error.error === "string" && error.error.trim()) {
           errorMessage = error.error;
           structuredError = error as ApiError;
         } else {
@@ -125,7 +128,7 @@ export function useApiRequest<TData = any, TResponse = any>({
           }
           structuredError = new Error(errorMessage);
         }
-      } else if (typeof error === 'string' && error.trim()) {
+      } else if (typeof error === "string" && error.trim()) {
         errorMessage = error;
         structuredError = new Error(error);
       } else {
@@ -133,38 +136,40 @@ export function useApiRequest<TData = any, TResponse = any>({
         structuredError = new Error(errorMessage);
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
-        error: errorMessage
+        error: errorMessage,
       }));
 
       // Check for authentication errors and clear invalid auth data
-      if (structuredError && typeof structuredError === 'object' && 'statusCode' in structuredError) {
+      if (structuredError && typeof structuredError === "object" && "statusCode" in structuredError) {
         const statusCode = (structuredError as any).statusCode;
         if (statusCode === 401 || statusCode === 403) {
-          console.log('Authentication error detected, clearing auth data');
+          console.log("Authentication error detected, clearing auth data");
           dispatch(clearInvalidAuth());
         }
       }
 
       // Also check for specific auth error messages
-      if (errorMessage.includes('Unauthorized') || 
-          errorMessage.includes('Invalid token') || 
-          errorMessage.includes('Token expired') ||
-          errorMessage.includes('Authentication failed')) {
-        console.log('Auth error in message, clearing auth data');
+      if (
+        errorMessage.includes("Unauthorized") ||
+        errorMessage.includes("Invalid token") ||
+        errorMessage.includes("Token expired") ||
+        errorMessage.includes("Authentication failed")
+      ) {
+        console.log("Auth error in message, clearing auth data");
         dispatch(clearInvalidAuth());
       }
 
       // Loggear error estructurado para debugging solo si hay contenido
       if (errorMessage && errorMessage.trim().length > 0) {
-        console.error('useApiRequest Error:', {
+        console.error("useApiRequest Error:", {
           endpoint,
           method,
           errorMessage,
           originalError: error,
-          structuredError
+          structuredError,
         });
       }
 
@@ -178,7 +183,7 @@ export function useApiRequest<TData = any, TResponse = any>({
       loading: false,
       error: null,
       data: null,
-      validationErrors: null
+      validationErrors: null,
     });
   };
 
@@ -186,6 +191,6 @@ export function useApiRequest<TData = any, TResponse = any>({
     ...state,
     execute,
     reset,
-    isSuccess: !state.loading && !state.error && state.data !== null
+    isSuccess: !state.loading && !state.error && state.data !== null,
   };
 }

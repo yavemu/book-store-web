@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useApiRequest, useSearchApi } from '@/hooks';
-import { InventoryMovementListParams, InventoryMovement } from '@/services/api/entities/inventory-movements';
+import { useApiRequest } from '@/hooks';
+import { inventoryMovementsApi, InventoryMovementListParams, InventoryMovement } from '@/services/api/entities/inventory-movements';
 import DynamicTable, { TableColumn } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
 import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
@@ -19,8 +19,7 @@ export default function InventoryMovementsPage() {
   const [isFiltering, setIsFiltering] = useState(false);
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/inventory-movements',
-    method: 'GET',
+    apiFunction: () => inventoryMovementsApi.getAll(params),
     onSuccess: () => {
       setIsFiltering(false);
     },

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useApiRequest } from '@/hooks';
-import { useAppDispatch } from '@/store/hooks';
-import { loginSuccess } from '@/store/slices/authSlice';
-import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/services/validation/schemas/auth';
-import Input from './ui/Input';
-import Button from './ui/Button';
-import Card from './ui/Card';
+import { useApiRequest } from "@/hooks";
+import { authService } from "@/services/api/entities/auth";
+import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from "@/services/validation/schemas/auth";
+import { useAppDispatch } from "@/store/hooks";
+import { loginSuccess } from "@/store/slices/authSlice";
+import { useState } from "react";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
+
 
 type AuthMode = 'login' | 'register';
 
@@ -23,70 +24,79 @@ export default function AuthForm() {
   const dispatch = useAppDispatch();
 
   const [loginError, setLoginError] = useState<string | null>(null);
-  
-  const { loading: loginLoading, execute: executeLogin, validationErrors: loginValidationErrors } = useApiRequest<LoginFormData>({
-    endpoint: '/auth/login',
-    method: 'POST',
+  console.log("info de authService.login", authService.login);
+  const {
+    loading: loginLoading,
+    execute: executeLogin,
+    validationErrors: loginValidationErrors,
+  } = useApiRequest<LoginFormData>({
+    apiFunction: (data: LoginFormData) => authService.login(data),
     schema: loginSchema,
     onSuccess: (response: any) => {
-      console.log('Login response:', response);
-      console.log('User object:', response.user);
-      console.log('User role:', response.user?.role);
+      console.log("Login response:", response);
+      console.log("User object:", response.user);
+      console.log("User role:", response.user?.role);
       setLoginError(null);
-      dispatch(loginSuccess({
-        token: response.access_token || response.token,
-        user: response.user
-      }));
+      dispatch(
+        loginSuccess({
+          token: response.access_token || response.token,
+          user: response.user,
+        }),
+      );
     },
     onError: (error) => {
-      setLoginError(error.message || 'Error al iniciar sesión');
-    }
+      setLoginError(error.message || "Error al iniciar sesión");
+    },
   });
 
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
-  
-  const { loading: registerLoading, execute: executeRegister, validationErrors: registerValidationErrors } = useApiRequest<RegisterFormData>({
-    endpoint: '/auth/register',
-    method: 'POST',
+
+  const {
+    loading: registerLoading,
+    execute: executeRegister,
+    validationErrors: registerValidationErrors,
+  } = useApiRequest<RegisterFormData>({
+    apiFunction: (data: RegisterFormData) => authService.register(data),
     schema: registerSchema,
     onSuccess: (response: any) => {
       setRegisterError(null);
-      setRegisterSuccess('Registro exitoso. Por favor inicia sesión.');
-      setMode('login');
-      setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+      setRegisterSuccess("Registro exitoso. Por favor inicia sesión.");
+      setMode("login");
+      setFormData({ username: "", email: "", password: "", confirmPassword: "" });
     },
     onError: (error) => {
       setRegisterSuccess(null);
-      setRegisterError(error.message || 'Error al registrarse');
-    }
+      setRegisterError(error.message || "Error al registrarse");
+    },
   });
 
   const loading = loginLoading || registerLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear any previous error messages
     setLoginError(null);
     setRegisterError(null);
     setRegisterSuccess(null);
 
-    if (mode === 'register') {
+    if (mode === "register") {
       if (formData.password !== formData.confirmPassword) {
-        setRegisterError('Las contraseñas no coinciden');
+        setRegisterError("Las contraseñas no coinciden");
         return;
       }
-      
+
       await executeRegister({
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
     } else {
+      console.log("llamar a login");
       await executeLogin({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
     }
   };

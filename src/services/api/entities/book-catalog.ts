@@ -40,6 +40,9 @@ export const bookCatalogApi = {
     const defaultParams = {
       page: 1,
       limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
       ...params,
     };
 
@@ -76,7 +79,7 @@ export const bookCatalogApi = {
         }
       : data;
 
-    return apiClient.patch(`/book-catalog/${id}`, dataWithDecimalPrice);
+    return apiClient.put(`/book-catalog/${id}`, dataWithDecimalPrice);
   },
 
   // Eliminar libro (soft delete)
@@ -87,18 +90,66 @@ export const bookCatalogApi = {
 
   // Buscar libros
   search: (params: BookCatalogSearchParams): Promise<PaginatedResponse<BookCatalog>> => {
-    const url = buildUrl("/book-catalog/search", params);
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl("/book-catalog/search", defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Filtrar libros en tiempo real
+  filter: (params: { filter: string; page?: number; limit?: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC'; offset?: number }): Promise<PaginatedResponse<BookCatalog>> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl("/book-catalog/filter", defaultParams);
     return apiClient.get(url);
   },
 
   // Filtros avanzados
-  filter: (filters: BookFiltersDto, page?: number, limit?: number): Promise<PaginatedResponse<BookCatalog>> => {
-    const queryParams: Record<string, unknown> = {};
-    if (page) queryParams.page = page;
-    if (limit) queryParams.limit = limit;
-
-    const url = buildUrl("/book-catalog/filter", queryParams);
+  advancedFilter: (filters: BookFiltersDto, params?: { page?: number; limit?: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC'; offset?: number }): Promise<PaginatedResponse<BookCatalog>> => {
+    const queryParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl("/book-catalog/advanced-filter", queryParams);
     return apiClient.post(url, filters);
+  },
+
+  // Exportar libros a CSV
+  exportToCsv: (params?: { title?: string; isbn?: string; author?: string; genre?: string; publisher?: string; startDate?: string; endDate?: string }): Promise<string> => {
+    const url = buildUrl('/book-catalog/export/csv', params);
+    return apiClient.get(url);
+  },
+
+  // Subir portada del libro
+  uploadCover: (id: string, coverFile: File): Promise<BookCatalog> => {
+    const formData = new FormData();
+    formData.append('cover', coverFile);
+    return apiClient.post(`/book-catalog/${id}/upload-cover`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // Eliminar portada del libro
+  removeCover: (id: string): Promise<{ message: string }> => {
+    return apiClient.delete(`/book-catalog/${id}/cover`);
   },
 
   // Libros disponibles

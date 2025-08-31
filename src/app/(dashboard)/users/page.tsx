@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useApiRequest } from '@/hooks';
-import { usersApi, UserListParams } from '@/services/api/entities/users';
+import { usersApi, UserListParams, UserFilterParams, UserAdvancedFilterDto } from '@/services/api/entities/users';
+import { userFilterSchema, userAdvancedFilterSchema, userExportSchema } from '@/services/validation/schemas/users';
 import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
 import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
@@ -19,8 +20,7 @@ export default function UsersPage() {
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/users',
-    method: 'GET',
+    apiFunction: () => usersApi.list(params),
     onSuccess: (response) => {
       console.log('Users loaded:', response);
     },
@@ -45,7 +45,26 @@ export default function UsersPage() {
     const hasFilters = Object.values(searchFilters).some(filterValue => filterValue && filterValue !== '');
     setHasActiveFilters(hasSearch || hasFilters);
     
-    // Implementar búsqueda con debounce
+    // Implementar búsqueda con debounce si hay texto
+    if (hasSearch && value.trim().length >= 3) {
+      // Validate with Zod schema
+      const filterData = {
+        filter: value.trim(),
+        page: 1,
+        limit: params.limit || 10
+      };
+      
+      const validation = userFilterSchema.safeParse(filterData);
+      if (validation.success) {
+        usersApi.filter(validation.data).then(response => {
+          console.log('Quick filter response:', response);
+        }).catch(error => {
+          console.error('Quick filter error:', error);
+        });
+      } else {
+        console.error('Filter validation error:', validation.error.issues);
+      }
+    }
   };
 
   const handleCreateUser = () => {
@@ -66,31 +85,49 @@ export default function UsersPage() {
     setSelectedUser(null);
   };
 
-  const handleDownloadCSV = () => {
+  const handleDownloadCSV = async () => {
     if (!hasActiveFilters) return;
     
-    // Create query parameters from current filters and search
-    const queryParams = new URLSearchParams();
-    
-    // Add search filters
-    Object.entries(searchFilters).forEach(([key, value]) => {
-      if (value && value !== '') {
-        queryParams.append(key, value.toString());
+    try {
+      // Prepare export parameters with proper mapping
+      const exportParams: any = {};
+      
+      // Map search filters to export schema
+      if (searchFilters.username) exportParams.name = searchFilters.username;
+      if (searchFilters.email) exportParams.email = searchFilters.email;
+      if (searchFilters.role) exportParams.role = searchFilters.role;
+      if (searchFilters.isActive !== undefined) exportParams.isActive = searchFilters.isActive === 'true';
+
+      // Add search term if exists
+      if (searchTerm && searchTerm.trim() !== '') {
+        exportParams.name = searchTerm.trim();
       }
-    });
 
-    // Add search term if exists
-    if (searchTerm && searchTerm.trim() !== '') {
-      queryParams.append('search', searchTerm.trim());
+      // Validate with Zod schema
+      const validation = userExportSchema.safeParse(exportParams);
+      if (!validation.success) {
+        console.error('Export validation error:', validation.error.issues);
+        alert('Error en los parámetros de exportación');
+        return;
+      }
+
+      // Call the export API
+      const csvData = await usersApi.exportToCsv(validation.data);
+      
+      // Create and download the file
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `usuarios_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      alert('Error al descargar el archivo CSV');
     }
-
-    // Call CSV export endpoint
-    const csvEndpoint = `/users/export/csv?${queryParams.toString()}`;
-    console.log('Downloading CSV with filters:', csvEndpoint);
-    
-    // TODO: Implement actual CSV download
-    // This would typically trigger a download via the API
-    alert(`CSV download would be triggered for: ${csvEndpoint}`);
   };
 
   // Advanced Search Fields for Users
@@ -112,8 +149,8 @@ export default function UsersPage() {
       label: 'Rol',
       type: 'select',
       options: [
-        { value: 'ADMIN', label: 'Administrador' },
-        { value: 'USER', label: 'Usuario' }
+        { value: 'admin', label: 'Administrador' },
+        { value: 'user', label: 'Usuario' }
       ]
     },
     {
@@ -127,17 +164,42 @@ export default function UsersPage() {
     }
   ];
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
     console.log('Advanced search filters for users:', filters);
-    setParams({ ...params, page: 1 });
+    
+    const newParams = { ...params, page: 1 };
+    setParams(newParams);
     
     // Check if any filters are active
     const hasFilters = Object.values(filters).some(value => value && value !== '');
     const hasSearch = searchTerm && searchTerm.trim() !== '';
     setHasActiveFilters(hasFilters || hasSearch);
     
-    // TODO: Add filters to API request
+    // Execute advanced filter API call with Zod validation
+    if (hasFilters) {
+      try {
+        const filterData: UserAdvancedFilterDto = {
+          name: filters.username as string,
+          email: filters.email as string,
+          role: filters.role as 'admin' | 'user',
+          isActive: filters.isActive ? filters.isActive === 'true' : undefined,
+        };
+        
+        // Validate with Zod schema
+        const validation = userAdvancedFilterSchema.safeParse(filterData);
+        if (validation.success) {
+          const response = await usersApi.advancedFilter(validation.data, newParams);
+          console.log('Advanced filter response:', response);
+        } else {
+          console.error('Advanced filter validation error:', validation.error.issues);
+          alert('Error en los filtros de búsqueda: ' + validation.error.issues.map(i => i.message).join(', '));
+        }
+      } catch (error) {
+        console.error('Advanced filter error:', error);
+        alert('Error al aplicar filtros avanzados');
+      }
+    }
   };
 
   const handleClearAdvancedSearch = () => {

@@ -43,6 +43,28 @@ export interface PublishingHouseSearchParams {
   sortOrder?: 'ASC' | 'DESC';
 }
 
+export interface PublishingHouseFiltersDto {
+  name?: string;
+  country?: string;
+  city?: string;
+  established?: number;
+  isActive?: boolean;
+  pagination?: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
+}
+
+export interface PublishingHouseExportParams {
+  name?: string;
+  country?: string;
+  city?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const publishingHousesApi = {
   // Crear nueva editorial (solo admin)
   create: (data: CreatePublishingHouseDto): Promise<CreatePublishingHouseResponseDto> => {
@@ -54,8 +76,9 @@ export const publishingHousesApi = {
     const defaultParams = {
       page: 1,
       limit: 10,
-      sortBy: 'name',
-      sortOrder: 'ASC' as const,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
       ...params,
     };
 
@@ -80,19 +103,25 @@ export const publishingHousesApi = {
 
   // Buscar editoriales por término
   search: (params: PublishingHouseSearchParams): Promise<PublishingHouseListResponseDto> => {
-    const url = buildUrl('/publishing-houses/search', params);
-    return apiClient.get(url);
-  },
-
-  // Obtener editoriales por país
-  byCountry: (country: string, params?: Pick<PublishingHouseListParams, 'page' | 'limit'>): Promise<PublishingHouseListResponseDto> => {
     const defaultParams = {
       page: 1,
       limit: 10,
+      sortBy: 'name',
+      sortOrder: 'ASC' as const,
       ...params,
     };
+    const url = buildUrl('/publishing-houses/search', defaultParams);
+    return apiClient.get(url);
+  },
 
-    const url = buildUrl(`/publishing-houses/by-country/${encodeURIComponent(country)}`, defaultParams);
+  // Filtrar editoriales con criterios múltiples
+  filter: (filterData: PublishingHouseFiltersDto): Promise<PublishingHouseListResponseDto> => {
+    return apiClient.post('/publishing-houses/filter', filterData);
+  },
+
+  // Exportar editoriales a CSV (solo admin)
+  exportToCsv: (params?: PublishingHouseExportParams): Promise<string> => {
+    const url = buildUrl('/publishing-houses/export/csv', params);
     return apiClient.get(url);
   },
 

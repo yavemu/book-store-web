@@ -96,6 +96,41 @@ export const changePasswordSchema = z.object({
   path: ['newPassword'],
 });
 
+// Schema para filtro rápido de usuarios
+export const userFilterSchema = z.object({
+  filter: z
+    .string()
+    .min(3, 'El filtro debe tener al menos 3 caracteres')
+    .max(100, 'El filtro no puede exceder 100 caracteres'),
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(50).default(10).optional(),
+  sortBy: z.string().default('createdAt').optional(),
+  sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
+  offset: z.number().optional(),
+});
+
+// Schema para filtro avanzado de usuarios
+export const userAdvancedFilterSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email('El formato del email no es válido').optional(),
+  role: z.enum(['admin', 'user']).optional(),
+  isActive: z.boolean().optional(),
+  createdAfter: z.string().datetime('Fecha de inicio inválida').optional(),
+  createdBefore: z.string().datetime('Fecha de fin inválida').optional(),
+});
+
+// Schema para exportar usuarios a CSV
+export const userExportSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email('El formato del email no es válido').optional(),
+  role: z.enum(['admin', 'user']).optional(),
+  isActive: z.boolean().optional(),
+  createdDateFrom: z.string().optional(),
+  createdDateTo: z.string().optional(),
+  updatedDateFrom: z.string().optional(),
+  updatedDateTo: z.string().optional(),
+});
+
 export const userAdvancedSearchSchema = z.object({
   page: z.number().min(1).default(1).optional(),
   limit: z.number().min(1).max(100).default(10).optional(),
@@ -111,4 +146,7 @@ export type CreateUserFormData = z.infer<typeof createUserSchema>;
 export type UpdateUserFormData = z.infer<typeof updateUserSchema>;
 export type UserSearchFormData = z.infer<typeof userSearchSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export type UserFilterFormData = z.infer<typeof userFilterSchema>;
+export type UserAdvancedFilterFormData = z.infer<typeof userAdvancedFilterSchema>;
+export type UserExportFormData = z.infer<typeof userExportSchema>;
 export type UserAdvancedSearchParams = z.infer<typeof userAdvancedSearchSchema>;

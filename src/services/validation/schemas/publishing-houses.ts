@@ -62,6 +62,32 @@ export const publishingHouseSearchSchema = z.object({
     .default('ASC'),
 });
 
+// Schema para filtros de casas editoriales
+export const publishingHouseFiltersSchema = z.object({
+  name: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
+  established: z.number().optional(),
+  isActive: z.boolean().optional(),
+  pagination: z.object({
+    page: z.number().min(1),
+    limit: z.number().min(1).max(100),
+    sortBy: z.string().optional(),
+    sortOrder: z.enum(['ASC', 'DESC']).optional(),
+  }).optional(),
+});
+
+// Schema para exportar casas editoriales a CSV
+export const publishingHouseExportSchema = z.object({
+  name: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
+  startDate: z.string().datetime('Fecha de inicio inválida').optional(),
+  endDate: z.string().datetime('Fecha de fin inválida').optional(),
+});
+
 export type CreatePublishingHouseFormData = z.infer<typeof createPublishingHouseSchema>;
 export type UpdatePublishingHouseFormData = z.infer<typeof updatePublishingHouseSchema>;
 export type PublishingHouseSearchFormData = z.infer<typeof publishingHouseSearchSchema>;
+export type PublishingHouseFiltersFormData = z.infer<typeof publishingHouseFiltersSchema>;
+export type PublishingHouseExportFormData = z.infer<typeof publishingHouseExportSchema>;

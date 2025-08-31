@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useApiRequest } from '@/hooks';
-import { BookListParams } from '@/services/api/entities/books';
+import { bookCatalogApi } from '@/services/api/entities/book-catalog';
+import { BookCatalogListParams } from '@/types/domain';
 import DynamicTable, { TableColumn } from '@/components/DynamicTable';
 import PageWrapper from '@/components/PageWrapper';
 import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
@@ -11,7 +12,7 @@ import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
 import BookMovementsModal from '@/components/BookMovementsModal';
 
 export default function BooksPage() {
-  const [params, setParams] = useState<BookListParams>({ page: 1, limit: 10 });
+  const [params, setParams] = useState<BookCatalogListParams>({ page: 1, limit: 10 });
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false);
@@ -19,8 +20,7 @@ export default function BooksPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/book-catalog',
-    method: 'GET',
+    apiFunction: () => bookCatalogApi.list(params),
     onSuccess: () => {
       // Books loaded successfully
     },

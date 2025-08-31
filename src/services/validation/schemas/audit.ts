@@ -44,6 +44,45 @@ export const auditSearchParamsSchema = auditListParamsSchema.extend({
   term: z.string().min(1, 'El término de búsqueda es requerido'),
 });
 
+// Schema para filtro rápido de auditoría
+export const auditFilterSchema = z.object({
+  filter: z
+    .string()
+    .min(3, 'El filtro debe tener al menos 3 caracteres')
+    .max(100, 'El filtro no puede exceder 100 caracteres'),
+  page: z.number().min(1).default(1).optional(),
+  limit: z.number().min(1).max(50).default(10).optional(),
+  sortBy: z.string().default('createdAt').optional(),
+  sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
+  offset: z.number().optional(),
+});
+
+// Schema para filtro avanzado de auditoría
+export const auditAdvancedFilterSchema = z.object({
+  userId: z.string().uuid('ID de usuario inválido').optional(),
+  entityType: z.string().optional(),
+  action: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  pagination: z.object({
+    page: z.number().min(1),
+    limit: z.number().min(1).max(100),
+    sortBy: z.string().default('timestamp').optional(),
+    sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
+  }).optional(),
+});
+
+// Schema para exportar auditoría a CSV
+export const auditExportSchema = z.object({
+  performedBy: z.string().optional(),
+  entityId: z.string().uuid('ID de entidad inválido').optional(),
+  entityType: z.string().optional(),
+  action: z.enum(['CREATE', 'UPDATE', 'DELETE']).optional(),
+  details: z.string().optional(),
+  startDate: z.string().datetime('Fecha de inicio inválida').optional(),
+  endDate: z.string().datetime('Fecha de fin inválida').optional(),
+});
+
 export const auditAdvancedSearchSchema = auditListParamsSchema.extend({
   action: z.string().optional(),
   entityType: z.string().optional(),
@@ -58,4 +97,7 @@ export type AuditLog = z.infer<typeof auditLogSchema>;
 export type AuditLogListResponse = z.infer<typeof auditLogListResponseSchema>;
 export type AuditListParams = z.infer<typeof auditListParamsSchema>;
 export type AuditSearchParams = z.infer<typeof auditSearchParamsSchema>;
+export type AuditFilterParams = z.infer<typeof auditFilterSchema>;
+export type AuditAdvancedFilterParams = z.infer<typeof auditAdvancedFilterSchema>;
+export type AuditExportParams = z.infer<typeof auditExportSchema>;
 export type AuditAdvancedSearchParams = z.infer<typeof auditAdvancedSearchSchema>;

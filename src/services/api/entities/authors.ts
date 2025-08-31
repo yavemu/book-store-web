@@ -54,6 +54,38 @@ export interface AuthorAdvancedSearchParams extends AuthorListParams {
   endDate?: string;
 }
 
+export interface BookAuthorFiltersDto {
+  name?: string;
+  nationality?: string;
+  birthYear?: number;
+  isActive?: boolean;
+  pagination?: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
+}
+
+export interface BookAuthorExportParams {
+  name?: string;
+  nationality?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface AssignmentFiltersDto {
+  bookId?: string;
+  authorId?: string;
+  assignmentDate?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
+}
+
 export const authorsApi = {
   // Crear nuevo autor (solo admin)
   create: (data: CreateBookAuthorDto): Promise<CreateBookAuthorResponseDto> => {
@@ -86,8 +118,9 @@ export const authorsApi = {
     const defaultParams = {
       page: 1,
       limit: 10,
-      sortBy: 'lastName',
-      sortOrder: 'ASC' as const,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
       ...params,
     };
 
@@ -112,38 +145,25 @@ export const authorsApi = {
 
   // Buscar autores por término
   search: (params: AuthorSearchParams): Promise<BookAuthorListResponseDto> => {
-    const url = buildUrl('/book-authors/search', params);
-    return apiClient.get(url);
-  },
-
-  // Obtener autor por nombre completo
-  getByName: (firstName: string, lastName: string): Promise<BookAuthorResponseDto> => {
-    const encodedFirstName = encodeURIComponent(firstName);
-    const encodedLastName = encodeURIComponent(lastName);
-    return apiClient.get(`/book-authors/by-name/${encodedFirstName}/${encodedLastName}`);
-  },
-
-  // Obtener autores por nacionalidad
-  byNationality: (nationality: string, params?: Pick<AuthorListParams, 'page' | 'limit'>): Promise<BookAuthorListResponseDto> => {
     const defaultParams = {
       page: 1,
       limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
       ...params,
     };
-
-    const url = buildUrl(`/book-authors/by-nationality/${encodeURIComponent(nationality)}`, defaultParams);
+    const url = buildUrl('/book-authors/search', defaultParams);
     return apiClient.get(url);
   },
 
-  // Obtener libros de un autor específico
-  getBooks: (authorId: string, params?: Pick<AuthorListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      ...params,
-    };
+  // Filtrar autores con criterios múltiples
+  filter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
+    return apiClient.post('/book-authors/filter', filterData);
+  },
 
-    const url = buildUrl(`/book-authors/${authorId}/books`, defaultParams);
+  // Exportar autores a CSV (solo admin)
+  exportToCsv: (params?: BookAuthorExportParams): Promise<string> => {
+    const url = buildUrl('/book-authors/export/csv', params);
     return apiClient.get(url);
   },
 };
@@ -176,28 +196,25 @@ export const bookAuthorAssignmentsApi = {
     return apiClient.get(url);
   },
 
-  // Obtener asignaciones por libro
-  getByBook: (bookId: string, params?: Pick<BookAuthorAssignmentListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
+  // Buscar asignaciones por término
+  search: (params: { term: string; page?: number; limit?: number }): Promise<{ data: unknown[]; meta: unknown }> => {
     const defaultParams = {
       page: 1,
       limit: 10,
       ...params,
     };
-
-    const url = buildUrl(`/book-author-assignments/by-book/${bookId}`, defaultParams);
+    const url = buildUrl('/book-author-assignments/search', defaultParams);
     return apiClient.get(url);
   },
 
-  // Obtener asignaciones por autor
-  getByAuthor: (authorId: string, params?: Pick<BookAuthorAssignmentListParams, 'page' | 'limit'>): Promise<{ data: unknown[]; meta: unknown }> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      ...params,
-    };
+  // Filtrar asignaciones con criterios múltiples
+  filter: (filterData: AssignmentFiltersDto): Promise<{ data: unknown[]; meta: unknown }> => {
+    return apiClient.post('/book-author-assignments/filter', filterData);
+  },
 
-    const url = buildUrl(`/book-author-assignments/by-author/${authorId}`, defaultParams);
-    return apiClient.get(url);
+  // Exportar asignaciones a CSV (solo admin)
+  exportToCsv: (): Promise<string> => {
+    return apiClient.get('/book-author-assignments/export/csv');
   },
 
   // Verificar si existe asignación específica
@@ -212,7 +229,7 @@ export const bookAuthorAssignmentsApi = {
 
   // Actualizar asignación autor-libro
   update: (assignmentId: string, data: UpdateBookAuthorAssignmentDto): Promise<unknown> => {
-    return apiClient.patch(`/book-author-assignments/${assignmentId}`, data);
+    return apiClient.put(`/book-author-assignments/${assignmentId}`, data);
   },
 
   // Eliminar asignación autor-libro

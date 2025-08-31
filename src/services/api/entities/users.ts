@@ -49,6 +49,44 @@ export interface UserAdvancedSearchParams extends UserListParams {
   endDate?: string;
 }
 
+export interface UserSearchParams {
+  term: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
+  offset?: number;
+}
+
+export interface UserFilterParams {
+  filter: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
+  offset?: number;
+}
+
+export interface UserAdvancedFilterDto {
+  name?: string;
+  email?: string;
+  role?: "admin" | "user";
+  isActive?: boolean;
+  createdAfter?: string;
+  createdBefore?: string;
+}
+
+export interface UserExportParams {
+  name?: string;
+  email?: string;
+  role?: "admin" | "user";
+  isActive?: boolean;
+  createdDateFrom?: string;
+  createdDateTo?: string;
+  updatedDateFrom?: string;
+  updatedDateTo?: string;
+}
+
 export const usersApi = {
   // Crear nuevo usuario (solo admin)
   create: (data: CreateUserDto): Promise<CreateUserResponseDto> => {
@@ -60,8 +98,8 @@ export const usersApi = {
     const defaultParams = {
       page: 1,
       limit: 10,
-      sortBy: "username",
-      sortOrder: "ASC" as const,
+      sortBy: "createdAt",
+      sortOrder: "DESC" as const,
       ...params,
     };
 
@@ -69,12 +107,12 @@ export const usersApi = {
     return apiClient.get(url);
   },
 
-  // Obtener usuario por ID (admin o el mismo usuario)
+  // Obtener usuario por ID (admin solamente)
   getById: (id: string): Promise<UserResponseDto> => {
     return apiClient.get(`/users/${id}`);
   },
 
-  // Actualizar usuario (admin o el mismo usuario)
+  // Actualizar usuario (solo admin)
   update: (id: string, data: UpdateUserDto): Promise<UpdateUserResponseDto> => {
     return apiClient.put(`/users/${id}`, data);
   },
@@ -82,5 +120,53 @@ export const usersApi = {
   // Eliminar usuario (soft delete - solo admin)
   delete: (id: string): Promise<DeleteUserResponseDto> => {
     return apiClient.delete(`/users/${id}`);
+  },
+
+  // Buscar usuarios por término (admin y user)
+  search: (params: UserSearchParams): Promise<UserListResponseDto> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "DESC" as const,
+      ...params,
+    };
+
+    const url = buildUrl("/users/search", defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Filtrar usuarios en tiempo real (admin y user)
+  filter: (params: UserFilterParams): Promise<UserListResponseDto> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "DESC" as const,
+      ...params,
+    };
+
+    const url = buildUrl("/users/filter", defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Filtro avanzado de usuarios (admin y user)
+  advancedFilter: (filterData: UserAdvancedFilterDto, params?: UserListParams): Promise<UserListResponseDto> => {
+    const queryParams = {
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "DESC" as const,
+      ...params,
+    };
+
+    const url = buildUrl("/users/advanced-filter", queryParams);
+    return apiClient.post(url, filterData);
+  },
+
+  // Exportar usuarios a CSV (solo admin)
+  exportToCsv: (params?: UserExportParams): Promise<string> => {
+    const url = buildUrl("/users/export/csv", params);
+    return apiClient.get(url);
   },
 };

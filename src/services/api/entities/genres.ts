@@ -26,9 +26,43 @@ export interface GenreListParams {
 }
 
 export interface GenreSearchParams {
+  term: string;
   q: string;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  offset?: number;
+}
+
+export interface GenreFilterParams {
+  filter: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  offset?: number;
+}
+
+export interface GenreAdvancedFilterDto {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  createdDateStart?: string;
+  createdDateEnd?: string;
+  pagination: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
+}
+
+export interface GenreExportParams {
+  name?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface GenreAdvancedSearchParams extends GenreListParams {
@@ -49,6 +83,9 @@ export const genresApi = {
     const defaultParams = {
       page: 1,
       limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
       ...params,
     };
 
@@ -66,14 +103,56 @@ export const genresApi = {
     return apiClient.put(`/genres/${id}`, data);
   },
 
-  // Eliminar género (solo admin)
+  // Eliminar género (soft delete - solo admin)
   delete: (id: string): Promise<{ message: string }> => {
     return apiClient.delete(`/genres/${id}`);
   },
 
   // Buscar géneros por nombre o descripción
   search: (params: GenreSearchParams): Promise<BookGenreListResponseDto> => {
-    const url = buildUrl('/genres/search', params);
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl('/genres/search', defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Filtrar géneros en tiempo real
+  filter: (params: GenreFilterParams): Promise<BookGenreListResponseDto> => {
+    const defaultParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl('/genres/filter', defaultParams);
+    return apiClient.get(url);
+  },
+
+  // Filtro avanzado de géneros
+  advancedFilter: (filterData: GenreAdvancedFilterDto, params?: GenreListParams): Promise<BookGenreListResponseDto> => {
+    const queryParams = {
+      page: 1,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC' as const,
+      offset: undefined,
+      ...params,
+    };
+    const url = buildUrl('/genres/advanced-filter', queryParams);
+    return apiClient.post(url, filterData);
+  },
+
+  // Exportar géneros a CSV (solo admin)
+  exportToCsv: (params?: GenreExportParams): Promise<string> => {
+    const url = buildUrl('/genres/export/csv', params);
     return apiClient.get(url);
   },
 

@@ -15,8 +15,7 @@ export default function GenresPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/genres',
-    method: 'GET',
+    apiFunction: () => genresApi.list(params),
     onSuccess: (response) => {
       console.log('Genres loaded:', response);
     },
@@ -35,7 +34,16 @@ export default function GenresPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    // Implementar búsqueda con debounce
+    
+    // Implementar búsqueda con debounce si hay texto
+    if (value && value.trim().length >= 3) {
+      // Use quick filter for real-time search
+      genresApi.filter({ filter: value.trim(), page: 1, limit: params.limit }).then(response => {
+        console.log('Quick filter response:', response);
+      }).catch(error => {
+        console.error('Quick filter error:', error);
+      });
+    }
   };
 
   const handleCreateGenre = () => {

@@ -6,7 +6,7 @@ import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
 import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
 import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
 import { useApiRequest } from "@/hooks";
-import { AuthorListParams } from "@/services/api/entities/authors";
+import { authorsApi, AuthorListParams } from "@/services/api/entities/authors";
 import { useEffect, useState } from "react";
 
 export default function AuthorsPage() {
@@ -15,8 +15,7 @@ export default function AuthorsPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/book-authors',
-    method: 'GET',
+    apiFunction: () => authorsApi.list(params),
     onSuccess: (response) => {
       console.log('Authors loaded:', response);
     },
@@ -35,7 +34,16 @@ export default function AuthorsPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    // Implementar búsqueda con debounce
+    
+    // Implementar búsqueda con debounce si hay texto
+    if (value && value.trim().length >= 3) {
+      // Use search for real-time search
+      authorsApi.search({ term: value.trim(), page: 1, limit: params.limit }).then(response => {
+        console.log('Search response:', response);
+      }).catch(error => {
+        console.error('Search error:', error);
+      });
+    }
   };
 
   const handleCreateAuthor = () => {

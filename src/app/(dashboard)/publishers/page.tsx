@@ -19,8 +19,7 @@ export default function PublishersPage() {
   const [editingRecord, setEditingRecord] = useState(null);
 
   const { loading, error, data, execute } = useApiRequest({
-    endpoint: '/publishing-houses',
-    method: 'GET',
+    apiFunction: () => publishingHousesApi.list(params),
     onSuccess: (response) => {
       console.log('Publishers loaded:', response);
     },
@@ -39,7 +38,16 @@ export default function PublishersPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    // Implementar búsqueda con debounce
+    
+    // Implementar búsqueda con debounce si hay texto
+    if (value && value.trim().length >= 3) {
+      // Use search for real-time search
+      publishingHousesApi.search({ term: value.trim(), page: 1, limit: params.limit }).then(response => {
+        console.log('Search response:', response);
+      }).catch(error => {
+        console.error('Search error:', error);
+      });
+    }
   };
 
   const handleCreateClick = () => {
@@ -54,12 +62,29 @@ export default function PublishersPage() {
     setShowForm(true);
   };
 
-  const handleFormSubmit = (data: any) => {
-    console.log('Form submitted:', data, { isEditing, editingRecord });
-    // Aquí implementarías la lógica de crear/editar
-    setShowForm(false);
-    setIsEditing(false);
-    setEditingRecord(null);
+  const handleFormSubmit = async (data: any) => {
+    try {
+      if (isEditing && editingRecord) {
+        // Update existing publisher
+        await publishingHousesApi.update(editingRecord.id, data);
+        console.log('Publisher updated:', data);
+      } else {
+        // Create new publisher
+        await publishingHousesApi.create(data);
+        console.log('Publisher created:', data);
+      }
+      
+      // Refresh the data
+      execute();
+      
+      // Close form
+      setShowForm(false);
+      setIsEditing(false);
+      setEditingRecord(null);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Error al guardar la editorial');
+    }
   };
 
   const handleFormCancel = () => {
@@ -140,26 +165,53 @@ export default function PublishersPage() {
     }
   ];
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
-    // Here you would typically update the API params with the search filters
     console.log('Advanced search filters:', filters);
-    // Reset to page 1 when new search is applied
-    setParams({ ...params, page: 1 });
-    // TODO: Add filters to API request
+    
+    const newParams = { ...params, page: 1 };
+    setParams(newParams);
+    
+    // Use the advanced filter API if there are filters
+    const hasFilters = Object.values(filters).some(value => value && value !== '');
+    if (hasFilters) {
+      try {
+        const filterData = {
+          name: filters.name as string,
+          country: filters.country as string,
+          city: filters.city as string,
+          established: filters.foundedYear ? Number(filters.foundedYear) : undefined,
+          pagination: {
+            page: newParams.page,
+            limit: newParams.limit,
+            sortBy: newParams.sortBy,
+            sortOrder: newParams.sortOrder,
+          },
+        };
+        
+        await publishingHousesApi.filter(filterData);
+        console.log('Advanced filter applied');
+      } catch (error) {
+        console.error('Advanced filter error:', error);
+      }
+    }
   };
 
   const handleClearAdvancedSearch = () => {
     setSearchFilters({});
+    setSearchTerm('');
     setParams({ page: 1, limit: 10 });
-    // TODO: Clear filters from API request
+    // Refresh data with default params
+    execute();
   };
 
   const handleRemoveFilter = (key: string) => {
     const newFilters = { ...searchFilters };
     delete newFilters[key];
     setSearchFilters(newFilters);
-    // TODO: Update API request without this filter
+    
+    // Apply search with remaining filters
+    handleAdvancedSearch(newFilters);
   };
 
   if (error) {
