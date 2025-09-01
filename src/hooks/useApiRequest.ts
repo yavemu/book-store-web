@@ -1,6 +1,5 @@
 'use client';
 
-import { apiClient } from "@/services/api";
 import { useAppDispatch } from "@/store/hooks";
 import { clearInvalidAuth } from "@/store/slices/authSlice";
 import { ApiError } from "@/types/api";
@@ -8,8 +7,7 @@ import { useState } from "react";
 import { z } from "zod";
 
 interface UseApiRequestOptions<TData, TResponse> {
-  endpoint: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  apiFunction: (data?: TData) => Promise<TResponse>;
   schema?: z.ZodSchema<TData>;
   onSuccess?: (response: TResponse) => void;
   onError?: (error: ApiError | Error) => void;
@@ -22,15 +20,7 @@ interface ApiRequestState<TResponse> {
   validationErrors: Record<string, string[]> | null;
 }
 
-export function useApiRequest<TData = any, TResponse = any>({
-  endpoint,
-  method = "POST",
-  schema,
-  onSuccess,
-  onError,
-}: UseApiRequestOptions<TData, TResponse>) {
-  console.log("Lo que llego a useApiRequest", endpoint, method, schema, onSuccess, onError);
-
+export function useApiRequest<TData = any, TResponse = any>({ apiFunction, schema, onSuccess, onError }: UseApiRequestOptions<TData, TResponse>) {
   const dispatch = useAppDispatch();
   const [state, setState] = useState<ApiRequestState<TResponse>>({
     loading: false,
@@ -72,26 +62,10 @@ export function useApiRequest<TData = any, TResponse = any>({
         }
       }
 
-      console.log("Estoy en useAPiRequuest", endpoint);
+      console.log("Estoy en useApiRequest - ejecutando apiFunction");
 
-      // Llamada API
-      let response: TResponse;
-      switch (method) {
-        case "GET":
-          response = await apiClient.get<TResponse>(endpoint);
-          break;
-        case "POST":
-          response = await apiClient.post<TResponse>(endpoint, requestData);
-          break;
-        case "PUT":
-          response = await apiClient.put<TResponse>(endpoint, requestData);
-          break;
-        case "DELETE":
-          response = await apiClient.delete<TResponse>(endpoint);
-          break;
-        default:
-          throw new Error(`Método HTTP ${method} no soportado`);
-      }
+      // Llamada API usando la función proporcionada
+      const response: TResponse = await apiFunction(requestData);
 
       setState((prev) => ({
         ...prev,
@@ -108,7 +82,7 @@ export function useApiRequest<TData = any, TResponse = any>({
       let structuredError: ApiError | Error;
 
       if (error instanceof Error) {
-        errorMessage = error.message || `Error en ${endpoint}`;
+        errorMessage = error.message || "Error en la petición API";
         structuredError = error;
       } else if (error && typeof error === "object") {
         // Si es un objeto (como ApiError), extraer mensaje
@@ -122,9 +96,9 @@ export function useApiRequest<TData = any, TResponse = any>({
           // Solo loggear si el objeto no está vacío
           const errorKeys = Object.keys(error);
           if (errorKeys.length > 0) {
-            errorMessage = `Error en ${endpoint}: ${JSON.stringify(error)}`;
+            errorMessage = `Error en la petición API: ${JSON.stringify(error)}`;
           } else {
-            errorMessage = `Error de conexión en ${endpoint}`;
+            errorMessage = "Error de conexión en la petición API";
           }
           structuredError = new Error(errorMessage);
         }
@@ -132,7 +106,7 @@ export function useApiRequest<TData = any, TResponse = any>({
         errorMessage = error;
         structuredError = new Error(error);
       } else {
-        errorMessage = `Error de conexión en ${endpoint}`;
+        errorMessage = "Error de conexión en la petición API";
         structuredError = new Error(errorMessage);
       }
 
@@ -165,8 +139,6 @@ export function useApiRequest<TData = any, TResponse = any>({
       // Loggear error estructurado para debugging solo si hay contenido
       if (errorMessage && errorMessage.trim().length > 0) {
         console.error("useApiRequest Error:", {
-          endpoint,
-          method,
           errorMessage,
           originalError: error,
           structuredError,
