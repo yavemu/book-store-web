@@ -334,7 +334,6 @@ export interface CommonListParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
-  offset?: number;
 }
 
 export interface CommonSearchParams extends CommonListParams {

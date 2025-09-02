@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRelationalOptions } from '@/hooks/useRelationalOptions';
 
 interface FormField {
   key: string;
@@ -42,6 +43,17 @@ export default function GenericForm({
   const [fileData, setFileData] = useState<Record<string, File | null>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Get all field keys that might need relational options
+  const selectFieldKeys = useMemo(() => 
+    fields
+      .filter(field => field.type === 'select' && (!field.options || field.options.length === 0))
+      .map(field => field.key),
+    [fields]
+  );
+
+  // Load relational options for select fields
+  const { options: relationalOptions, loading: optionsLoading, error: optionsError } = useRelationalOptions(selectFieldKeys);
 
   // Initialize form data when modal opens or entity changes
   useEffect(() => {
@@ -170,15 +182,21 @@ export default function GenericForm({
 
     switch (field.type) {
       case 'select':
+        const selectOptions = field.options || relationalOptions[field.key] || [];
+        const isLoadingOptions = optionsLoading && selectFieldKeys.includes(field.key);
+        
         return (
           <select
             value={value}
             onChange={(e) => handleInputChange(field.key, e.target.value)}
             className={`form-select ${hasError ? 'error' : ''}`}
             required={field.required}
+            disabled={isLoadingOptions}
           >
-            <option value="">Seleccionar...</option>
-            {field.options?.map(option => (
+            <option value="">
+              {isLoadingOptions ? 'Cargando opciones...' : 'Seleccionar...'}
+            </option>
+            {selectOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -243,13 +261,19 @@ export default function GenericForm({
           />
         );
     }
-  }, [formData, errors, handleInputChange, handleFileChange]);
+  }, [formData, errors, handleInputChange, handleFileChange, relationalOptions, optionsLoading, selectFieldKeys]);
 
   const formContent = (
     <form onSubmit={handleSubmit} className="generic-form">
       {errors._general && (
         <div className="form-error-general">
           {errors._general}
+        </div>
+      )}
+      
+      {optionsError && (
+        <div className="form-error-general">
+          Error cargando opciones: {optionsError}
         </div>
       )}
       

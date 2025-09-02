@@ -146,13 +146,12 @@ export default function DataTable<T = any>({
   return (
     <div className={`data-table-container ${className}`}>
       <div className="table-wrapper">
-        <table className="data-table">
-          <thead className="table-header">
+        <table>
+          <thead>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`table-header-cell ${column.sortable ? 'sortable' : ''}`}
                   style={{ 
                     width: column.width,
                     textAlign: column.align || 'left'
@@ -160,10 +159,10 @@ export default function DataTable<T = any>({
                   onClick={() => handleSort(column)}
                   title={column.sortable ? 'Clic para ordenar' : undefined}
                 >
-                  <div className="header-content">
+                  <div>
                     <span>{column.label}</span>
                     {getSortIndicator(column) && (
-                      <span className="sort-indicator">
+                      <span>
                         {getSortIndicator(column)}
                       </span>
                     )}
@@ -171,32 +170,30 @@ export default function DataTable<T = any>({
                 </th>
               ))}
               {showActionsColumn && (
-                <th className="table-header-cell actions-column">
+                <th>
                   Acciones
                 </th>
               )}
             </tr>
           </thead>
           
-          <tbody className="table-body">
+          <tbody>
             {data.length === 0 ? (
               <tr>
                 <td 
                   colSpan={columns.length + (showActionsColumn ? 1 : 0)}
-                  className="empty-state-cell"
                 >
-                  <div className="empty-state">
+                  <div>
                     📋 {emptyMessage}
                   </div>
                 </td>
               </tr>
             ) : (
               data.map((record, index) => (
-                <tr key={index} className="table-row">
+                <tr key={index}>
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className="table-cell"
                       style={{ 
                         width: column.width,
                         textAlign: column.align || 'left'
@@ -207,7 +204,7 @@ export default function DataTable<T = any>({
                   ))}
                   
                   {showActionsColumn && (
-                    <td className="table-cell actions-cell">
+                    <td>
                       <div className="action-buttons">
                         {getActionButtons(record, index).map((button) => (
                           <Button

@@ -26,6 +26,7 @@ export interface UnifiedApiServiceAdapter<TEntity = any> {
   list: (params: any) => Promise<{data: TEntity[], meta: any}>;
   search: (params: any) => Promise<{data: TEntity[], meta: any}>;
   filter: (params: any) => Promise<{data: TEntity[], meta: any}>;
+  quickFilter?: (term: string, params?: any) => Promise<{data: TEntity[], meta: any}>;
   advancedFilter?: (params: any) => Promise<{data: TEntity[], meta: any}>;
   create?: (data: any) => Promise<TEntity>;
   update?: (id: string, data: any) => Promise<TEntity>;
@@ -114,7 +115,8 @@ export function adaptDashboardConfig(oldConfig: any): UnifiedDashboardConfig {
 
 // Create API service adapter from existing API services
 export function adaptApiService(existingApiService: any): UnifiedApiServiceAdapter {
-  return {
+  
+  const adaptedService = {
     // Main list endpoint
     list: async (params: any) => {
       const response = await existingApiService.list(params);
@@ -139,6 +141,11 @@ export function adaptApiService(existingApiService: any): UnifiedApiServiceAdapt
       return await existingApiService.list(params);
     },
 
+    // Quick filter endpoint (for search as you type)
+    quickFilter: existingApiService.quickFilter ? async (term: string, params?: any) => {
+      return await existingApiService.quickFilter(term, params);
+    } : undefined,
+
     // Advanced filter endpoint
     advancedFilter: existingApiService.advancedFilter ? async (params: any) => {
       return await existingApiService.advancedFilter(params);
@@ -161,6 +168,8 @@ export function adaptApiService(existingApiService: any): UnifiedApiServiceAdapt
       return await existingApiService.getById(id);
     } : undefined
   };
+
+  return adaptedService;
 }
 
 // Helper to create unified dashboard props from existing config

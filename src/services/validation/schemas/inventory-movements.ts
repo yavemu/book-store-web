@@ -36,7 +36,6 @@ export const inventoryMovementListParamsSchema = z.object({
   limit: z.number().min(1).max(100).default(10).optional(),
   sortBy: z.string().default('createdAt').optional(),
   sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
-  offset: z.number().optional(),
 });
 
 // Schema para búsqueda de movimientos de inventario

@@ -67,12 +67,12 @@ export default function GenericDashboardPage<TEntity = any, TCreateDto = any, TU
   }
 
   // Quick search component (only if auto-search is enabled)
-  const quickSearchComponent = config.capabilities.search.includes('auto') && config.search?.autoSearch?.enabled 
+  const quickSearchComponent = config.capabilities.search.includes('auto')
     ? (
       <QuickSearchInput
         onAutoFilter={handlers.onAutoFilter!}
         loading={state.searchLoading}
-        placeholder={config.search.autoSearch.placeholder}
+        placeholder={config.search?.autoSearch?.placeholder || "Búsqueda rápida..."}
       />
     ) 
     : undefined;

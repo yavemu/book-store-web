@@ -263,7 +263,7 @@ export default function InlineDashboardPage<TEntity = any>({
       )}
 
       {/* Main Data Table */}
-      <div className="table-container">
+      <div>
         {/* Loading State */}
         {isLoading && (
           <div className="loading-state">

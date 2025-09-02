@@ -23,7 +23,6 @@ export const commonListParamsSchema = z.object({
   limit: z.number().min(1).max(100).default(10).optional(),
   sortBy: z.string().default('createdAt').optional(),
   sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
-  offset: z.number().min(0).optional(),
 });
 
 // Common search parameters

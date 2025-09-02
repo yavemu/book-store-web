@@ -53,7 +53,6 @@ export const genreSearchSchema = z.object({
     .enum(['ASC', 'DESC'])
     .optional()
     .default('DESC'),
-  offset: z.number().optional(),
 });
 
 // Schema para filtro rápido de géneros

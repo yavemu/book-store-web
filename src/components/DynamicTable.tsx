@@ -255,20 +255,19 @@ export default function DynamicTable({
     if (params.length === 0) return null;
 
     return (
-      <div className="pagination-info-container">
-        <div className="pagination-info-header">
-          <span className="pagination-info-title">📊 Parámetros aplicados:</span>
+      <div>
+        <div>
+          <span>📊 Parámetros aplicados:</span>
         </div>
-        <div className="pagination-params">
+        <div>
           {params.map((param) => (
-            <div key={param.key} className="pagination-param-tag">
-              <span className="param-label">{param.label}:</span>
-              <span className="param-value">{param.displayValue}</span>
+            <div key={param.key}>
+              <span>{param.label}:</span>
+              <span>{param.displayValue}</span>
               {onClearPaginationParam && (
                 <button
                   type="button"
                   onClick={() => onClearPaginationParam(param.key)}
-                  className="param-remove-btn"
                   title={`Eliminar ${param.label.toLowerCase()}`}
                 >
                   ×
@@ -318,29 +317,10 @@ export default function DynamicTable({
     // Use custom actions if provided, otherwise use defaults
     const actionsToRender = actions && actions.length > 0 ? actions : defaultActions;
 
-    const getButtonClassName = (variant?: string) => {
-      switch (variant) {
-        case "ver":
-          return "btn-action-ver";
-        case "editar":
-          return "btn-action-editar";
-        case "eliminar":
-          return "btn-action-eliminar";
-        case "primary":
-          return "btn-action-ver";
-        case "secondary":
-          return "btn-action-editar";
-        case "danger":
-          return "btn-action-eliminar";
-        default:
-          return "btn-action-ver";
-      }
-    };
-
     return (
-      <div className="table-actions">
+      <div>
         {actionsToRender.map((action, index) => (
-          <button key={index} onClick={() => action.onClick(record)} className={getButtonClassName(action.variant)}>
+          <button key={index} onClick={() => action.onClick(record)}>
             {action.label}
           </button>
         ))}
@@ -349,26 +329,25 @@ export default function DynamicTable({
   };
 
   return (
-    <div className="table-container">
+    <div>
       {/* Pagination Info */}
       {renderPaginationInfo()}
 
       {/* Form positioned between applied params and create button */}
       {showForm && formComponent && (
-        <div className="card-boutique form-card">
-          <div className="card-content">{formComponent}</div>
+        <div>
+          <div>{formComponent}</div>
         </div>
       )}
 
-      <div className="table-header">
+      <div>
         {(showSearch || meta) && (
-          <div className="header-left">
+          <div>
             {showSearch && (
               <input
                 type="text"
                 placeholder={searchPlaceholder}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                className="search-input"
                 style={{
                   display: "block",
                   visibility: "visible",
@@ -378,28 +357,28 @@ export default function DynamicTable({
               />
             )}
 
-            <div className="table-stats">
-              <div className="stat-item">
-                <span className="stat-label">Total:</span>
-                <span className="stat-value">{safeEffectiveMeta.totalItems}</span>
+            <div>
+              <div>
+                <span>Total:</span>
+                <span>{safeEffectiveMeta.totalItems}</span>
               </div>
-              <div className="stat-item">
-                <span className="stat-label">Páginas:</span>
-                <span className="stat-value">{safeEffectiveMeta.totalPages}</span>
+              <div>
+                <span>Páginas:</span>
+                <span>{safeEffectiveMeta.totalPages}</span>
               </div>
             </div>
           </div>
         )}
 
-        <div className="header-right">
+        <div>
           {quickSearchComponent && (
-            <div className="quick-search-section">
+            <div>
               {quickSearchComponent}
             </div>
           )}
           
           {showCreateButton && (
-            <div className="create-section">
+            <div>
               <button
                 onClick={() => {
                   if (showForm) {
@@ -408,7 +387,6 @@ export default function DynamicTable({
                     onCreateClick?.();
                   }
                 }}
-                className="btn-create"
               >
                 {showForm
                   ? isEditing
@@ -421,24 +399,24 @@ export default function DynamicTable({
         </div>
       </div>
 
-      <div className="card-boutique">
-        <div className={`card-content ${showLoadingOverlay ? "table-loading-overlay" : ""}`} style={{ position: "relative" }}>
+      <div>
+        <div style={{ position: "relative" }}>
           {showLoadingOverlay && (
-            <div className="table-loading-indicator">
-              <div className="table-loading-spinner"></div>
+            <div>
+              <div>⏳</div>
               Actualizando datos...
             </div>
           )}
 
-          <table className="table-dashboard">
+          <table>
             <thead>
               <tr>
                 {columns.map((column) => (
                   <th key={column.key}>
                     {column.sortable !== false ? (
-                      <button type="button" onClick={() => handleSort(column.key)} className="sort-header-btn" disabled={!onSortChange}>
-                        <span className="sort-label">{column.label}</span>
-                        <span className={`sort-icon ${isSortActive(column.key) ? "active" : ""}`} data-default={!isSortActive(column.key)}>
+                      <button type="button" onClick={() => handleSort(column.key)} disabled={!onSortChange}>
+                        <span>{column.label}</span>
+                        <span>
                           {getSortIcon(column.key)}
                         </span>
                       </button>
@@ -455,25 +433,22 @@ export default function DynamicTable({
                 loading ? (
                   // Show skeleton rows for first load
                   Array.from({ length: 3 }).map((_, index) => (
-                    <tr key={`skeleton-${index}`} className="skeleton-table-row">
+                    <tr key={`skeleton-${index}`}>
                       {columns.map((column, colIndex) => (
                         <td key={column.key}>
-                          <div
-                            className="skeleton-placeholder"
-                            style={{
-                              width: colIndex === 0 ? "80%" : colIndex === 1 ? "100%" : "60%",
-                            }}
-                          ></div>
+                          <div>
+                            Cargando...
+                          </div>
                         </td>
                       ))}
                       <td>
-                        <div className="skeleton-placeholder" style={{ width: "70%" }}></div>
+                        <div>Cargando...</div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={columns.length + 1} className="no-data-text">
+                    <td colSpan={columns.length + 1}>
                       No hay datos disponibles
                     </td>
                   </tr>

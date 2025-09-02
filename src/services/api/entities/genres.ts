@@ -76,7 +76,6 @@ export const genresApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 
@@ -101,16 +100,17 @@ export const genresApi = {
 
   // Buscar géneros por nombre o descripción
   search: (params: GenreSearchParams): Promise<BookGenreListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
-    const url = buildUrl('/genres/search', defaultParams);
-    return apiClient.get(url);
+
+    const url = buildUrl('/genres/search', queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar géneros en tiempo real
@@ -126,7 +126,6 @@ export const genresApi = {
       limit: params?.limit || 10,
       sortBy: 'createdAt',
       sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
     };
     const url = buildUrl('/genres/filter', queryParams);
     return apiClient.get(url);
@@ -139,7 +138,6 @@ export const genresApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
     const url = buildUrl('/genres/advanced-filter', queryParams);

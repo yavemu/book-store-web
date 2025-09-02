@@ -115,15 +115,17 @@ export const inventoryMovementsApi = {
 
   // Buscar movimientos por término
   search: (params: InventoryMovementSearchParams): Promise<InventoryMovementListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      ...params,
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
-    const url = buildUrl('/inventory_movements/search', defaultParams);
-    return apiClient.get(url);
+
+    const url = buildUrl('/inventory_movements/search', queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar movimientos en tiempo real
@@ -139,7 +141,6 @@ export const inventoryMovementsApi = {
       limit: params?.limit || 10,
       sortBy: 'createdAt',
       sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
     };
     const url = buildUrl('/inventory_movements/filter', queryParams);
     return apiClient.get(url);

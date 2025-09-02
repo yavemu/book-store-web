@@ -120,7 +120,6 @@ export const authorsApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 
@@ -145,14 +144,17 @@ export const authorsApi = {
 
   // Buscar autores por término - POST /search
   search: (params: AuthorSearchParams): Promise<BookAuthorListResponseDto> => {
-    const searchData = {
-      ...params,
-      page: params.page || 1,
-      limit: params.limit || 10,
-      sortBy: params.sortBy || 'createdAt',
-      sortOrder: params.sortOrder || 'DESC' as const
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
-    return apiClient.post('/book-authors/search', searchData);
+
+    const url = buildUrl('/book-authors/search', queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar autores con criterios múltiples - Using POST for complex filters
@@ -173,7 +175,6 @@ export const authorsApi = {
       limit: params?.limit || 10,
       sortBy: 'createdAt',
       sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
     };
     const url = buildUrl('/book-authors/filter', queryParams);
     return apiClient.get(url);
@@ -211,15 +212,22 @@ export const bookAuthorAssignmentsApi = {
 
   // Buscar asignaciones por término
   search: (params: { term: string; page?: number; limit?: number }): Promise<BookAuthorAssignmentListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
+    const { page = 1, limit = 10, term, ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
       sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      ...params,
+      sortOrder: 'DESC' as const
     };
-    const url = buildUrl('/book-author-assignments/search', defaultParams);
-    return apiClient.get(url);
+
+    const searchBody = {
+      term,
+      ...searchData
+    };
+
+    const url = buildUrl('/book-author-assignments/search', queryParams);
+    return apiClient.post(url, searchBody);
   },
 
   // Filtrar asignaciones con criterios múltiples

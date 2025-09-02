@@ -134,16 +134,17 @@ export const booksApi = {
 
   // Buscar libros por término
   search: (params: BookSearchParams): Promise<BookListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: "createdAt",
-      sortOrder: "DESC" as const,
-      ...params,
+    const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "DESC", ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
 
-    const url = buildUrl("/book-catalog/search", defaultParams);
-    return apiClient.get(url);
+    const url = buildUrl("/book-catalog/search", queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar libros en tiempo real
@@ -159,7 +160,6 @@ export const booksApi = {
       limit: params?.limit || 10,
       sortBy: 'createdAt',
       sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
     };
     const url = buildUrl("/book-catalog/filter", queryParams);
     return apiClient.get(url);

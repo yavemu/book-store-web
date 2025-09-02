@@ -184,7 +184,9 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
   // Search Handlers
   const handleAutoFilter = useCallback(async (term: string) => {
     if (!config.capabilities.search.includes('auto' as SearchCapability)) return;
-    if (!config.search?.autoSearch?.enabled) return;
+    // Auto-search is enabled by default if 'auto' is in capabilities
+    const autoSearchEnabled = config.search?.autoSearch?.enabled !== false;
+    if (!autoSearchEnabled) return;
     if (!term || term.trim().length < 3) return; // Mínimo 3 caracteres
 
     updateState({ searchLoading: true });
@@ -194,13 +196,11 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
       
       // ALWAYS prioritize quickFilter for auto-search (uses GET /filter?term)
       if (apiService.quickFilter) {
-        console.log('🔍 Using quickFilter (GET /filter?term) for auto-search:', term);
         response = await apiService.quickFilter(term, {
           page: 1,
           limit: state.pageSize
         });
       } else {
-        console.warn('⚠️ quickFilter not available, this should not happen for auto-search');
         throw new Error('quickFilter method not available for auto-search');
       }
       

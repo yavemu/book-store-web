@@ -55,7 +55,6 @@ export interface UserSearchParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
-  offset?: number;
 }
 
 export interface UserFilterParams {
@@ -125,16 +124,22 @@ export const usersApi = {
 
   // Buscar usuarios por término (admin y user)
   search: (params: UserSearchParams): Promise<UserListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: "createdAt",
-      sortOrder: "DESC" as const,
-      ...params,
+    const { term, page = 1, limit = 10, sortBy = "createdAt", sortOrder = "DESC", ...bodyParams } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
 
-    const url = buildUrl("/users/search", defaultParams);
-    return apiClient.get(url);
+    const searchBody = {
+      term,
+      ...bodyParams
+    };
+
+    const url = buildUrl("/users/search", queryParams);
+    return apiClient.post(url, searchBody);
   },
 
   // Filtrar usuarios en tiempo real (admin y user)
@@ -149,8 +154,7 @@ export const usersApi = {
       page: params?.page || 1,
       limit: params?.limit || 10,
       sortBy: 'createdAt',
-      sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+      sortOrder: 'ASC' as const
     };
     const url = buildUrl("/users/filter", queryParams);
     return apiClient.get(url);

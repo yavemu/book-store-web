@@ -196,10 +196,5 @@ const customHandlers = {
 export default function BooksPage() {
   const unifiedProps = createUnifiedDashboardProps(booksConfig, booksApi, customHandlers);
 
-  // Use custom form component for books
-  const customComponents = {
-    form: () => import('@/components/books/BookForm').then(mod => mod.default)
-  };
-
-  return <InlineDashboardPage {...unifiedProps} customComponents={customComponents} />;
+  return <InlineDashboardPage {...unifiedProps} />;
 }

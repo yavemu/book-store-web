@@ -72,7 +72,6 @@ export const publishingHousesApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 
@@ -97,15 +96,17 @@ export const publishingHousesApi = {
 
   // Buscar editoriales por término
   search: (params: PublishingHouseSearchParams): Promise<PublishingHouseListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'name',
-      sortOrder: 'ASC' as const,
-      ...params,
+    const { page = 1, limit = 10, sortBy = 'name', sortOrder = 'ASC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
-    const url = buildUrl('/publishing-houses/search', defaultParams);
-    return apiClient.get(url);
+
+    const url = buildUrl('/publishing-houses/search', queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar editoriales en tiempo real
@@ -121,7 +122,6 @@ export const publishingHousesApi = {
       limit: params?.limit || 10,
       sortBy: 'createdAt',
       sortOrder: 'ASC' as const,
-      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
     };
     const url = buildUrl('/publishing-houses/filter', queryParams);
     return apiClient.get(url);

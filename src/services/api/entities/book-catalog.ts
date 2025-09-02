@@ -42,7 +42,6 @@ export const bookCatalogApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 
@@ -90,16 +89,17 @@ export const bookCatalogApi = {
 
   // Buscar libros
   search: (params: BookCatalogSearchParams): Promise<PaginatedResponse<BookCatalog>> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
-    const url = buildUrl("/book-catalog/search", defaultParams);
-    return apiClient.get(url);
+
+    const url = buildUrl("/book-catalog/search", queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar libros en tiempo real
@@ -108,13 +108,12 @@ export const bookCatalogApi = {
   },
 
   // Filtros avanzados
-  advancedFilter: (filters: BookFiltersDto, params?: { page?: number; limit?: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC'; offset?: number }): Promise<PaginatedResponse<BookCatalog>> => {
+  advancedFilter: (filters: BookFiltersDto, params?: { page?: number; limit?: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC' }): Promise<PaginatedResponse<BookCatalog>> => {
     const queryParams = {
       page: 1,
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
     const url = buildUrl("/book-catalog/advanced-filter", queryParams);

@@ -45,7 +45,6 @@ export interface AuditFilterParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
-  offset?: number;
   term: string;
 }
 
@@ -76,7 +75,6 @@ export const auditApi = {
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 
@@ -91,17 +89,17 @@ export const auditApi = {
 
   // Buscar registros de auditoría por término en detalles (solo admin)
   search: (params: AuditSearchParams): Promise<AuditLogListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', ...searchData } = params;
+    
+    const queryParams = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
     };
 
-    const url = buildUrl('/audit/search', defaultParams);
-    return apiClient.get(url);
+    const url = buildUrl('/audit/search', queryParams);
+    return apiClient.post(url, searchData);
   },
 
   // Filtrar registros de auditoría en tiempo real (solo admin)
@@ -111,23 +109,23 @@ export const auditApi = {
       page: params.page || 1,
       limit: params.limit || 10,
       sortBy: params.sortBy || 'createdAt',
-      sortOrder: params.sortOrder || 'ASC' as const,
-      offset: ((params.page || 1) - 1) * (params.limit || 10)
+      sortOrder: params.sortOrder || 'ASC' as const
     };
     const url = buildUrl('/audit/filter', queryParams);
     return apiClient.get(url);
   },
 
-  // Búsqueda rápida para dashboards - usando filter endpoint
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
   quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<AuditLogListResponseDto> => {
-    const filterParams: AuditFilterParams = {
-      term: term,
+    const queryParams = {
+      term,
       page: params?.page || 1,
       limit: params?.limit || 10,
       sortBy: 'createdAt',
-      sortOrder: 'DESC'
+      sortOrder: 'DESC' as const
     };
-    return auditApi.filter(filterParams);
+    const url = buildUrl('/audit/filter', queryParams);
+    return apiClient.get(url);
   },
 
   // Filtro avanzado de registros de auditoría (solo admin)
