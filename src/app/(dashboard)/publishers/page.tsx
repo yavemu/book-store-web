@@ -21,30 +21,37 @@ const publishersConfig = {
     {
       key: 'name',
       label: 'Nombre',
-      sortable: true
+      sortable: true,
+      width: '200px'
     },
     {
-      key: 'website',
+      key: 'websiteUrl',
       label: 'Website',
       sortable: false,
+      width: '250px',
       render: (value: string) => value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "-"
     },
     {
-      key: 'contactEmail',
-      label: 'Email',
+      key: 'description',
+      label: 'Descripción',
       sortable: false,
-      render: (value: string) => value || "-"
+      width: '200px',
+      render: (value: string) => value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "-"
     },
     {
       key: 'booksCount',
       label: 'Libros',
       sortable: false,
+      width: '80px',
+      align: 'center' as const,
       render: (value: number) => String(value || 0)
     },
     {
       key: 'isActive',
       label: 'Estado',
       sortable: true,
+      width: '100px',
+      align: 'center' as const,
       render: (value: boolean) => value ? 'Activa' : 'Inactiva'
     }
   ],
@@ -56,25 +63,16 @@ const publishersConfig = {
       placeholder: 'Ej: Planeta'
     },
     {
-      key: 'website',
+      key: 'websiteUrl',
       label: 'Website',
       type: 'text' as const,
-      placeholder: 'Ej: www.planeta.com'
+      placeholder: 'Ej: https://www.planeta.com'
     },
     {
-      key: 'contactEmail',
-      label: 'Email de Contacto',
+      key: 'description',
+      label: 'Descripción',
       type: 'text' as const,
-      placeholder: 'Ej: info@planeta.com'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      options: [
-        { value: true, label: 'Activa' },
-        { value: false, label: 'Inactiva' }
-      ]
+      placeholder: 'Ej: Editorial española'
     }
   ],
   formFields: [
@@ -89,29 +87,22 @@ const publishersConfig = {
       key: 'country',
       label: 'País',
       type: 'text' as const,
-      required: true,
+      required: false, // country?: string en el DTO
       placeholder: 'Ej: España'
     },
     {
-      key: 'website',
+      key: 'websiteUrl',
       label: 'Website',
       type: 'text' as const,
       required: false,
-      placeholder: 'Ej: www.planeta.com'
+      placeholder: 'Ej: https://www.planeta.com'
     },
     {
-      key: 'contactEmail',
-      label: 'Email de Contacto',
-      type: 'email' as const,
+      key: 'description',
+      label: 'Descripción',
+      type: 'textarea' as const,
       required: false,
-      placeholder: 'Ej: info@planeta.com'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      required: false,
-      placeholder: 'Activa'
+      placeholder: 'Descripción de la editorial...'
     }
   ]
 };

@@ -436,7 +436,7 @@ export const authorsConfig: DashboardConfig = {
 | **Libros** | CRUD con validaciones ISBN, gestión género/editorial | Todos los usuarios |
 | **Géneros** | CRUD simple, verificación de libros asociados | Todos los usuarios |
 | **Editoriales** | CRUD simple, verificación de libros asociados | Todos los usuarios |
-| **Inventario** | Movimientos de stock, reportes | Todos los usuarios |
+| **Movimientos** | Movimientos de stock, reportes | Todos los usuarios |
 | **Usuarios** | CRUD con validaciones de roles | Solo ADMIN |
 | **Auditoría** | Solo lectura, búsqueda avanzada | Solo ADMIN |
 
@@ -474,7 +474,7 @@ export const authorsConfig: DashboardConfig = {
 
 ### Roles y Permisos
 
-- **USER**: Acceso a módulos básicos (Autores, Libros, Géneros, Editoriales, Inventario)
+- **USER**: Acceso a módulos básicos (Autores, Libros, Géneros, Editoriales, Movimientos)
 - **ADMIN**: Acceso completo incluyendo Usuarios y Auditoría
 
 ### Validación de Datos

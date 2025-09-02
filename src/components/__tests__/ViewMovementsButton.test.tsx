@@ -23,9 +23,9 @@ describe('ViewMovementsButton', () => {
     });
 
     it('should render with custom text', () => {
-      render(<ViewMovementsButton {...defaultProps} text="Movimientos de Inventario" />);
+      render(<ViewMovementsButton {...defaultProps} text="Movimientos de Movimientos" />);
       
-      expect(screen.getByText('Movimientos de Inventario')).toBeInTheDocument();
+      expect(screen.getByText("Movimientos de Movimientos")).toBeInTheDocument();
     });
 
     it('should apply correct CSS classes', () => {

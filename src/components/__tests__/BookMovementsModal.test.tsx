@@ -44,20 +44,20 @@ describe('BookMovementsModal', () => {
     it('should render modal when open', () => {
       render(<BookMovementsModal {...defaultProps} />);
       
-      expect(screen.getByText('Movimientos de Inventario')).toBeInTheDocument();
+      expect(screen.getByText("Movimientos de Movimientos")).toBeInTheDocument();
       expect(screen.getByText('Test Book Title')).toBeInTheDocument();
     });
 
     it('should not render when closed', () => {
       render(<BookMovementsModal {...defaultProps} isOpen={false} />);
       
-      expect(screen.queryByText('Movimientos de Inventario')).not.toBeInTheDocument();
+      expect(screen.queryByText("Movimientos de Movimientos")).not.toBeInTheDocument();
     });
 
     it('should not render when book is null', () => {
       render(<BookMovementsModal {...defaultProps} book={null} />);
       
-      expect(screen.queryByText('Movimientos de Inventario')).not.toBeInTheDocument();
+      expect(screen.queryByText("Movimientos de Movimientos")).not.toBeInTheDocument();
     });
 
     it('should display book information', () => {

@@ -130,6 +130,7 @@ export interface DashboardHandlers<TEntity = any, TCreateDto = any, TUpdateDto =
   onAutoFilter?: (term: string) => void;
   onSearch?: (term: string, fuzzy?: boolean) => void;
   onAdvancedFilter?: (filters: Record<string, any>) => void;
+  onQuickFilter?: (term: string) => void;
   onClearSearch?: () => void;
 
   // Pagination handlers

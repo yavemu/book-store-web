@@ -190,29 +190,22 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     updateState({ searchLoading: true });
     
     try {
-      // Usar quickFilter que llama al endpoint /filter con GET y query params
-      const searchMethod = apiService.quickFilter || apiService.filter;
       let response;
       
+      // ALWAYS prioritize quickFilter for auto-search (uses GET /filter?term)
       if (apiService.quickFilter) {
-        // quickFilter ya está configurado correctamente para usar GET /filter?term=...
-        response = await searchMethod(term, {
+        console.log('🔍 Using quickFilter (GET /filter?term) for auto-search:', term);
+        response = await apiService.quickFilter(term, {
           page: 1,
           limit: state.pageSize
         });
       } else {
-        // Fallback al método filter tradicional
-        response = await searchMethod({
-          [config.entity === 'audit' ? 'filter' : 'name']: term,
-          pagination: { 
-            page: 1, 
-            limit: state.pageSize,
-            ...(config.table?.defaultSort && {
-              sortBy: config.table.defaultSort.field,
-              sortOrder: config.table.defaultSort.direction
-            })
-          }
-        });
+        console.warn('⚠️ quickFilter not available, this should not happen for auto-search');
+        throw new Error('quickFilter method not available for auto-search');
+      }
+      
+      if (!response) {
+        throw new Error('No response from quickFilter');
       }
       
       // Actualizar estado con los datos recibidos de la API
@@ -234,7 +227,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     }
   }, [config, apiService, state.pageSize]);
 
-  const handleSearch = useCallback(async (term: string, fuzzy = false) => {
+  const handleSearch = useCallback(async (term: string, fuzzy = false, page = 1) => {
     if (!config.capabilities.search.includes('simple' as SearchCapability)) return;
 
     updateState({ searchLoading: true });
@@ -247,7 +240,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         // Usar search endpoint POST /search
         response = await apiService.search({
           term,
-          page: 1,
+          page,
           limit: state.pageSize,
           ...(config.table?.defaultSort && {
             sortBy: config.table.defaultSort.field,
@@ -257,7 +250,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
       } else {
         // Fallback a quickFilter si search no está disponible
         response = await apiService.quickFilter(term, {
-          page: 1,
+          page,
           limit: state.pageSize
         });
       }
@@ -267,7 +260,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         data: response?.data || [],
         meta: response?.meta,
         isSearchMode: true,
-        currentPage: 1,
+        currentPage: page,
         searchParams: { search: term, fuzzy },
         searchLoading: false
       });
@@ -276,12 +269,12 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
       console.error(`Error searching ${config.entity}:`, error);
       updateState({ 
         searchLoading: false,
-        error: error.message || 'Error en búsqueda'
+        error: error?.message || 'Error en búsqueda'
       });
     }
   }, [config, apiService, state.pageSize]);
 
-  const handleAdvancedFilter = useCallback(async (filters: Record<string, any>) => {
+  const handleAdvancedFilter = useCallback(async (filters: Record<string, any>, page = 1) => {
     if (!config.capabilities.search.includes('advanced' as SearchCapability)) return;
 
     updateState({ searchLoading: true });
@@ -294,7 +287,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         response = await apiService.advancedFilter({
           ...filters,
           pagination: { 
-            page: 1, 
+            page, 
             limit: state.pageSize,
             ...(config.table?.defaultSort && {
               sortBy: config.table.defaultSort.field,
@@ -303,18 +296,36 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
           }
         });
       } else {
-        // Fallback to regular filter endpoint POST /filter
-        response = await apiService.filter({
-          ...filters,
-          pagination: { 
-            page: 1, 
-            limit: state.pageSize,
-            ...(config.table?.defaultSort && {
-              sortBy: config.table.defaultSort.field,
-              sortOrder: config.table.defaultSort.direction
-            })
+        // No advancedFilter available, try alternative approaches
+        console.warn('advancedFilter not available for this service, trying alternatives...');
+        
+        if (apiService.quickFilter && Object.keys(filters).length === 1) {
+          // If only one filter and quickFilter is available, use it for simple term search
+          const filterTerm = Object.values(filters)[0];
+          if (typeof filterTerm === 'string') {
+            response = await apiService.quickFilter(filterTerm, { page, limit: state.pageSize });
           }
-        });
+        }
+        
+        if (!response && apiService.search) {
+          // Fallback to search with first filter value as term
+          const searchTerm = Object.values(filters).find(v => typeof v === 'string' && v.trim().length > 0);
+          if (searchTerm) {
+            response = await apiService.search({
+              term: searchTerm,
+              page,
+              limit: state.pageSize,
+              ...(config.table?.defaultSort && {
+                sortBy: config.table.defaultSort.field,
+                sortOrder: config.table.defaultSort.direction
+              })
+            });
+          }
+        }
+        
+        if (!response) {
+          throw new Error('No suitable filter method available for advanced filters');
+        }
       }
       
       // Actualizar estado con los datos recibidos de la API
@@ -322,7 +333,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         data: response?.data || [],
         meta: response?.meta,
         isSearchMode: true,
-        currentPage: 1,
+        currentPage: page,
         searchParams: { advancedFilter: filters },
         searchLoading: false
       });
@@ -332,6 +343,53 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
       updateState({ 
         searchLoading: false,
         error: error.message || 'Error en filtro avanzado'
+      });
+    }
+  }, [config, apiService, state.pageSize]);
+
+  // Quick Filter Handler - Uses GET /filter?term=...
+  const handleQuickFilter = useCallback(async (term: string, page = 1) => {
+    if (!config.capabilities.search.includes('simple' as SearchCapability)) return;
+
+    updateState({ searchLoading: true });
+    
+    try {
+      let response;
+      
+      if (apiService.quickFilter) {
+        // Use quickFilter which calls GET /filter?term=...
+        response = await apiService.quickFilter(term, {
+          page,
+          limit: state.pageSize
+        });
+      } else {
+        // Fallback to regular search
+        response = await apiService.search({
+          term,
+          page,
+          limit: state.pageSize,
+          ...(config.table?.defaultSort && {
+            sortBy: config.table.defaultSort.field,
+            sortOrder: config.table.defaultSort.direction
+          })
+        });
+      }
+      
+      // Actualizar estado con los datos recibidos de la API
+      updateState({
+        data: response?.data || [],
+        meta: response?.meta,
+        isSearchMode: true,
+        currentPage: page,
+        searchParams: { quickFilter: term },
+        searchLoading: false
+      });
+      
+    } catch (error) {
+      console.error(`Error quick filtering ${config.entity}:`, error);
+      updateState({ 
+        searchLoading: false,
+        error: error?.message || 'Error en filtro rápido'
       });
     }
   }, [config, apiService, state.pageSize]);
@@ -347,7 +405,21 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
   // Pagination Handlers
   const handlePageChange = useCallback((page: number) => {
     updateState({ currentPage: page });
-  }, []);
+    
+    // If in search mode, re-execute the last search with the new page
+    if (state.isSearchMode && state.searchParams) {
+      if (state.searchParams.search) {
+        // Re-execute simple search with new page
+        handleSearch(state.searchParams.search, state.searchParams.fuzzy, page);
+      } else if (state.searchParams.advancedFilter) {
+        // Re-execute advanced filter with new page
+        handleAdvancedFilter(state.searchParams.advancedFilter, page);
+      } else if (state.searchParams.quickFilter) {
+        // Re-execute quick filter with new page
+        handleQuickFilter(state.searchParams.quickFilter, page);
+      }
+    }
+  }, [state.isSearchMode, state.searchParams, handleSearch, handleAdvancedFilter, handleQuickFilter]);
 
   // Data Handlers
   const handleDataRefresh = useCallback(() => {
@@ -406,6 +478,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     onAutoFilter: handleAutoFilter,
     onSearch: handleSearch,
     onAdvancedFilter: handleAdvancedFilter,
+    onQuickFilter: handleQuickFilter,
     onClearSearch: handleClearSearch,
 
     // Pagination handlers

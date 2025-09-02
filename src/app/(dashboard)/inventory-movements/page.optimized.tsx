@@ -23,18 +23,14 @@ export default function InventoryMovementsPageOptimized() {
   // Loading state
   if (inventory.state.loading && !inventory.state.data.length) {
     return (
-      <PageLoading 
-        title="Movimientos de Inventario" 
-        breadcrumbs={["Inventario", "Movimientos"]}
-        message="Cargando movimientos de inventario..."
-      />
+      <PageLoading title="Movimientos de Movimientos" breadcrumbs={["Movimientos", "Movimientos"]} message="Cargando movimientos de inventario..." />
     );
   }
 
   // Error state
   if (inventory.state.error) {
     return (
-      <PageWrapper title="Movimientos de Inventario">
+      <PageWrapper title="Movimientos de Movimientos">
         <ApiErrorState
           error={inventory.state.error}
           canRetry={true}
@@ -54,39 +50,46 @@ export default function InventoryMovementsPageOptimized() {
 
   return (
     <PageWrapper
-      title="Movimientos de Inventario"
-      breadcrumbs={["Inventario", "Movimientos"]}
+      title="Movimientos de Movimientos"
+      breadcrumbs={["Movimientos", "Movimientos"]}
       showCsvDownload={true}
       onCsvDownload={inventory.handlers.onExport}
       csvDownloadEnabled={true}
     >
       {/* Inventory Stats Widget */}
       <div className="mb-6">
-        <InventoryStatsWidget
-          onGetStockSummary={inventory.inventory.getStockSummary}
-          onExportReport={inventory.inventory.exportInventoryReport}
-        />
+        <InventoryStatsWidget onGetStockSummary={inventory.inventory.getStockSummary} onExportReport={inventory.inventory.exportInventoryReport} />
       </div>
 
       {/* Advanced Search Component */}
       <div className="mb-6">
         <GenericAdvancedSearch
-          entityName="Movimientos de Inventario"
+          entityName="Movimientos de Movimientos"
           searchFields={[
-            { key: 'bookTitle', label: 'Título del libro', type: 'text', placeholder: 'Buscar por libro' },
-            { key: 'bookIsbn', label: 'ISBN', type: 'text', placeholder: 'ISBN-10 o ISBN-13' },
-            { key: 'movementType', label: 'Tipo', type: 'select', options: [
-              { value: 'IN', label: 'Entrada' },
-              { value: 'OUT', label: 'Salida' },
-              { value: 'ADJUSTMENT', label: 'Ajuste' }
-            ]},
-            { key: 'performedBy', label: 'Realizado por', type: 'text' },
-            { key: 'startDate', label: 'Fecha desde', type: 'date' },
-            { key: 'endDate', label: 'Fecha hasta', type: 'date' },
-            { key: 'lowStock', label: 'Stock bajo', type: 'boolean', options: [
-              { value: true, label: 'Solo stock bajo' },
-              { value: false, label: 'Todos los niveles' }
-            ]},
+            { key: "bookTitle", label: "Título del libro", type: "text", placeholder: "Buscar por libro" },
+            { key: "bookIsbn", label: "ISBN", type: "text", placeholder: "ISBN-10 o ISBN-13" },
+            {
+              key: "movementType",
+              label: "Tipo",
+              type: "select",
+              options: [
+                { value: "IN", label: "Entrada" },
+                { value: "OUT", label: "Salida" },
+                { value: "ADJUSTMENT", label: "Ajuste" },
+              ],
+            },
+            { key: "performedBy", label: "Realizado por", type: "text" },
+            { key: "startDate", label: "Fecha desde", type: "date" },
+            { key: "endDate", label: "Fecha hasta", type: "date" },
+            {
+              key: "lowStock",
+              label: "Stock bajo",
+              type: "boolean",
+              options: [
+                { value: true, label: "Solo stock bajo" },
+                { value: false, label: "Todos los niveles" },
+              ],
+            },
           ]}
           onAutoFilter={inventory.handlers.onAutoFilter}
           onAdvancedFilter={inventory.handlers.onAdvancedFilter}
@@ -99,29 +102,23 @@ export default function InventoryMovementsPageOptimized() {
       {inventory.state.bulkOperationMode && (
         <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-blue-800">
-              {inventory.selection.selectedMovements.length} movimientos seleccionados
-            </span>
+            <span className="text-sm text-blue-800">{inventory.selection.selectedMovements.length} movimientos seleccionados</span>
             <div className="flex space-x-2">
               <button
-                onClick={() => inventory.inventory.exportInventoryReport({
-                  movementIds: inventory.selection.selectedMovements.map(m => m.id)
-                })}
+                onClick={() =>
+                  inventory.inventory.exportInventoryReport({
+                    movementIds: inventory.selection.selectedMovements.map((m) => m.id),
+                  })
+                }
                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                 disabled={!inventory.state.hasSelectedMovements}
               >
                 Exportar Seleccionados
               </button>
-              <button
-                onClick={inventory.selection.clearSelection}
-                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-              >
+              <button onClick={inventory.selection.clearSelection} className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700">
                 Limpiar Selección
               </button>
-              <button
-                onClick={inventory.selection.toggleBulkMode}
-                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-              >
+              <button onClick={inventory.selection.toggleBulkMode} className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
                 Salir Modo Bulk
               </button>
             </div>
@@ -130,15 +127,15 @@ export default function InventoryMovementsPageOptimized() {
       )}
 
       {/* Inventory Movements Table */}
-      <InventoryMovementsTable 
-        data={inventory.state.data} 
-        meta={inventory.state.meta} 
-        loading={inventory.state.loading || inventory.state.searchLoading} 
+      <InventoryMovementsTable
+        data={inventory.state.data}
+        meta={inventory.state.meta}
+        loading={inventory.state.loading || inventory.state.searchLoading}
         onPageChange={inventory.handlers.onPageChange}
         onDataRefresh={inventory.handlers.onDataRefresh}
         // CRUD handlers (limited for inventory)
         onCreate={inventory.handlers.onCreate} // Stock adjustment
-        onEdit={inventory.handlers.onEdit}     // Stock adjustment based on movement
+        onEdit={inventory.handlers.onEdit} // Stock adjustment based on movement
         onView={inventory.handlers.onView}
         // No delete for inventory movements
         // Form state

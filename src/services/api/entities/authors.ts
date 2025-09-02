@@ -155,7 +155,7 @@ export const authorsApi = {
     return apiClient.post('/book-authors/search', searchData);
   },
 
-  // Filtrar autores con criterios múltiples
+  // Filtrar autores con criterios múltiples - Using POST for complex filters
   filter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
     return apiClient.post('/book-authors/filter', filterData);
   },

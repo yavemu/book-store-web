@@ -197,7 +197,10 @@ export default function DataTable<T = any>({
                     <td
                       key={column.key}
                       className="table-cell"
-                      style={{ textAlign: column.align || 'left' }}
+                      style={{ 
+                        width: column.width,
+                        textAlign: column.align || 'left'
+                      }}
                     >
                       {renderCellContent(column, record, index)}
                     </td>

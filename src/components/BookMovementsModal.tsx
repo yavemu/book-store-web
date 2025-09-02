@@ -68,12 +68,7 @@ export default function BookMovementsModal({ isOpen, onClose, book }: BookMoveme
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Movimientos de Inventario"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Movimientos de Movimientos" size="lg">
       <div className="space-y-4">
         {/* Book Information */}
         <div className="bg-gray-50 p-4 rounded-lg">
@@ -106,10 +101,7 @@ export default function BookMovementsModal({ isOpen, onClose, book }: BookMoveme
             <div className="text-red-600 mb-4">
               <p>{error}</p>
             </div>
-            <button
-              onClick={handleRetry}
-              className="btn-action-ver"
-            >
+            <button onClick={handleRetry} className="btn-action-ver">
               Reintentar
             </button>
           </div>
@@ -125,21 +117,17 @@ export default function BookMovementsModal({ isOpen, onClose, book }: BookMoveme
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <span className="font-medium">{movement.id}</span>
-                        <span className={`ml-2 px-2 py-1 rounded text-xs ${statusColors[movement.status as keyof typeof statusColors] || ''}`}>
+                        <span className={`ml-2 px-2 py-1 rounded text-xs ${statusColors[movement.status as keyof typeof statusColors] || ""}`}>
                           {statusLabels[movement.status as keyof typeof statusLabels] || movement.status}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(movement.createdAt)}
-                      </div>
+                      <div className="text-sm text-gray-500">{formatDate(movement.createdAt)}</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-medium">Tipo:</span>{' '}
-                        <span className="order-type-badge">
-                          {typeLabels[movement.type as keyof typeof typeLabels] || movement.type}
-                        </span>
+                        <span className="font-medium">Tipo:</span>{" "}
+                        <span className="order-type-badge">{typeLabels[movement.type as keyof typeof typeLabels] || movement.type}</span>
                       </div>
                       {movement.quantity && (
                         <div>
@@ -147,7 +135,7 @@ export default function BookMovementsModal({ isOpen, onClose, book }: BookMoveme
                         </div>
                       )}
                     </div>
-                    
+
                     {movement.reason && (
                       <div className="mt-2 text-sm text-gray-600">
                         <span className="font-medium">Motivo:</span> {movement.reason}
@@ -166,10 +154,7 @@ export default function BookMovementsModal({ isOpen, onClose, book }: BookMoveme
 
         {/* Modal Actions */}
         <div className="flex justify-end pt-4 border-t">
-          <button
-            onClick={onClose}
-            className="button secondary"
-          >
+          <button onClick={onClose} className="button secondary">
             Cerrar
           </button>
         </div>

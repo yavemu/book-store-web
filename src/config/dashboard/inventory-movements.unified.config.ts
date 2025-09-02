@@ -173,7 +173,7 @@ const inventoryMovementsUnifiedFields: UnifiedFieldConfig[] = [
 export const inventoryMovementsUnifiedConfig: EntityUnifiedConfig<InventoryMovementResponseDto, CreateInventoryMovementDto, UpdateInventoryMovementDto> = {
   // Basic entity information
   entity: "inventory-movements",
-  displayName: "Gestión de Movimientos de Inventario",
+  displayName: "Gestión de Movimientos de Movimientos",
   entityName: "movimiento",
   entityNamePlural: "movimientos",
 
@@ -182,8 +182,8 @@ export const inventoryMovementsUnifiedConfig: EntityUnifiedConfig<InventoryMovem
 
   // Entity capabilities - Full CRUD + all search types + export
   capabilities: {
-    crud: ['create', 'read', 'update', 'delete'],
-    search: ['auto', 'simple', 'advanced'],
+    crud: ["create", "read", "update", "delete"],
+    search: ["auto", "simple", "advanced"],
     export: true,
   },
 
@@ -208,7 +208,7 @@ export const inventoryMovementsUnifiedConfig: EntityUnifiedConfig<InventoryMovem
     pageSize: 10,
     autoSearchField: "notes",
     autoSearchPlaceholder: "Búsqueda rápida movimientos (mín. 3 caracteres)",
-    breadcrumbs: ["Inventario", "Movimientos"],
+    breadcrumbs: ["Movimientos", "Movimientos"],
     csvFilename: "movimientos-inventario",
   },
 

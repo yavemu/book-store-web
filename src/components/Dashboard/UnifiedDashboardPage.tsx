@@ -120,6 +120,7 @@ export default function UnifiedDashboardPage<TEntity = any>({
     onAutoFilter: handleAutoFilter,
     onSearch: handleSearch,
     onAdvancedFilter: handleAdvancedFilter,
+    onQuickFilter: handleQuickFilter,
     onClearSearch: handleClearSearch,
     onPageChange: handlePageChange,
     onDataRefresh: handleRefresh
@@ -219,6 +220,7 @@ export default function UnifiedDashboardPage<TEntity = any>({
           onAutoFilter={handleAutoFilterInternal}
           onSearch={handleSimpleSearch}
           onAdvancedFilter={handleAdvancedSearch}
+          onQuickFilter={handleQuickFilter}
           onClear={handleClearAll}
           loading={isLoading}
         />

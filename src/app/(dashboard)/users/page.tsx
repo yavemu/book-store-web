@@ -21,17 +21,21 @@ const usersConfig = {
     {
       key: 'username',
       label: 'Usuario',
-      sortable: true
+      sortable: true,
+      width: '150px'
     },
     {
       key: 'email',
       label: 'Email',
-      sortable: true
+      sortable: true,
+      width: '250px'
     },
     {
       key: 'role',
       label: 'Rol',
       sortable: true,
+      width: '120px',
+      align: 'center' as const,
       render: (value: string) => value === 'admin' ? 'Administrador' : 
                                       value === 'librarian' ? 'Bibliotecario' : 'Usuario'
     },
@@ -39,12 +43,16 @@ const usersConfig = {
       key: 'isActive',
       label: 'Estado',
       sortable: true,
+      width: '100px',
+      align: 'center' as const,
       render: (value: boolean) => value ? 'Activo' : 'Inactivo'
     },
     {
       key: 'createdAt',
       label: 'Registro',
       sortable: true,
+      width: '120px',
+      align: 'center' as const,
       render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     }
   ],
@@ -62,23 +70,11 @@ const usersConfig = {
       placeholder: 'Ej: admin@demo.com'
     },
     {
-      key: 'role',
+      key: 'roleId',
       label: 'Rol',
       type: 'select' as const,
-      options: [
-        { value: 'admin', label: 'Administrador' },
-        { value: 'librarian', label: 'Bibliotecario' },
-        { value: 'user', label: 'Usuario' }
-      ]
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      options: [
-        { value: true, label: 'Activo' },
-        { value: false, label: 'Inactivo' }
-      ]
+      options: [], // Se debe llenar dinámicamente
+      placeholder: 'Seleccionar rol'
     }
   ],
   formFields: [
@@ -104,22 +100,12 @@ const usersConfig = {
       placeholder: 'Contraseña segura...'
     },
     {
-      key: 'role',
+      key: 'roleId',
       label: 'Rol',
       type: 'select' as const,
       required: true,
-      options: [
-        { value: 'admin', label: 'Administrador' },
-        { value: 'librarian', label: 'Bibliotecario' },
-        { value: 'user', label: 'Usuario' }
-      ]
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      required: false,
-      placeholder: 'Activo'
+      options: [], // Se debe llenar dinámicamente desde el API de roles
+      placeholder: 'Seleccionar rol'
     }
   ]
 };
@@ -146,5 +132,10 @@ export default function UsersPage() {
     customHandlers
   );
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  // Use custom form component for users
+  const customComponents = {
+    form: () => import('@/components/users/UserForm').then(mod => mod.default)
+  };
+
+  return <UnifiedDashboardPage {...unifiedProps} customComponents={customComponents} />;
 }

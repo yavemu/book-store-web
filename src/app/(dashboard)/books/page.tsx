@@ -22,34 +22,43 @@ const booksConfig = {
       key: "title",
       label: "Título",
       sortable: true,
+      width: "300px",
     },
     {
       key: "isbn",
       label: "ISBN",
       sortable: true,
+      width: "150px",
     },
     {
       key: "publishedDate",
       label: "Fecha Publicación",
       sortable: true,
+      width: "140px",
       render: (value: string) => (value ? new Date(value).toLocaleDateString() : "-"),
     },
     {
       key: "price",
       label: "Precio",
       sortable: true,
+      width: "100px",
+      align: "right" as const,
       render: (value: number) => (value ? `$${value}` : "-"),
     },
     {
       key: "stock",
       label: "Stock",
       sortable: true,
+      width: "80px",
+      align: "center" as const,
       render: (value: number) => String(value || 0),
     },
     {
       key: "isActive",
       label: "Estado",
       sortable: true,
+      width: "100px",
+      align: "center" as const,
       render: (value: boolean) => (value ? "Activo" : "Inactivo"),
     },
   ],
@@ -96,17 +105,27 @@ const booksConfig = {
       placeholder: "Ej: Cien años de soledad",
     },
     {
-      key: "isbn",
-      label: "ISBN",
+      key: "isbnCode",
+      label: "Código ISBN",
       type: "text" as const,
       required: true,
       placeholder: "Ej: 978-3-16-148410-0",
     },
     {
-      key: "publishedDate",
-      label: "Fecha de Publicación",
-      type: "date" as const,
-      required: false,
+      key: "genreId",
+      label: "Género",
+      type: "select" as const,
+      required: true,
+      options: [], // Se llenará dinámicamente
+      placeholder: "Seleccionar género",
+    },
+    {
+      key: "publisherId", 
+      label: "Editorial",
+      type: "select" as const,
+      required: true,
+      options: [], // Se llenará dinámicamente
+      placeholder: "Seleccionar editorial",
     },
     {
       key: "price",
@@ -116,25 +135,45 @@ const booksConfig = {
       placeholder: "Ej: 25.99",
     },
     {
-      key: "stock",
-      label: "Stock",
+      key: "stockQuantity",
+      label: "Cantidad en Stock",
       type: "number" as const,
       required: true,
       placeholder: "Ej: 100",
     },
     {
-      key: "description",
-      label: "Descripción",
+      key: "publicationDate",
+      label: "Fecha de Publicación",
+      type: "date" as const,
+      required: false,
+    },
+    {
+      key: "pageCount",
+      label: "Número de Páginas",
+      type: "number" as const,
+      required: false,
+      placeholder: "Ej: 350",
+    },
+    {
+      key: "summary",
+      label: "Resumen/Descripción",
       type: "textarea" as const,
       required: false,
       placeholder: "Descripción del libro...",
     },
     {
-      key: "isActive",
-      label: "Estado",
+      key: "coverImage",
+      label: "Imagen de Portada",
+      type: "file" as const,
+      required: false,
+      accept: "image/*",
+    },
+    {
+      key: "isAvailable",
+      label: "Disponible",
       type: "boolean" as const,
       required: false,
-      placeholder: "Activo",
+      placeholder: "Disponible",
     },
   ],
 };
@@ -157,5 +196,10 @@ const customHandlers = {
 export default function BooksPage() {
   const unifiedProps = createUnifiedDashboardProps(booksConfig, booksApi, customHandlers);
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  // Use custom form component for books
+  const customComponents = {
+    form: () => import('@/components/books/BookForm').then(mod => mod.default)
+  };
+
+  return <UnifiedDashboardPage {...unifiedProps} customComponents={customComponents} />;
 }

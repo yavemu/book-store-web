@@ -13,13 +13,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Autores', path: '/authors' },
-  { label: 'Libros', path: '/books' },
-  { label: 'Géneros', path: '/genres' },
-  { label: 'Editoriales', path: '/publishers' },
-  { label: 'Inventario', path: '/inventory-movements' },
-  { label: 'Usuarios', path: '/users', requiredRole: 'ADMIN' },
-  { label: 'Auditoría', path: '/audit', requiredRole: 'ADMIN' },
+  { label: "Autores", path: "/authors" },
+  { label: "Libros", path: "/books" },
+  { label: "Géneros", path: "/genres" },
+  { label: "Editoriales", path: "/publishers" },
+  { label: "Movimientos", path: "/inventory-movements" },
+  { label: "Usuarios", path: "/users", requiredRole: "ADMIN" },
+  { label: "Auditoría", path: "/audit", requiredRole: "ADMIN" },
 ];
 
 export default function Navigation() {

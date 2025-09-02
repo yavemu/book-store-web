@@ -128,7 +128,7 @@ const authorsConfig = {
       key: 'nationality',
       label: 'Nacionalidad',
       type: 'text' as const,
-      required: true,
+      required: false, // nationality?: string en el DTO
       placeholder: 'Ej: Colombiana'
     },
     {
@@ -143,13 +143,6 @@ const authorsConfig = {
       type: 'textarea' as const,
       required: false,
       placeholder: 'Descripción breve del autor...'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      required: false,
-      placeholder: 'Activo'
     }
   ]
 };

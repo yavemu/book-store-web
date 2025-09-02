@@ -85,6 +85,24 @@ export const booksApi = {
     return apiClient.post("/book-catalog", data);
   },
 
+  // Crear libro con imagen
+  createWithImage: async (data: CreateBookDto, coverImage?: File): Promise<BookResponseDto> => {
+    // First create the book
+    const book = await apiClient.post("/book-catalog", data);
+    
+    // If there's an image, upload it
+    if (coverImage && book.data?.id) {
+      try {
+        await booksApi.uploadCover(book.data.id, coverImage);
+      } catch (error) {
+        console.warn('Error uploading cover image:', error);
+        // Don't fail the creation if image upload fails
+      }
+    }
+    
+    return book;
+  },
+
   // Obtener lista paginada de libros
   list: (params?: BookListParams): Promise<BookListResponseDto> => {
     const defaultParams = {

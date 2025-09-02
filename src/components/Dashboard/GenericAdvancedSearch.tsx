@@ -25,6 +25,7 @@ interface GenericAdvancedSearchProps {
   onAutoFilter: (term: string) => void;
   onSearch: (term: string, fuzzySearch?: boolean) => void;
   onAdvancedFilter: (filters: GenericSearchFilters, fuzzySearch?: boolean) => void;
+  onQuickFilter?: (term: string) => void;
   onClear: () => void;
   loading?: boolean;
 }
@@ -35,6 +36,7 @@ export default function GenericAdvancedSearch({
   onAutoFilter,
   onSearch,
   onAdvancedFilter,
+  onQuickFilter,
   onClear,
   loading = false,
 }: GenericAdvancedSearchProps) {
@@ -60,6 +62,12 @@ export default function GenericAdvancedSearch({
     
     if (searchTerm.trim().length >= 3) {
       onSearch(searchTerm.trim(), false);
+    }
+  };
+
+  const handleQuickFilter = () => {
+    if (searchTerm.trim().length >= 3 && onQuickFilter) {
+      onQuickFilter(searchTerm.trim());
     }
   };
 
@@ -370,6 +378,21 @@ export default function GenericAdvancedSearch({
                 >
                   🔍 Buscar
                 </Button>
+
+                {/* Botón Filtro Rápido - Usa GET /filter?term */}
+                {onQuickFilter && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={loading}
+                    loading={loading}
+                    onClick={handleQuickFilter}
+                    size="sm"
+                    title="Filtro rápido (usa GET /filter?term)"
+                  >
+                    ⚡ Filtro Rápido
+                  </Button>
+                )}
                 
                 {/* Indicador de estado cuando fuzzySearch está activo */}
                 {fuzzySearchEnabled && (

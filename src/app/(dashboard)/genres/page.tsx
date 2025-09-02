@@ -21,24 +21,30 @@ const genresConfig = {
     {
       key: 'name',
       label: 'Nombre',
-      sortable: true
+      sortable: true,
+      width: '200px'
     },
     {
       key: 'description',
       label: 'Descripción',
       sortable: false,
+      width: '400px',
       render: (value: string) => value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '-'
     },
     {
       key: 'booksCount',
       label: 'Libros',
       sortable: false,
+      width: '80px',
+      align: 'center' as const,
       render: (value: number) => String(value || 0)
     },
     {
       key: 'isActive',
       label: 'Estado',
       sortable: true,
+      width: '100px',
+      align: 'center' as const,
       render: (value: boolean) => value ? 'Activo' : 'Inactivo'
     }
   ],
@@ -79,13 +85,6 @@ const genresConfig = {
       type: 'textarea' as const,
       required: false,
       placeholder: 'Descripción del género...'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      required: false,
-      placeholder: 'Activo'
     }
   ]
 };

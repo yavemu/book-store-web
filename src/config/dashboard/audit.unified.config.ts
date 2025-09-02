@@ -11,25 +11,25 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
       sortable: true,
       render: (value: string) => {
         const actionLabels = {
-          'CREATE': 'Crear',
-          'UPDATE': 'Actualizar',
-          'DELETE': 'Eliminar',
-          'LOGIN': 'Inicio Sesión',
-          'LOGOUT': 'Cerrar Sesión'
+          CREATE: "Crear",
+          UPDATE: "Actualizar",
+          DELETE: "Eliminar",
+          LOGIN: "Inicio Sesión",
+          LOGOUT: "Cerrar Sesión",
         };
         return actionLabels[value as keyof typeof actionLabels] || value;
-      }
+      },
     },
     search: {
       searchable: true,
       options: [
-        { value: 'CREATE', label: 'Crear' },
-        { value: 'UPDATE', label: 'Actualizar' },
-        { value: 'DELETE', label: 'Eliminar' },
-        { value: 'LOGIN', label: 'Inicio Sesión' },
-        { value: 'LOGOUT', label: 'Cerrar Sesión' }
-      ]
-    }
+        { value: "CREATE", label: "Crear" },
+        { value: "UPDATE", label: "Actualizar" },
+        { value: "DELETE", label: "Eliminar" },
+        { value: "LOGIN", label: "Inicio Sesión" },
+        { value: "LOGOUT", label: "Cerrar Sesión" },
+      ],
+    },
   },
   {
     key: "entityType",
@@ -41,14 +41,14 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
     search: {
       searchable: true,
       options: [
-        { value: 'User', label: 'Usuario' },
-        { value: 'Book', label: 'Libro' },
-        { value: 'Author', label: 'Autor' },
-        { value: 'Genre', label: 'Género' },
-        { value: 'Publisher', label: 'Editorial' },
-        { value: 'InventoryMovement', label: 'Movimiento Inventario' }
-      ]
-    }
+        { value: "User", label: "Usuario" },
+        { value: "Book", label: "Libro" },
+        { value: "Author", label: "Autor" },
+        { value: "Genre", label: "Género" },
+        { value: "Publisher", label: "Editorial" },
+        { value: "InventoryMovement", label: "Movimiento Movimientos" },
+      ],
+    },
   },
   {
     key: "entityId",
@@ -59,8 +59,8 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
     },
     search: {
       searchable: true,
-      placeholder: "Ej: 123"
-    }
+      placeholder: "Ej: 123",
+    },
   },
   {
     key: "userEmail",
@@ -72,8 +72,8 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
     search: {
       searchable: true,
       placeholder: "Ej: admin@email.com",
-      validation: { minLength: 5 }
-    }
+      validation: { minLength: 5 },
+    },
   },
   {
     key: "timestamp",
@@ -81,11 +81,11 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
     type: "date",
     table: {
       sortable: true,
-      render: (value: string) => new Date(value).toLocaleString()
+      render: (value: string) => new Date(value).toLocaleString(),
     },
     search: {
       searchable: false, // Dates are handled separately as date ranges
-    }
+    },
   },
   {
     key: "details",
@@ -93,14 +93,14 @@ const auditUnifiedFields: UnifiedFieldConfig[] = [
     type: "text",
     table: {
       sortable: false,
-      render: (value: string) => value?.length > 50 ? `${value.substring(0, 50)}...` : value
+      render: (value: string) => (value?.length > 50 ? `${value.substring(0, 50)}...` : value),
     },
     search: {
       searchable: true,
       placeholder: "Ej: Descripción de la acción (mín. 3 caracteres)",
-      validation: { minLength: 3 }
-    }
-  }
+      validation: { minLength: 3 },
+    },
+  },
 ];
 
 export const auditUnifiedConfig: EntityUnifiedConfig<AuditLogResponseDto> = {

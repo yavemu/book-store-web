@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -8,10 +8,11 @@ import Input from '@/components/ui/Input';
 interface FormField {
   key: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'boolean';
+  type: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'boolean' | 'file';
   required?: boolean;
   options?: { value: any; label: string }[];
   placeholder?: string;
+  accept?: string; // For file inputs
 }
 
 interface GenericFormProps {
@@ -36,6 +37,7 @@ export default function GenericForm({
   loading = false
 }: GenericFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [fileData, setFileData] = useState<Record<string, File | null>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -45,7 +47,12 @@ export default function GenericForm({
       if (isEditing && entity) {
         // Pre-populate form with entity data for editing
         const initialData = fields.reduce((acc, field) => {
-          acc[field.key] = entity[field.key] || '';
+          const value = entity[field.key];
+          if (value !== undefined && value !== null) {
+            acc[field.key] = value;
+          } else {
+            acc[field.key] = field.type === 'boolean' ? false : '';
+          }
           return acc;
         }, {} as Record<string, any>);
         setFormData(initialData);
@@ -58,32 +65,59 @@ export default function GenericForm({
         setFormData(initialData);
       }
       setErrors({});
+      setFileData({});
     }
   }, [isOpen, isEditing, entity, fields]);
 
-  const handleInputChange = (key: string, value: any) => {
+  const handleInputChange = useCallback((key: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [key]: value
     }));
     
     // Clear error for this field
-    if (errors[key]) {
-      setErrors(prev => ({
-        ...prev,
-        [key]: ''
-      }));
-    }
-  };
+    setErrors(prev => {
+      if (prev[key]) {
+        const newErrors = { ...prev };
+        delete newErrors[key];
+        return newErrors;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleFileChange = useCallback((key: string, file: File | null) => {
+    setFileData(prev => ({
+      ...prev,
+      [key]: file
+    }));
+    
+    // Clear error for this field
+    setErrors(prev => {
+      if (prev[key]) {
+        const newErrors = { ...prev };
+        delete newErrors[key];
+        return newErrors;
+      }
+      return prev;
+    });
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
     fields.forEach(field => {
       if (field.required) {
-        const value = formData[field.key];
-        if (!value || (typeof value === 'string' && value.trim() === '')) {
-          newErrors[field.key] = `${field.label} es requerido`;
+        if (field.type === 'file') {
+          const file = fileData[field.key];
+          if (!file) {
+            newErrors[field.key] = `${field.label} es requerido`;
+          }
+        } else {
+          const value = formData[field.key];
+          if (!value || (typeof value === 'string' && value.trim() === '')) {
+            newErrors[field.key] = `${field.label} es requerido`;
+          }
         }
       }
     });
@@ -102,7 +136,9 @@ export default function GenericForm({
     setSaving(true);
     
     try {
-      await onSave(formData);
+      // Combine form data and file data
+      const submitData = { ...formData, files: fileData };
+      await onSave(submitData);
       onClose();
     } catch (error: any) {
       console.error('Error saving:', error);
@@ -114,8 +150,8 @@ export default function GenericForm({
     }
   };
 
-  const renderField = (field: FormField) => {
-    const value = formData[field.key] || '';
+  const renderField = useCallback((field: FormField) => {
+    const value = formData[field.key] ?? '';
     const hasError = !!errors[field.key];
 
     switch (field.type) {
@@ -151,6 +187,24 @@ export default function GenericForm({
           </label>
         );
         
+      case 'file':
+        return (
+          <div className="file-input-container">
+            <input
+              type="file"
+              onChange={(e) => handleFileChange(field.key, e.target.files?.[0] || null)}
+              accept={field.accept}
+              className={`form-file ${hasError ? 'error' : ''}`}
+              required={field.required}
+            />
+            {fileData[field.key] && (
+              <span className="file-selected">
+                📁 {fileData[field.key]?.name}
+              </span>
+            )}
+          </div>
+        );
+        
       case 'textarea':
         return (
           <textarea
@@ -175,7 +229,7 @@ export default function GenericForm({
           />
         );
     }
-  };
+  }, [formData, errors, handleInputChange, handleFileChange]);
 
   return (
     <Modal
