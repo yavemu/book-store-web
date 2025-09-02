@@ -103,17 +103,8 @@ export const bookCatalogApi = {
   },
 
   // Filtrar libros en tiempo real
-  filter: (params: { filter: string; page?: number; limit?: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC'; offset?: number }): Promise<PaginatedResponse<BookCatalog>> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
-    };
-    const url = buildUrl("/book-catalog/filter", defaultParams);
-    return apiClient.get(url);
+  filter: (params: { filter: string; pagination: { page: number; limit: number; sortBy?: string; sortOrder?: 'ASC' | 'DESC' } }): Promise<PaginatedResponse<BookCatalog>> => {
+    return apiClient.post("/book-catalog/filter", params);
   },
 
   // Filtros avanzados

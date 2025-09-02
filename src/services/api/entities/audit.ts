@@ -69,11 +69,12 @@ export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
 
 export interface AuditFilterParams {
   filter: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-  offset?: number;
+  pagination: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
 }
 
 export interface AuditAdvancedFilterDto {
@@ -138,17 +139,7 @@ export const auditApi = {
 
   // Filtrar registros de auditoría en tiempo real (solo admin)
   filter: (params: AuditFilterParams): Promise<AuditLogListResponse> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
-    };
-
-    const url = buildUrl('/audit/filter', defaultParams);
-    return apiClient.get(url);
+    return apiClient.post('/audit/filter', params);
   },
 
   // Filtro avanzado de registros de auditoría (solo admin)

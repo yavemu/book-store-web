@@ -7,7 +7,7 @@ import {
   CreatePublishingHouseResponseDto,
   UpdatePublishingHouseResponseDto,
   DeletePublishingHouseResponseDto
-} from '@/types/publishing-houses';
+} from '@/types/api/entities';
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();

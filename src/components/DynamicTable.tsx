@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import TablePagination from "@/components/Table/TablePagination";
+import { useState } from "react";
 
 export interface TableColumn {
   key: string;
@@ -11,20 +12,20 @@ export interface TableColumn {
 
 export interface SortConfig {
   field: string;
-  direction: 'ASC' | 'DESC';
+  direction: "ASC" | "DESC";
 }
 
 export interface PaginationParams {
   page: number;
   limit: number;
   sortBy: string;
-  sortOrder: 'ASC' | 'DESC';
+  sortOrder: "ASC" | "DESC";
 }
 
 export interface TableAction {
   label: string;
   onClick: (record: any) => void;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: "primary" | "secondary" | "danger";
 }
 
 export interface PaginationMeta {
@@ -57,7 +58,7 @@ export interface DynamicTableProps {
   searchPlaceholder?: string;
   onSearchChange?: (value: string) => void;
   sortConfig?: SortConfig;
-  onSortChange?: (field: string, direction: 'ASC' | 'DESC') => void;
+  onSortChange?: (field: string, direction: "ASC" | "DESC") => void;
   paginationParams?: PaginationParams;
   onClearPaginationParam?: (param: keyof PaginationParams) => void;
   showPaginationInfo?: boolean;
@@ -65,14 +66,14 @@ export interface DynamicTableProps {
 
 /**
  * DynamicTable - Reusable table component with global meta mapping
- * 
+ *
  * Automatically handles API responses from all endpoints:
  * - getAll, filter, filter-advance, search
- * 
+ *
  * Maps API meta structure to consistent internal format:
  * API: { total, page, limit, totalPages, hasNext, hasPrev }
  * Internal: { totalItems, currentPage, itemsPerPage, totalPages, hasNextPage, hasPrevPage }
- * 
+ *
  * Provides safe fallbacks when API meta is unavailable.
  */
 export default function DynamicTable({
@@ -85,7 +86,7 @@ export default function DynamicTable({
   showCreateButton = false,
   onCreateClick,
   createButtonLabel,
-  entityName = 'registro',
+  entityName = "registro",
   showForm = false,
   formComponent,
   onFormToggle,
@@ -99,7 +100,7 @@ export default function DynamicTable({
   onSortChange,
   paginationParams,
   onClearPaginationParam,
-  showPaginationInfo = true
+  showPaginationInfo = true,
 }: DynamicTableProps) {
   const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);
 
@@ -107,42 +108,46 @@ export default function DynamicTable({
   // This handles the standard API meta structure that all endpoints use
   const mapApiMetaToPaginationMeta = (apiMeta: any): PaginationMeta | null => {
     if (!apiMeta) return null;
-    
+
     // Extract values with multiple fallback options to ensure compatibility
     const totalItems = Number(apiMeta.total || apiMeta.totalItems || 0);
     const currentPage = Number(apiMeta.page || apiMeta.currentPage || 1);
     const itemsPerPage = Number(apiMeta.limit || apiMeta.itemsPerPage || apiMeta.size || 10);
     const totalPages = Number(apiMeta.totalPages || apiMeta.pages || Math.ceil(totalItems / itemsPerPage) || 1);
-    
+
     // Handle boolean values with multiple possible formats
     const hasNextPage = Boolean(
-      apiMeta.hasNext !== undefined ? apiMeta.hasNext :
-      apiMeta.hasNextPage !== undefined ? apiMeta.hasNextPage :
-      apiMeta.hasMore !== undefined ? apiMeta.hasMore :
-      currentPage < totalPages
+      apiMeta.hasNext !== undefined
+        ? apiMeta.hasNext
+        : apiMeta.hasNextPage !== undefined
+        ? apiMeta.hasNextPage
+        : apiMeta.hasMore !== undefined
+        ? apiMeta.hasMore
+        : currentPage < totalPages,
     );
-    
+
     const hasPrevPage = Boolean(
-      apiMeta.hasPrev !== undefined ? apiMeta.hasPrev :
-      apiMeta.hasPrevPage !== undefined ? apiMeta.hasPrevPage :
-      apiMeta.hasPrevious !== undefined ? apiMeta.hasPrevious :
-      currentPage > 1
+      apiMeta.hasPrev !== undefined
+        ? apiMeta.hasPrev
+        : apiMeta.hasPrevPage !== undefined
+        ? apiMeta.hasPrevPage
+        : apiMeta.hasPrevious !== undefined
+        ? apiMeta.hasPrevious
+        : currentPage > 1,
     );
-    
+
     return {
       totalItems,
       currentPage,
       itemsPerPage,
       totalPages,
       hasNextPage,
-      hasPrevPage
+      hasPrevPage,
     };
   };
 
   // Get the properly mapped meta from API response
   const mappedMeta = mapApiMetaToPaginationMeta(meta);
-
-
 
   // Ensure we always have consistent meta values for all dashboards
   // Priority: 1) Mapped API meta, 2) Smart fallback based on actual data and pagination params
@@ -152,7 +157,7 @@ export default function DynamicTable({
     itemsPerPage: paginationParams?.limit || 10,
     totalPages: Math.max(1, Math.ceil(data.length / (paginationParams?.limit || 10))),
     hasNextPage: data.length > (paginationParams?.limit || 10),
-    hasPrevPage: (paginationParams?.page || 1) > 1
+    hasPrevPage: (paginationParams?.page || 1) > 1,
   };
 
   // Safety validation to ensure all values are valid numbers
@@ -162,9 +167,8 @@ export default function DynamicTable({
     itemsPerPage: Math.max(1, effectiveMeta.itemsPerPage || 10),
     totalPages: Math.max(1, effectiveMeta.totalPages || 1),
     hasNextPage: Boolean(effectiveMeta.hasNextPage),
-    hasPrevPage: Boolean(effectiveMeta.hasPrevPage)
+    hasPrevPage: Boolean(effectiveMeta.hasPrevPage),
   };
-
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -177,32 +181,31 @@ export default function DynamicTable({
   // Handle sorting
   const handleSort = (field: string) => {
     if (!onSortChange) return;
-    
+
     // If clicking the same field, toggle direction
     if (sortConfig?.field === field) {
-      const newDirection = sortConfig.direction === 'ASC' ? 'DESC' : 'ASC';
+      const newDirection = sortConfig.direction === "ASC" ? "DESC" : "ASC";
       onSortChange(field, newDirection);
     } else {
       // If clicking a different field, start with ASC
-      onSortChange(field, 'ASC');
+      onSortChange(field, "ASC");
     }
   };
 
   // Get sort icon for a field
   const getSortIcon = (field: string) => {
     const isActive = sortConfig && sortConfig.field === field;
-    
+
     if (!isActive) {
-      return '↕️'; // Default sort icon
+      return "↕️"; // Default sort icon
     }
-    
-    return sortConfig.direction === 'ASC' ? '↑' : '↓';
+
+    return sortConfig.direction === "ASC" ? "↑" : "↓";
   };
-  
+
   // Check if sort is active for styling
   const isSortActive = (field: string) => {
-    return sortConfig && sortConfig.field === field && 
-           !(field === 'createdAt' && sortConfig.direction === 'DESC');
+    return sortConfig && sortConfig.field === field && !(field === "createdAt" && sortConfig.direction === "DESC");
   };
 
   // Render pagination info component
@@ -212,37 +215,37 @@ export default function DynamicTable({
     // Use meta values if available, otherwise fallback to paginationParams
     const currentPage = meta?.currentPage || paginationParams?.page || 1;
     const currentLimit = meta?.itemsPerPage || paginationParams?.limit || 10;
-    const currentSortBy = paginationParams?.sortBy || 'createdAt';
-    const currentSortOrder = paginationParams?.sortOrder || 'DESC';
-    
+    const currentSortBy = paginationParams?.sortBy || "createdAt";
+    const currentSortOrder = paginationParams?.sortOrder || "DESC";
+
     // Get the display name for the sort field from columns
-    const sortColumn = columns.find(col => col.key === currentSortBy);
+    const sortColumn = columns.find((col) => col.key === currentSortBy);
     const sortDisplayName = sortColumn ? sortColumn.label : currentSortBy;
-    
+
     const params = [];
-    
+
     // Always show parameters when we have API data
     if (meta || paginationParams) {
       // Show current page if not the first page
       if (currentPage > 1) {
-        params.push({ 
-          key: 'page' as const, 
-          label: 'Página actual', 
-          value: currentPage, 
-          displayValue: `${currentPage}` 
+        params.push({
+          key: "page" as const,
+          label: "Página actual",
+          value: currentPage,
+          displayValue: `${currentPage}`,
         });
       }
-      
+
       // Show sorting if it's not the default OR if we have actual data
-      if (currentSortBy !== 'createdAt' || currentSortOrder !== 'DESC' || (meta && data && data.length > 0)) {
-        params.push({ 
-          key: 'sortBy' as const, 
-          label: 'Ordenar por', 
-          value: currentSortBy, 
-          displayValue: `${sortDisplayName} (${currentSortOrder})` 
+      if (currentSortBy !== "createdAt" || currentSortOrder !== "DESC" || (meta && data && data.length > 0)) {
+        params.push({
+          key: "sortBy" as const,
+          label: "Ordenar por",
+          value: currentSortBy,
+          displayValue: `${sortDisplayName} (${currentSortOrder})`,
         });
       }
-      
+
       // Don't show limit parameter in applied parameters as per user request
     }
 
@@ -276,75 +279,37 @@ export default function DynamicTable({
   };
 
   const renderPagination = () => {
-    // Always show pagination controls with safe validated meta
-    const totalPages = safeEffectiveMeta.totalPages;
-    const currentPageNum = safeEffectiveMeta.currentPage;
-    const hasPrev = safeEffectiveMeta.hasPrevPage;
-    const hasNext = safeEffectiveMeta.hasNextPage;
-
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          disabled={!mappedMeta} // Disable if no API meta data (only enable with real API response)
-          className={`pagination-btn ${i === currentPageNum ? 'active' : ''} ${!mappedMeta ? 'disabled' : ''}`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return (
-      <div className="pagination-container">
-        <button
-          onClick={() => handlePageChange(Math.max(1, currentPageNum - 1))}
-          disabled={!hasPrev || !mappedMeta}
-          className={`pagination-btn ${!hasPrev || !mappedMeta ? 'disabled' : ''}`}
-        >
-          Anterior
-        </button>
-        {pages}
-        <button
-          onClick={() => handlePageChange(Math.min(totalPages, currentPageNum + 1))}
-          disabled={!hasNext || !mappedMeta}
-          className={`pagination-btn ${!hasNext || !mappedMeta ? 'disabled' : ''}`}
-        >
-          Siguiente
-        </button>
-      </div>
-    );
+    return <TablePagination meta={safeEffectiveMeta} onPageChange={handlePageChange} disabled={!mappedMeta} />;
   };
 
   const renderActions = (record: any) => {
     // Always use default actions unless custom actions are provided
     const defaultActions = [
       {
-        label: 'Ver',
-        onClick: (record: any) => console.log('Ver', record),
-        variant: 'ver' as const
+        label: "Ver",
+        onClick: (record: any) => console.log("Ver", record),
+        variant: "ver" as const,
       },
       {
-        label: 'Editar',
+        label: "Editar",
         onClick: (record: any) => {
           if (onEditClick) {
             onEditClick(record);
           } else {
-            console.log('Editar', record);
+            console.log("Editar", record);
           }
         },
-        variant: 'editar' as const
+        variant: "editar" as const,
       },
       {
-        label: 'Eliminar',
+        label: "Eliminar",
         onClick: (record: any) => {
           if (confirm(`¿Estás seguro de eliminar este ${entityName}?`)) {
-            console.log('Eliminar', record);
+            console.log("Eliminar", record);
           }
         },
-        variant: 'eliminar' as const
-      }
+        variant: "eliminar" as const,
+      },
     ];
 
     // Use custom actions if provided, otherwise use defaults
@@ -352,24 +317,27 @@ export default function DynamicTable({
 
     const getButtonClassName = (variant?: string) => {
       switch (variant) {
-        case 'ver': return 'btn-action-ver';
-        case 'editar': return 'btn-action-editar';
-        case 'eliminar': return 'btn-action-eliminar';
-        case 'primary': return 'btn-action-ver';
-        case 'secondary': return 'btn-action-editar';
-        case 'danger': return 'btn-action-eliminar';
-        default: return 'btn-action-ver';
+        case "ver":
+          return "btn-action-ver";
+        case "editar":
+          return "btn-action-editar";
+        case "eliminar":
+          return "btn-action-eliminar";
+        case "primary":
+          return "btn-action-ver";
+        case "secondary":
+          return "btn-action-editar";
+        case "danger":
+          return "btn-action-eliminar";
+        default:
+          return "btn-action-ver";
       }
     };
 
     return (
       <div className="table-actions">
         {actionsToRender.map((action, index) => (
-          <button
-            key={index}
-            onClick={() => action.onClick(record)}
-            className={getButtonClassName(action.variant)}
-          >
+          <button key={index} onClick={() => action.onClick(record)} className={getButtonClassName(action.variant)}>
             {action.label}
           </button>
         ))}
@@ -381,7 +349,7 @@ export default function DynamicTable({
     <div className="table-container">
       {/* Pagination Info */}
       {renderPaginationInfo()}
-      
+
       <div className="table-header">
         {(showSearch || meta) && (
           <div className="header-left">
@@ -392,14 +360,14 @@ export default function DynamicTable({
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 className="search-input"
                 style={{
-                  display: 'block',
-                  visibility: 'visible',
+                  display: "block",
+                  visibility: "visible",
                   opacity: 1,
-                  zIndex: 10
+                  zIndex: 10,
                 }}
               />
             )}
-            
+
             <div className="table-stats">
               <div className="stat-item">
                 <span className="stat-label">Total:</span>
@@ -412,7 +380,7 @@ export default function DynamicTable({
             </div>
           </div>
         )}
-        
+
         <div className="header-right">
           {showCreateButton && (
             <div className="create-section">
@@ -426,7 +394,11 @@ export default function DynamicTable({
                 }}
                 className="btn-create"
               >
-                {showForm ? (isEditing ? `✏️ Editando ${entityName}` : `🔧 Creando ${entityName}`) : `${createButtonLabel || `+ Crear ${entityName}`}`}
+                {showForm
+                  ? isEditing
+                    ? `✏️ Editando ${entityName}`
+                    : `🔧 Creando ${entityName}`
+                  : `${createButtonLabel || `+ Crear ${entityName}`}`}
               </button>
             </div>
           )}
@@ -435,38 +407,28 @@ export default function DynamicTable({
 
       {showForm && formComponent && (
         <div className="card-boutique form-card">
-          <div className="card-content">
-            {formComponent}
-          </div>
+          <div className="card-content">{formComponent}</div>
         </div>
       )}
 
       <div className="card-boutique">
-        <div className={`card-content ${showLoadingOverlay ? 'table-loading-overlay' : ''}`} style={{ position: 'relative' }}>
+        <div className={`card-content ${showLoadingOverlay ? "table-loading-overlay" : ""}`} style={{ position: "relative" }}>
           {showLoadingOverlay && (
             <div className="table-loading-indicator">
               <div className="table-loading-spinner"></div>
               Actualizando datos...
             </div>
           )}
-          
+
           <table className="table-dashboard">
             <thead>
               <tr>
                 {columns.map((column) => (
                   <th key={column.key}>
                     {column.sortable !== false ? (
-                      <button
-                        type="button"
-                        onClick={() => handleSort(column.key)}
-                        className="sort-header-btn"
-                        disabled={!onSortChange}
-                      >
+                      <button type="button" onClick={() => handleSort(column.key)} className="sort-header-btn" disabled={!onSortChange}>
                         <span className="sort-label">{column.label}</span>
-                        <span 
-                          className={`sort-icon ${isSortActive(column.key) ? 'active' : ''}`}
-                          data-default={!isSortActive(column.key)}
-                        >
+                        <span className={`sort-icon ${isSortActive(column.key) ? "active" : ""}`} data-default={!isSortActive(column.key)}>
                           {getSortIcon(column.key)}
                         </span>
                       </button>
@@ -486,25 +448,22 @@ export default function DynamicTable({
                     <tr key={`skeleton-${index}`} className="skeleton-table-row">
                       {columns.map((column, colIndex) => (
                         <td key={column.key}>
-                          <div 
+                          <div
                             className="skeleton-placeholder"
                             style={{
-                              width: colIndex === 0 ? '80%' : colIndex === 1 ? '100%' : '60%'
+                              width: colIndex === 0 ? "80%" : colIndex === 1 ? "100%" : "60%",
                             }}
                           ></div>
                         </td>
                       ))}
                       <td>
-                        <div className="skeleton-placeholder" style={{ width: '70%' }}></div>
+                        <div className="skeleton-placeholder" style={{ width: "70%" }}></div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={columns.length + 1}
-                      className="no-data-text"
-                    >
+                    <td colSpan={columns.length + 1} className="no-data-text">
                       No hay datos disponibles
                     </td>
                   </tr>
@@ -513,16 +472,9 @@ export default function DynamicTable({
                 data.map((record, index) => (
                   <tr key={record.id || index}>
                     {columns.map((column) => (
-                      <td key={column.key}>
-                        {column.render
-                          ? column.render(record[column.key], record)
-                          : record[column.key]
-                        }
-                      </td>
+                      <td key={column.key}>{column.render ? column.render(record[column.key], record) : record[column.key]}</td>
                     ))}
-                    <td>
-                      {renderActions(record)}
-                    </td>
+                    <td>{renderActions(record)}</td>
                   </tr>
                 ))
               )}
@@ -532,14 +484,7 @@ export default function DynamicTable({
 
         {renderPagination()}
 
-        {/* Always show pagination info with safe validated meta */}
-        <div className="pagination-info">
-          {safeEffectiveMeta.totalItems > 0 ? (
-            `Mostrando ${((safeEffectiveMeta.currentPage - 1) * safeEffectiveMeta.itemsPerPage) + 1} - ${Math.min(safeEffectiveMeta.currentPage * safeEffectiveMeta.itemsPerPage, safeEffectiveMeta.totalItems)} de ${safeEffectiveMeta.totalItems} registros`
-          ) : (
-            `Mostrando 0 - 0 de 0 registros`
-          )}
-        </div>
+        
       </div>
     </div>
   );

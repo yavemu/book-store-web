@@ -1,193 +1,120 @@
-'use client';
+"use client";
 
-import DynamicTable, { PaginationMeta, TableColumn } from "@/components/DynamicTable";
+import { SearchFilters } from "@/components/AdvancedSearchForm";
+import AuthorTable from "@/components/authors/AuthorTable";
+import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
 import PageWrapper from "@/components/PageWrapper";
-import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
-import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
-import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
+import PageLoading from "@/components/ui/PageLoading";
 import { useApiRequest } from "@/hooks";
 import { authorsApi, AuthorListParams } from "@/services/api/entities/authors";
+import { PaginationMeta } from "@/types/table";
 import { useEffect, useState } from "react";
 
 export default function AuthorsPage() {
   const [params, setParams] = useState<AuthorListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
     apiFunction: () => authorsApi.list(params),
-    onSuccess: (response) => {
-      console.log('Authors loaded:', response);
-    },
-    onError: (error) => {
-      console.error('Error loading authors:', error);
-    }
   });
 
   useEffect(() => {
     execute();
   }, [params]);
 
-  const handlePageChange = (page: number) => {
-    setParams({ ...params, page });
-  };
+  const handlePageChange = (page: number) => setParams({ ...params, page });
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    
-    // Implementar búsqueda con debounce si hay texto
-    if (value && value.trim().length >= 3) {
-      // Use search for real-time search
-      authorsApi.search({ term: value.trim(), page: 1, limit: params.limit }).then(response => {
-        console.log('Search response:', response);
-      }).catch(error => {
-        console.error('Search error:', error);
+
+    if (value?.trim().length >= 3) {
+      authorsApi.search({
+        term: value.trim(),
+        page: 1,
+        sortBy: "createdAt",
+        sortOrder: "DESC",
       });
     }
   };
 
-  const handleCreateAuthor = () => {
-    console.log('Crear autor');
-  };
-
-  const handleEditAuthor = (record: any) => {
-    console.log('Editar autor:', record);
-  };
-
-  // Advanced Search Fields for Authors
-  const searchFields: SearchField[] = [
-    {
-      key: 'firstName',
-      label: 'Nombre',
-      type: 'text',
-      placeholder: 'Buscar por nombre...'
-    },
-    {
-      key: 'lastName',
-      label: 'Apellido',
-      type: 'text',
-      placeholder: 'Buscar por apellido...'
-    },
-    {
-      key: 'nationality',
-      label: 'Nacionalidad',
-      type: 'text',
-      placeholder: 'Buscar por nacionalidad...'
-    },
-    {
-      key: 'birthDate',
-      label: 'Fecha Nacimiento',
-      type: 'date',
-      placeholder: 'Fecha de nacimiento...'
-    }
-  ];
-
   const handleAdvancedSearch = (filters: SearchFilters) => {
     setSearchFilters(filters);
-    console.log('Advanced search filters for authors:', filters);
-    setParams({ ...params, page: 1 });
-    // TODO: Add filters to API request
+    const newParams = { ...params, page: 1 };
+    setParams(newParams);
+
+    const hasFilters = Object.values(filters).some((value) => value && value !== "");
+
+    if (hasFilters) {
+      authorsApi.filter({
+        name: filters.name as string,
+        nationality: filters.nationality as string,
+        birthYear: filters.birthYear as number,
+        isActive: filters.isActive as boolean,
+        pagination: newParams,
+      });
+    }
   };
 
   const handleClearAdvancedSearch = () => {
     setSearchFilters({});
     setParams({ page: 1, limit: 10 });
-    // TODO: Clear filters from API request
   };
 
-  const handleRemoveFilter = (key: string) => {
-    const newFilters = { ...searchFilters };
-    delete newFilters[key];
-    setSearchFilters(newFilters);
-    // TODO: Update API request without this filter
-  };
-
-  const columns: TableColumn[] = [
-    { key: 'id', label: 'ID' },
-    { key: 'firstName', label: 'Nombre' },
-    { key: 'lastName', label: 'Apellido' },
-    { key: 'nationality', label: 'Nacionalidad' },
-    { 
-      key: 'birthDate', 
-      label: 'Fecha Nacimiento',
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
-    },
-    { 
-      key: 'createdAt', 
-      label: 'Creado',
-      render: (value) => new Date(value).toLocaleDateString()
-    }
-  ];
-
-  const actions = [
-    {
-      label: 'Editar',
-      onClick: handleEditAuthor,
-      variant: 'secondary' as const
-    }
-  ];
+  if (loading && !data) {
+    return (
+      <PageLoading 
+        title="Gestión de Autores" 
+        breadcrumbs={["Autores"]}
+        message="Cargando autores del sistema..."
+      />
+    );
+  }
 
   if (error) {
-    const canRetry = error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch');
-    
     return (
       <PageWrapper title="Autores">
         <ApiErrorState
           error={error}
-          canRetry={canRetry}
+          canRetry={true}
           isRetrying={loading}
           onRetry={() => execute()}
           onReset={() => {
             setParams({ page: 1, limit: 10 });
-            setSearchTerm('');
+            setSearchTerm("");
             execute();
           }}
           title="Error cargando autores"
           description="No se pudieron cargar los autores del sistema."
-          showTechnicalDetails={true}
+          showTechnicalDetails
         />
       </PageWrapper>
     );
   }
 
   return (
-    <PageWrapper 
+    <PageWrapper
       title="Gestión de Autores"
-      breadcrumbs={['Autores']}
+      breadcrumbs={["Autores"]}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar autores..."
+      showCsvDownload
+      onCsvDownload={async () => {
+        const csvData = await authorsApi.exportToCsv();
+        const blob = new Blob([csvData], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `autores_${new Date().toISOString().split("T")[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }}
+      csvDownloadEnabled
     >
-      {/* Advanced Search Form */}
-      <AdvancedSearchForm
-        fields={searchFields}
-        onSearch={handleAdvancedSearch}
-        onClear={handleClearAdvancedSearch}
-        loading={loading}
-        entityName="autores"
-        initialFilters={searchFilters}
-      />
-
-      {/* Active Filters Display */}
-      <ActiveFiltersDisplay
-        filters={searchFilters}
-        searchFields={searchFields}
-        tableColumns={columns}
-        onRemoveFilter={handleRemoveFilter}
-        onClearAll={handleClearAdvancedSearch}
-      />
-
-      <DynamicTable
-        data={data?.data || []}
-        columns={columns}
-        meta={data?.meta as PaginationMeta}
-        loading={loading}
-        onPageChange={handlePageChange}
-        actions={actions}
-        showCreateButton
-        onCreateClick={handleCreateAuthor}
-        entityName="autor"
-      />
+      <AuthorTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

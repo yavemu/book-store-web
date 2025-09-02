@@ -1,326 +1,122 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useApiRequest } from '@/hooks';
-import { usersApi, UserListParams, UserFilterParams, UserAdvancedFilterDto } from '@/services/api/entities/users';
-import { userFilterSchema, userAdvancedFilterSchema, userExportSchema } from '@/services/validation/schemas/users';
-import DynamicTable, { TableColumn, PaginationMeta } from '@/components/DynamicTable';
-import PageWrapper from '@/components/PageWrapper';
-import ApiErrorState from '@/components/ErrorStates/ApiErrorState';
-import AdvancedSearchForm, { SearchField, SearchFilters } from '@/components/AdvancedSearchForm';
-import ActiveFiltersDisplay from '@/components/ActiveFiltersDisplay';
-import BookMovementsModal from '@/components/BookMovementsModal';
+import { SearchFilters } from "@/components/AdvancedSearchForm";
+import UserTable from "@/components/users/UserTable";
+import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
+import PageWrapper from "@/components/PageWrapper";
+import PageLoading from "@/components/ui/PageLoading";
+import { useApiRequest } from "@/hooks";
+import { usersApi, UserListParams } from "@/services/api/entities/users";
+import { PaginationMeta } from "@/types/table";
+import { useEffect, useState } from "react";
 
 export default function UsersPage() {
   const [params, setParams] = useState<UserListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false);
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const { loading, error, data, execute } = useApiRequest({
     apiFunction: () => usersApi.list(params),
-    onSuccess: (response) => {
-      console.log('Users loaded:', response);
-    },
-    onError: (error) => {
-      console.error('Error loading users:', error);
-    }
   });
 
   useEffect(() => {
     execute();
   }, [params]);
 
-  const handlePageChange = (page: number) => {
-    setParams({ ...params, page });
-  };
+  const handlePageChange = (page: number) => setParams({ ...params, page });
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    
-    // Check if any filters are active
-    const hasSearch = value && value.trim() !== '';
-    const hasFilters = Object.values(searchFilters).some(filterValue => filterValue && filterValue !== '');
-    setHasActiveFilters(hasSearch || hasFilters);
-    
-    // Implementar búsqueda con debounce si hay texto
-    if (hasSearch && value.trim().length >= 3) {
-      // Validate with Zod schema
-      const filterData = {
+
+    if (value?.trim().length >= 3) {
+      usersApi.filter({
         filter: value.trim(),
-        page: 1,
-        limit: params.limit || 10
-      };
-      
-      const validation = userFilterSchema.safeParse(filterData);
-      if (validation.success) {
-        usersApi.filter(validation.data).then(response => {
-          console.log('Quick filter response:', response);
-        }).catch(error => {
-          console.error('Quick filter error:', error);
-        });
-      } else {
-        console.error('Filter validation error:', validation.error.issues);
-      }
+        pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
+      });
     }
   };
 
-  const handleCreateUser = () => {
-    console.log('Crear usuario');
-  };
-
-  const handleEditUser = (record: any) => {
-    console.log('Editar usuario:', record);
-  };
-
-  const handleViewMovements = (user: any) => {
-    setSelectedUser(user);
-    setIsMovementsModalOpen(true);
-  };
-
-  const handleCloseMovementsModal = () => {
-    setIsMovementsModalOpen(false);
-    setSelectedUser(null);
-  };
-
-  const handleDownloadCSV = async () => {
-    if (!hasActiveFilters) return;
-    
-    try {
-      // Prepare export parameters with proper mapping
-      const exportParams: any = {};
-      
-      // Map search filters to export schema
-      if (searchFilters.username) exportParams.name = searchFilters.username;
-      if (searchFilters.email) exportParams.email = searchFilters.email;
-      if (searchFilters.role) exportParams.role = searchFilters.role;
-      if (searchFilters.isActive !== undefined) exportParams.isActive = searchFilters.isActive === 'true';
-
-      // Add search term if exists
-      if (searchTerm && searchTerm.trim() !== '') {
-        exportParams.name = searchTerm.trim();
-      }
-
-      // Validate with Zod schema
-      const validation = userExportSchema.safeParse(exportParams);
-      if (!validation.success) {
-        console.error('Export validation error:', validation.error.issues);
-        alert('Error en los parámetros de exportación');
-        return;
-      }
-
-      // Call the export API
-      const csvData = await usersApi.exportToCsv(validation.data);
-      
-      // Create and download the file
-      const blob = new Blob([csvData], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `usuarios_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading CSV:', error);
-      alert('Error al descargar el archivo CSV');
-    }
-  };
-
-  // Advanced Search Fields for Users
-  const searchFields: SearchField[] = [
-    {
-      key: 'username',
-      label: 'Usuario',
-      type: 'text',
-      placeholder: 'Buscar por usuario...'
-    },
-    {
-      key: 'email',
-      label: 'Email',
-      type: 'email',
-      placeholder: 'Buscar por email...'
-    },
-    {
-      key: 'role',
-      label: 'Rol',
-      type: 'select',
-      options: [
-        { value: 'admin', label: 'Administrador' },
-        { value: 'user', label: 'Usuario' }
-      ]
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'select',
-      options: [
-        { value: 'true', label: 'Activo' },
-        { value: 'false', label: 'Inactivo' }
-      ]
-    }
-  ];
-
-  const handleAdvancedSearch = async (filters: SearchFilters) => {
+  const handleAdvancedSearch = (filters: SearchFilters) => {
     setSearchFilters(filters);
-    console.log('Advanced search filters for users:', filters);
-    
     const newParams = { ...params, page: 1 };
     setParams(newParams);
-    
-    // Check if any filters are active
-    const hasFilters = Object.values(filters).some(value => value && value !== '');
-    const hasSearch = searchTerm && searchTerm.trim() !== '';
-    setHasActiveFilters(hasFilters || hasSearch);
-    
-    // Execute advanced filter API call with Zod validation
+
+    const hasFilters = Object.values(filters).some((value) => value && value !== "");
+
     if (hasFilters) {
-      try {
-        const filterData: UserAdvancedFilterDto = {
-          name: filters.username as string,
+      usersApi.advancedFilter(
+        {
+          name: filters.name as string,
           email: filters.email as string,
-          role: filters.role as 'admin' | 'user',
-          isActive: filters.isActive ? filters.isActive === 'true' : undefined,
-        };
-        
-        // Validate with Zod schema
-        const validation = userAdvancedFilterSchema.safeParse(filterData);
-        if (validation.success) {
-          const response = await usersApi.advancedFilter(validation.data, newParams);
-          console.log('Advanced filter response:', response);
-        } else {
-          console.error('Advanced filter validation error:', validation.error.issues);
-          alert('Error en los filtros de búsqueda: ' + validation.error.issues.map(i => i.message).join(', '));
-        }
-      } catch (error) {
-        console.error('Advanced filter error:', error);
-        alert('Error al aplicar filtros avanzados');
-      }
+          role: filters.role as "admin" | "user",
+          isActive: filters.isActive as boolean,
+          createdAfter: filters.startDate as string,
+          createdBefore: filters.endDate as string,
+        },
+        newParams,
+      );
     }
   };
 
   const handleClearAdvancedSearch = () => {
     setSearchFilters({});
-    setSearchTerm('');
     setParams({ page: 1, limit: 10 });
-    setHasActiveFilters(false);
-    // TODO: Clear filters from API request
   };
 
-  const handleRemoveFilter = (key: string) => {
-    const newFilters = { ...searchFilters };
-    delete newFilters[key];
-    setSearchFilters(newFilters);
-    
-    // Check if any filters are still active
-    const hasFilters = Object.values(newFilters).some(value => value && value !== '');
-    const hasSearch = searchTerm && searchTerm.trim() !== '';
-    setHasActiveFilters(hasFilters || hasSearch);
-    
-    // TODO: Update API request without this filter
-  };
-
-  const columns: TableColumn[] = [
-    { key: 'id', label: 'ID' },
-    { key: 'username', label: 'Usuario' },
-    { key: 'email', label: 'Email' },
-    { 
-      key: 'isActive', 
-      label: 'Estado',
-      render: (value) => value ? 'Activo' : 'Inactivo'
-    },
-    { 
-      key: 'createdAt', 
-      label: 'Creado',
-      render: (value) => new Date(value).toLocaleDateString()
-    }
-  ];
-
-  const actions = [
-    {
-      label: 'Ver Movimientos',
-      onClick: handleViewMovements,
-      variant: 'secondary' as const
-    },
-    {
-      label: 'Editar',
-      onClick: handleEditUser,
-      variant: 'secondary' as const
-    }
-  ];
+  if (loading && !data) {
+    return (
+      <PageLoading 
+        title="Gestión de Usuarios" 
+        breadcrumbs={["Usuarios"]}
+        message="Cargando usuarios del sistema..."
+      />
+    );
+  }
 
   if (error) {
     return (
       <PageWrapper title="Usuarios">
         <ApiErrorState
           error={error}
-          canRetry={error.includes('conexión') || error.includes('servidor') || error.includes('NetworkError') || error.includes('Failed to fetch')}
+          canRetry={true}
           isRetrying={loading}
           onRetry={() => execute()}
           onReset={() => {
             setParams({ page: 1, limit: 10 });
-            setSearchTerm('');
+            setSearchTerm("");
             execute();
           }}
           title="Error cargando usuarios"
           description="No se pudieron cargar los usuarios del sistema."
-          showTechnicalDetails={true}
+          showTechnicalDetails
         />
       </PageWrapper>
     );
   }
 
   return (
-    <PageWrapper 
+    <PageWrapper
       title="Gestión de Usuarios"
-      breadcrumbs={['Usuarios']}
+      breadcrumbs={["Usuarios"]}
       showSearch
       onSearchChange={handleSearchChange}
       searchPlaceholder="Buscar usuarios..."
       showCsvDownload
-      onCsvDownload={handleDownloadCSV}
-      csvDownloadEnabled={hasActiveFilters}
+      onCsvDownload={async () => {
+        const csvData = await usersApi.exportToCsv();
+        const blob = new Blob([csvData], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `usuarios_${new Date().toISOString().split("T")[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }}
+      csvDownloadEnabled
     >
-      {/* Advanced Search Form */}
-      <AdvancedSearchForm
-        fields={searchFields}
-        onSearch={handleAdvancedSearch}
-        onClear={handleClearAdvancedSearch}
-        loading={loading}
-        entityName="usuarios"
-        initialFilters={searchFilters}
-      />
-
-      {/* Active Filters Display */}
-      <ActiveFiltersDisplay
-        filters={searchFilters}
-        searchFields={searchFields}
-        tableColumns={columns}
-        onRemoveFilter={handleRemoveFilter}
-        onClearAll={handleClearAdvancedSearch}
-      />
-
-      <DynamicTable
-        data={data?.data || []}
-        columns={columns}
-        meta={data?.meta as PaginationMeta}
-        loading={loading}
-        onPageChange={handlePageChange}
-        actions={actions}
-        showCreateButton
-        onCreateClick={handleCreateUser}
-        entityName="usuario"
-      />
-
-      {/* Modal de Movimientos de Inventario */}
-      <BookMovementsModal
-        isOpen={isMovementsModalOpen}
-        onClose={handleCloseMovementsModal}
-        book={selectedUser}
-      />
+      <UserTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

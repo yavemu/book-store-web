@@ -13,6 +13,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: 'Dashboard', path: '/' },
   { label: 'Libros', path: '/books' },
   { label: 'Géneros', path: '/genres' },
   { label: 'Autores', path: '/authors' },
@@ -39,6 +40,9 @@ export default function Navigation() {
   };
 
   const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
     return pathname.startsWith(path);
   };
 
@@ -53,8 +57,11 @@ export default function Navigation() {
       
       {/* User Info Section - Prominent display */}
       <div className="sidebar-user-info">
-        <div className="sidebar-user-display">
-          {user?.username || 'Usuario'} - [{userRole}]
+        <div className="sidebar-username">
+          {user?.username || 'Usuario'}
+        </div>
+        <div className="sidebar-role">
+          [{userRole}]
         </div>
       </div>
       

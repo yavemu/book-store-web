@@ -78,7 +78,32 @@ export interface UpdateBookAuthorDto {
   isActive?: boolean;
 }
 
+export interface CreateBookAuthorResponseDto {
+  data: BookAuthorResponseDto;
+  message: string;
+}
+
+export interface UpdateBookAuthorResponseDto {
+  data: BookAuthorResponseDto;
+  message: string;
+}
+
+export interface DeleteBookAuthorResponseDto {
+  message: string;
+}
+
 export interface BookAuthorListResponseDto extends ApiListResponse<BookAuthorResponseDto> {}
+
+// Book Author Assignment Types
+export interface CreateBookAuthorAssignmentDto {
+  bookId: string;
+  authorId: string;
+}
+
+export interface UpdateBookAuthorAssignmentDto {
+  bookId?: string;
+  authorId?: string;
+}
 
 // Publishing House Types
 export interface PublishingHouseResponseDto {
@@ -110,6 +135,20 @@ export interface UpdatePublishingHouseDto {
   email?: string;
   website?: string;
   isActive?: boolean;
+}
+
+export interface CreatePublishingHouseResponseDto {
+  data: PublishingHouseResponseDto;
+  message: string;
+}
+
+export interface UpdatePublishingHouseResponseDto {
+  data: PublishingHouseResponseDto;
+  message: string;
+}
+
+export interface DeletePublishingHouseResponseDto {
+  message: string;
 }
 
 export interface PublishingHouseListResponseDto extends ApiListResponse<PublishingHouseResponseDto> {}
@@ -163,3 +202,78 @@ export interface UpdateBookDto {
 }
 
 export interface BookListResponseDto extends ApiListResponse<BookResponseDto> {}
+
+// User Types
+export interface UserResponseDto {
+  id: string;
+  username: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  // Relations
+  role?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+}
+
+export interface CreateUserDto {
+  username: string;
+  email: string;
+  password: string;
+  roleId: string;
+}
+
+export interface UpdateUserDto {
+  username?: string;
+  email?: string;
+  password?: string;
+  roleId?: string;
+}
+
+export interface CreateUserResponseDto {
+  data: UserResponseDto;
+  message: string;
+}
+
+export interface UpdateUserResponseDto {
+  data: UserResponseDto;
+  message: string;
+}
+
+export interface DeleteUserResponseDto {
+  message: string;
+}
+
+export interface UserListResponseDto extends ApiListResponse<UserResponseDto> {}
+
+// Inventory Movement Types
+export interface InventoryMovementResponseDto {
+  id: string;
+  bookId: string;
+  movementType: 'IN' | 'OUT';
+  quantity: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+  // Relations
+  book?: BookResponseDto;
+}
+
+export interface CreateInventoryMovementDto {
+  bookId: string;
+  movementType: 'IN' | 'OUT';
+  quantity: number;
+  notes?: string;
+}
+
+export interface UpdateInventoryMovementDto {
+  movementType?: 'IN' | 'OUT';
+  quantity?: number;
+  notes?: string;
+}
+
+export interface InventoryMovementListResponseDto extends ApiListResponse<InventoryMovementResponseDto> {}

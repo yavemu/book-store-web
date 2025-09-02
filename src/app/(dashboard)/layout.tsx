@@ -1,5 +1,6 @@
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PageTransition from '@/components/ui/PageTransition';
 
 export default function DashboardLayout({
   children,
@@ -10,7 +11,11 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <div className="dashboard-layout">
         <Navigation />
-        <>{children}</>
+        <main className="flex-1 min-h-0">
+          <PageTransition>
+            {children}
+          </PageTransition>
+        </main>
       </div>
     </ProtectedRoute>
   );

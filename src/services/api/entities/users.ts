@@ -60,11 +60,12 @@ export interface UserSearchParams {
 
 export interface UserFilterParams {
   filter: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: "ASC" | "DESC";
-  offset?: number;
+  pagination: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: "ASC" | "DESC";
+  };
 }
 
 export interface UserAdvancedFilterDto {
@@ -138,16 +139,7 @@ export const usersApi = {
 
   // Filtrar usuarios en tiempo real (admin y user)
   filter: (params: UserFilterParams): Promise<UserListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: "createdAt",
-      sortOrder: "DESC" as const,
-      ...params,
-    };
-
-    const url = buildUrl("/users/filter", defaultParams);
-    return apiClient.get(url);
+    return apiClient.post("/users/filter", params);
   },
 
   // Filtro avanzado de usuarios (admin y user)

@@ -37,11 +37,12 @@ export interface GenreSearchParams {
 
 export interface GenreFilterParams {
   filter: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-  offset?: number;
+  pagination: {
+    page: number;
+    limit: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  };
 }
 
 export interface GenreAdvancedFilterDto {
@@ -124,16 +125,7 @@ export const genresApi = {
 
   // Filtrar géneros en tiempo real
   filter: (params: GenreFilterParams): Promise<BookGenreListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      offset: undefined,
-      ...params,
-    };
-    const url = buildUrl('/genres/filter', defaultParams);
-    return apiClient.get(url);
+    return apiClient.post('/genres/filter', params);
   },
 
   // Filtro avanzado de géneros

@@ -61,11 +61,12 @@ export const genreFilterSchema = z.object({
     .string()
     .min(1, 'El filtro es requerido')
     .max(100, 'El filtro no puede exceder 100 caracteres'),
-  page: z.number().min(1).default(1).optional(),
-  limit: z.number().min(1).max(100).default(10).optional(),
-  sortBy: z.string().default('createdAt').optional(),
-  sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
-  offset: z.number().optional(),
+  pagination: z.object({
+    page: z.number().min(1).default(1),
+    limit: z.number().min(1).max(100).default(10),
+    sortBy: z.string().default('createdAt').optional(),
+    sortOrder: z.enum(['ASC', 'DESC']).default('DESC').optional(),
+  }),
 });
 
 // Schema para filtro avanzado de géneros
