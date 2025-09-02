@@ -62,6 +62,8 @@ export interface DynamicTableProps {
   paginationParams?: PaginationParams;
   onClearPaginationParam?: (param: keyof PaginationParams) => void;
   showPaginationInfo?: boolean;
+  // New props for quick search
+  quickSearchComponent?: React.ReactNode;
 }
 
 /**
@@ -101,6 +103,7 @@ export default function DynamicTable({
   paginationParams,
   onClearPaginationParam,
   showPaginationInfo = true,
+  quickSearchComponent,
 }: DynamicTableProps) {
   const [currentPage, setCurrentPage] = useState(meta?.currentPage || 1);
 
@@ -350,6 +353,13 @@ export default function DynamicTable({
       {/* Pagination Info */}
       {renderPaginationInfo()}
 
+      {/* Form positioned between applied params and create button */}
+      {showForm && formComponent && (
+        <div className="card-boutique form-card">
+          <div className="card-content">{formComponent}</div>
+        </div>
+      )}
+
       <div className="table-header">
         {(showSearch || meta) && (
           <div className="header-left">
@@ -382,6 +392,12 @@ export default function DynamicTable({
         )}
 
         <div className="header-right">
+          {quickSearchComponent && (
+            <div className="quick-search-section">
+              {quickSearchComponent}
+            </div>
+          )}
+          
           {showCreateButton && (
             <div className="create-section">
               <button
@@ -404,12 +420,6 @@ export default function DynamicTable({
           )}
         </div>
       </div>
-
-      {showForm && formComponent && (
-        <div className="card-boutique form-card">
-          <div className="card-content">{formComponent}</div>
-        </div>
-      )}
 
       <div className="card-boutique">
         <div className={`card-content ${showLoadingOverlay ? "table-loading-overlay" : ""}`} style={{ position: "relative" }}>

@@ -41,13 +41,12 @@ export interface AuditAdvancedSearchParams extends AuditListParams {
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER';
 
 export interface AuditFilterParams {
-  filter: string;
-  pagination: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: 'ASC' | 'DESC';
-  };
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  offset?: number;
+  term: string;
 }
 
 export interface AuditAdvancedFilterDto {
@@ -107,7 +106,28 @@ export const auditApi = {
 
   // Filtrar registros de auditoría en tiempo real (solo admin)
   filter: (params: AuditFilterParams): Promise<AuditLogListResponseDto> => {
-    return apiClient.post('/audit/filter', params);
+    const queryParams = {
+      term: params.term,
+      page: params.page || 1,
+      limit: params.limit || 10,
+      sortBy: params.sortBy || 'createdAt',
+      sortOrder: params.sortOrder || 'ASC' as const,
+      offset: ((params.page || 1) - 1) * (params.limit || 10)
+    };
+    const url = buildUrl('/audit/filter', queryParams);
+    return apiClient.get(url);
+  },
+
+  // Búsqueda rápida para dashboards - usando filter endpoint
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<AuditLogListResponseDto> => {
+    const filterParams: AuditFilterParams = {
+      term: term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC'
+    };
+    return auditApi.filter(filterParams);
   },
 
   // Filtro avanzado de registros de auditoría (solo admin)

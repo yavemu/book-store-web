@@ -143,22 +143,40 @@ export const authorsApi = {
     return apiClient.delete(`/book-authors/${id}`);
   },
 
-  // Buscar autores por término
+  // Buscar autores por término - POST /search
   search: (params: AuthorSearchParams): Promise<BookAuthorListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
+    const searchData = {
       ...params,
+      page: params.page || 1,
+      limit: params.limit || 10,
+      sortBy: params.sortBy || 'createdAt',
+      sortOrder: params.sortOrder || 'DESC' as const
     };
-    const url = buildUrl('/book-authors/search', defaultParams);
-    return apiClient.get(url);
+    return apiClient.post('/book-authors/search', searchData);
   },
 
   // Filtrar autores con criterios múltiples
   filter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
     return apiClient.post('/book-authors/filter', filterData);
+  },
+
+  // Filtro avanzado con criterios múltiples (coincidencias)
+  advancedFilter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
+    return apiClient.post('/book-authors/advanced-filter', filterData);
+  },
+
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<BookAuthorListResponseDto> => {
+    const queryParams = {
+      term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'ASC' as const,
+      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+    };
+    const url = buildUrl('/book-authors/filter', queryParams);
+    return apiClient.get(url);
   },
 
   // Exportar autores a CSV (solo admin)

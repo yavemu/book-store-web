@@ -267,7 +267,7 @@ export function useEnhancedApiRequest<TData = any, TResponse = any>({
     });
   }, []);
 
-  const getErrorInfo = useCallback(() => {
+  const getCurrentErrorInfo = useCallback(() => {
     if (!state.lastError) return null;
     return getErrorInfo(state.lastError);
   }, [state.lastError]);
@@ -277,7 +277,7 @@ export function useEnhancedApiRequest<TData = any, TResponse = any>({
     execute,
     retry,
     reset,
-    getErrorInfo,
+    getErrorInfo: getCurrentErrorInfo,
     isSuccess: !state.loading && !state.error && state.data !== null,
     canRetry: state.lastError ? getErrorInfo(state.lastError).canRetry : false
   };

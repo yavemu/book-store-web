@@ -113,6 +113,20 @@ export const publishingHousesApi = {
     return apiClient.post('/publishing-houses/filter', params);
   },
 
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<PublishingHouseListResponseDto> => {
+    const queryParams = {
+      term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'ASC' as const,
+      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+    };
+    const url = buildUrl('/publishing-houses/filter', queryParams);
+    return apiClient.get(url);
+  },
+
   // Filtro avanzado de editoriales
   advancedFilter: (filterData: PublishingHouseAdvancedFilterDto, params?: PublishingHouseListParams): Promise<PublishingHouseListResponseDto> => {
     const queryParams = {

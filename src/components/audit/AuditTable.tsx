@@ -1,34 +1,29 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { AuditLogResponseDto, ApiPaginationMeta } from "@/types/api/entities";
+import { ApiPaginationMeta, AuditLogResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
 
 export default function AuditTable({
   data,
   meta,
   loading,
   onPageChange,
+  quickSearchComponent,
 }: {
   data: AuditLogResponseDto[];
   meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
+  quickSearchComponent?: React.ReactNode;
 }) {
   const columns: TableColumn[] = [
     { key: "action", label: "Acción" },
     { key: "performedBy", label: "Usuario" },
-    { key: "entityType", label: "Tipo Entidad" },
-    { key: "entityId", label: "ID Entidad" },
     {
       key: "details",
       label: "Detalles",
       render: (value) => (value ? String(value).substring(0, 50) + "..." : "-"),
-    },
-    {
-      key: "createdAt",
-      label: "Fecha",
-      render: (value) => new Date(value).toLocaleString(),
     },
   ];
 
@@ -42,6 +37,7 @@ export default function AuditTable({
       actions={[]} // Auditoría no tiene acciones de edición
       showCreateButton={false}
       entityName="log"
+      quickSearchComponent={quickSearchComponent}
     />
   );
 }

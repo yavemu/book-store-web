@@ -13,14 +13,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/' },
+  { label: 'Autores', path: '/authors' },
   { label: 'Libros', path: '/books' },
   { label: 'Géneros', path: '/genres' },
-  { label: 'Autores', path: '/authors' },
   { label: 'Editoriales', path: '/publishers' },
-  { label: 'Movimientos', path: '/inventory-movements' },
+  { label: 'Inventario', path: '/inventory-movements' },
   { label: 'Usuarios', path: '/users', requiredRole: 'ADMIN' },
-  { label: 'Auditoría', path: '/audit' }
+  { label: 'Auditoría', path: '/audit', requiredRole: 'ADMIN' },
 ];
 
 export default function Navigation() {
@@ -28,11 +27,11 @@ export default function Navigation() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   
-  // Handle role as string or object
+  // Handle role as string or object and normalize to uppercase
   const userRole = typeof user?.role === 'string' 
-    ? user.role 
+    ? user.role.toUpperCase()
     : (typeof user?.role === 'object' && user?.role?.name) 
-    ? user.role.name 
+    ? user.role.name.toUpperCase()
     : 'USER';
 
   const handleLogout = () => {
@@ -40,8 +39,9 @@ export default function Navigation() {
   };
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return pathname === '/';
+    // Si estamos en la raíz, activar Authors como default
+    if (pathname === '/' && path === '/authors') {
+      return true;
     }
     return pathname.startsWith(path);
   };

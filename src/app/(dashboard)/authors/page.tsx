@@ -1,133 +1,180 @@
-"use client";
+'use client';
 
-import { SearchFilters } from "@/components/AdvancedSearchForm";
-import AuthorTable from "@/components/authors/AuthorTable";
-import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
-import PageWrapper from "@/components/PageWrapper";
-import PageLoading from "@/components/ui/PageLoading";
-import { useApiRequest } from "@/hooks";
-import { authorsApi, AuthorListParams } from "@/services/api/entities/authors";
-import { ApiPaginationMeta } from "@/types/api/entities";
-import { useEffect, useState } from "react";
+import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
+import { authorsApi } from '@/services/api/entities/authors';
+
+const authorsConfig = {
+  entityName: 'Autor',
+  displayName: 'Gestión de Autores',
+  defaultPageSize: 10,
+  defaultSort: {
+    field: 'createdAt',
+    direction: 'DESC' as const
+  },
+  capabilities: {
+    crud: ['create', 'read', 'update', 'delete'],
+    search: ['auto', 'simple', 'advanced'],
+    export: true
+  },
+  columns: [
+    {
+      key: 'name',
+      label: 'Nombre',
+      sortable: true,
+      width: '250px',
+      render: (value: string, record: any) => {
+        // Si viene como nombre completo, lo usamos directamente
+        // Si vienen firstName y lastName separados, los combinamos
+        let fullName = value;
+        if (!fullName) {
+          fullName = record?.firstName && record?.lastName 
+            ? `${record.firstName} ${record.lastName}` 
+            : record?.firstName || record?.lastName || '-';
+        }
+        
+        // Truncar texto largo y mostrar tooltip
+        if (fullName && fullName.length > 30) {
+          return `${fullName.substring(0, 30)}...`;
+        }
+        return fullName || '-';
+      }
+    },
+    {
+      key: 'nationality',
+      label: 'Nacionalidad',
+      sortable: true,
+      width: '150px'
+    },
+    {
+      key: 'birthDate',
+      label: 'Fecha de Nacimiento',
+      sortable: true,
+      width: '150px',
+      render: (value: string) => {
+        if (!value) return '-';
+        // Manejar diferentes formatos de fecha
+        const date = new Date(value);
+        return isNaN(date.getTime()) ? value : date.toLocaleDateString();
+      }
+    },
+    {
+      key: 'booksCount',
+      label: 'Libros',
+      sortable: false,
+      width: '80px',
+      align: 'center' as const,
+      render: (value: number) => String(value || 0)
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      sortable: true,
+      width: '100px',
+      align: 'center' as const,
+      render: (value: boolean) => value ? 'Activo' : 'Inactivo'
+    }
+  ],
+  searchFields: [
+    {
+      key: 'name',
+      label: 'Nombre',
+      type: 'text' as const,
+      placeholder: 'Ej: Gabriel García Márquez (mín. 3 caracteres)'
+    },
+    {
+      key: 'nationality',
+      label: 'Nacionalidad',
+      type: 'text' as const,
+      placeholder: 'Ej: Colombiana (mín. 3 caracteres)'
+    },
+    {
+      key: 'birthDate',
+      label: 'Fecha de Nacimiento',
+      type: 'date' as const
+    },
+    {
+      key: 'booksCount',
+      label: 'Libros',
+      type: 'number' as const,
+      placeholder: 'Ej: 5'
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      options: [
+        { value: true, label: 'Activo' },
+        { value: false, label: 'Inactivo' }
+      ]
+    }
+  ],
+  formFields: [
+    {
+      key: 'firstName',
+      label: 'Nombre',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: Gabriel'
+    },
+    {
+      key: 'lastName',
+      label: 'Apellido',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: García Márquez'
+    },
+    {
+      key: 'nationality',
+      label: 'Nacionalidad',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: Colombiana'
+    },
+    {
+      key: 'birthDate',
+      label: 'Fecha de Nacimiento',
+      type: 'date' as const,
+      required: false
+    },
+    {
+      key: 'biography',
+      label: 'Biografía',
+      type: 'textarea' as const,
+      required: false,
+      placeholder: 'Descripción breve del autor...'
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      required: false,
+      placeholder: 'Activo'
+    }
+  ]
+};
+
+const customHandlers = {
+  onAfterCreate: (author: any) => {
+    console.log('✅ Autor creado exitosamente:', author.firstName, author.lastName);
+  },
+  onAfterUpdate: (author: any) => {
+    console.log('✅ Autor actualizado:', author.firstName, author.lastName);
+  },
+  onAfterDelete: (authorId: string) => {
+    console.log('🗑️ Autor eliminado:', authorId);
+  },
+  onDataRefresh: () => {
+    console.log('🔄 Datos de autores actualizados');
+  }
+};
 
 export default function AuthorsPage() {
-  const [params, setParams] = useState<AuthorListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-
-  const { loading, error, data, execute } = useApiRequest({
-    apiFunction: () => authorsApi.list(params),
-  });
-
-  useEffect(() => {
-    execute();
-  }, [params]);
-
-  const handlePageChange = (page: number) => setParams({ ...params, page });
-
-  const handleSearchChange = async (value: string) => {
-    setSearchTerm(value);
-
-    if (value?.trim().length >= 3) {
-      try {
-        const searchResponse = await authorsApi.search({
-          term: value.trim(),
-          page: 1,
-          sortBy: "createdAt",
-          sortOrder: "DESC",
-        });
-        setParams({ ...params, page: 1 });
-      } catch (error) {
-        console.error('Error searching authors:', error);
-      }
-    } else if (value.trim() === "") {
-      setParams({ ...params, page: 1 });
-    }
-  };
-
-  const handleAdvancedSearch = async (filters: SearchFilters) => {
-    setSearchFilters(filters);
-    const newParams = { ...params, page: 1 };
-
-    const hasFilters = Object.values(filters).some((value) => value && value !== "");
-
-    if (hasFilters) {
-      try {
-        const filterResponse = await authorsApi.filter({
-          name: filters.name as string,
-          nationality: filters.nationality as string,
-          birthYear: filters.birthYear as number,
-          isActive: filters.isActive as boolean,
-          pagination: newParams,
-        });
-        setParams(newParams);
-      } catch (error) {
-        console.error('Error filtering authors:', error);
-      }
-    } else {
-      setParams(newParams);
-    }
-  };
-
-  const handleClearAdvancedSearch = () => {
-    setSearchFilters({});
-    setParams({ page: 1, limit: 10 });
-  };
-
-  if (loading && !data) {
-    return (
-      <PageLoading 
-        title="Gestión de Autores" 
-        breadcrumbs={["Autores"]}
-        message="Cargando autores del sistema..."
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <PageWrapper title="Autores">
-        <ApiErrorState
-          error={error}
-          canRetry={true}
-          isRetrying={loading}
-          onRetry={() => execute()}
-          onReset={() => {
-            setParams({ page: 1, limit: 10 });
-            setSearchTerm("");
-            execute();
-          }}
-          title="Error cargando autores"
-          description="No se pudieron cargar los autores del sistema."
-          showTechnicalDetails
-        />
-      </PageWrapper>
-    );
-  }
-
-  return (
-    <PageWrapper
-      title="Gestión de Autores"
-      breadcrumbs={["Autores"]}
-      showSearch
-      onSearchChange={handleSearchChange}
-      searchPlaceholder="Buscar autores..."
-      showCsvDownload
-      onCsvDownload={async () => {
-        const csvData = await authorsApi.exportToCsv();
-        const blob = new Blob([csvData], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `autores_${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }}
-      csvDownloadEnabled
-    >
-      <AuthorTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
-    </PageWrapper>
+  const unifiedProps = createUnifiedDashboardProps(
+    authorsConfig,
+    authorsApi,
+    customHandlers
   );
+
+  return <UnifiedDashboardPage {...unifiedProps} />;
 }

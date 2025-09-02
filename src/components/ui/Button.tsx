@@ -3,10 +3,11 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
-  variant?: 'primary' | 'secondary' | 'link';
+  variant?: 'primary' | 'secondary' | 'link' | 'danger' | 'success';
   fullWidth?: boolean;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
 }
 
 export default function Button({
@@ -17,28 +18,43 @@ export default function Button({
   variant = 'primary',
   fullWidth = false,
   className = '',
-  size = 'md'
+  size = 'md',
+  loading = false
 }: ButtonProps) {
   const getClassName = () => {
-    let classes = '';
+    let classes = 'btn-base ';
     
-    // Use existing CSS classes from globals.css
+    // Use new CSS classes from globals.css
     switch (variant) {
       case 'primary':
-        classes += 'btn-create ';
+        classes += 'btn-primary ';
         break;
       case 'secondary':
-        classes += 'button secondary ';
+        classes += 'btn-secondary ';
+        break;
+      case 'danger':
+        classes += 'btn-danger ';
+        break;
+      case 'success':
+        classes += 'btn-success ';
         break;
       case 'link':
-        classes += 'button ';
+        classes += 'btn-secondary '; // Default to secondary for links
         break;
     }
     
     if (size === 'sm') {
-      if (variant === 'primary') {
-        classes += 'btn-action-ver '; // Reuse existing small button styles
-      }
+      classes += 'btn-sm ';
+    } else if (size === 'lg') {
+      classes += 'btn-lg ';
+    }
+    
+    if (fullWidth) {
+      classes += 'btn-full-width ';
+    }
+    
+    if (disabled || loading) {
+      classes += 'btn-disabled ';
     }
     
     return classes + className;
@@ -48,10 +64,17 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       className={getClassName()}
     >
-      {children}
+      {loading ? (
+        <span className="btn-loading">
+          <span className="loading-spinner"></span>
+          {typeof children === 'string' ? 'Cargando...' : children}
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }

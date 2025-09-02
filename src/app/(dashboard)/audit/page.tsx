@@ -1,138 +1,114 @@
-"use client";
+'use client';
 
-import { SearchFilters } from "@/components/AdvancedSearchForm";
-import AuditTable from "@/components/audit/AuditTable";
-import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
-import PageWrapper from "@/components/PageWrapper";
-import PageLoading from "@/components/ui/PageLoading";
-import { useApiRequest } from "@/hooks";
-import { auditApi, AuditListParams } from "@/services/api/entities/audit";
-import { ApiPaginationMeta } from "@/types/api/entities";
-import { useEffect, useState } from "react";
+import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
+import { auditApi } from '@/services/api/entities/audit';
+
+const auditConfig = {
+  entityName: 'Log de Auditoría',
+  displayName: 'Auditoría del Sistema',
+  defaultPageSize: 10,
+  defaultSort: {
+    field: 'createdAt',
+    direction: 'DESC' as const
+  },
+  capabilities: {
+    crud: ['read'], // Solo lectura
+    search: ['auto', 'simple', 'advanced'],
+    export: true
+  },
+  columns: [
+    {
+      key: 'action',
+      label: 'Acción',
+      sortable: true
+    },
+    {
+      key: 'entity',
+      label: 'Entidad',
+      sortable: true
+    },
+    {
+      key: 'entityId',
+      label: 'ID Entidad',
+      sortable: false,
+      render: (value: string) => value ? `#${value.substring(0, 8)}...` : '-'
+    },
+    {
+      key: 'username',
+      label: 'Usuario',
+      sortable: true,
+      render: (value: string, record: any) => record.user?.username || value || 'Sistema'
+    },
+    {
+      key: 'ipAddress',
+      label: 'IP',
+      sortable: false
+    },
+    {
+      key: 'createdAt',
+      label: 'Fecha/Hora',
+      sortable: true,
+      render: (value: string) => value ? new Date(value).toLocaleString() : '-'
+    }
+  ],
+  searchFields: [
+    {
+      key: 'action',
+      label: 'Acción',
+      type: 'select' as const,
+      options: [
+        { value: 'CREATE', label: 'Crear' },
+        { value: 'UPDATE', label: 'Actualizar' },
+        { value: 'DELETE', label: 'Eliminar' },
+        { value: 'LOGIN', label: 'Login' },
+        { value: 'LOGOUT', label: 'Logout' }
+      ]
+    },
+    {
+      key: 'entity',
+      label: 'Entidad',
+      type: 'select' as const,
+      options: [
+        { value: 'USER', label: 'Usuario' },
+        { value: 'BOOK', label: 'Libro' },
+        { value: 'AUTHOR', label: 'Autor' },
+        { value: 'GENRE', label: 'Género' },
+        { value: 'PUBLISHER', label: 'Editorial' }
+      ]
+    },
+    {
+      key: 'username',
+      label: 'Usuario',
+      type: 'text' as const,
+      placeholder: 'Ej: admin'
+    },
+    {
+      key: 'ipAddress',
+      label: 'Dirección IP',
+      type: 'text' as const,
+      placeholder: 'Ej: 192.168.1.1'
+    },
+    {
+      key: 'createdAt',
+      label: 'Fecha',
+      type: 'date' as const
+    }
+  ]
+};
+
+const customHandlers = {
+  onDataRefresh: () => {
+    console.log('🔄 Datos de auditoría actualizados');
+  }
+};
 
 export default function AuditPage() {
-  const [params, setParams] = useState<AuditListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-
-  const { loading, error, data, execute } = useApiRequest({
-    apiFunction: () => auditApi.list(params),
-  });
-
-  useEffect(() => {
-    execute();
-  }, [params]);
-
-  const handlePageChange = (page: number) => setParams({ ...params, page });
-
-  const handleSearchChange = async (value: string) => {
-    setSearchTerm(value);
-
-    if (value?.trim().length >= 3) {
-      try {
-        const filterResponse = await auditApi.filter({
-          filter: value.trim(),
-          pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
-        });
-        // Update the data state with filtered results
-        const newParams = { ...params, page: 1 };
-        setParams(newParams);
-      } catch (error) {
-        console.error('Error filtering audit data:', error);
-      }
-    } else if (value.trim() === "") {
-      // Reset to normal list when search is cleared
-      setParams({ ...params, page: 1 });
-    }
-  };
-
-  const handleAdvancedSearch = async (filters: SearchFilters) => {
-    setSearchFilters(filters);
-    const newParams = { ...params, page: 1 };
-    
-    const hasFilters = Object.values(filters).some((value) => value && value !== "");
-
-    if (hasFilters) {
-      try {
-        const filterResponse = await auditApi.advancedFilter(
-          {
-            performedBy: filters.performedBy as string,
-            entityType: filters.entityType as string,
-            action: filters.action as 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER',
-            entityId: filters.entityId as string,
-            startDate: filters.startDate as string,
-            endDate: filters.endDate as string,
-          },
-          newParams,
-        );
-        setParams(newParams);
-      } catch (error) {
-        console.error('Error in advanced filter:', error);
-      }
-    } else {
-      setParams(newParams);
-    }
-  };
-
-  const handleClearAdvancedSearch = () => {
-    setSearchFilters({});
-    setParams({ page: 1, limit: 10 });
-  };
-
-  if (loading && !data) {
-    return (
-      <PageLoading 
-        title="Logs de Auditoría" 
-        breadcrumbs={["Auditoría"]}
-        message="Cargando registros de auditoría..."
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <PageWrapper title="Auditoría">
-        <ApiErrorState
-          error={error}
-          canRetry={true}
-          isRetrying={loading}
-          onRetry={() => execute()}
-          onReset={() => {
-            setParams({ page: 1, limit: 10 });
-            setSearchTerm("");
-            execute();
-          }}
-          title="Error cargando auditoría"
-          description="No se pudieron cargar los registros de auditoría del sistema."
-          showTechnicalDetails
-        />
-      </PageWrapper>
-    );
-  }
-
-  return (
-    <PageWrapper
-      title="Logs de Auditoría"
-      breadcrumbs={["Auditoría"]}
-      showSearch
-      onSearchChange={handleSearchChange}
-      searchPlaceholder="Buscar en logs..."
-      showCsvDownload
-      onCsvDownload={async () => {
-        const csvData = await auditApi.exportToCsv();
-        const blob = new Blob([csvData], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `auditoria_${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }}
-      csvDownloadEnabled
-    >
-      <AuditTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
-    </PageWrapper>
+  const unifiedProps = createUnifiedDashboardProps(
+    auditConfig,
+    auditApi,
+    customHandlers
   );
+
+  return <UnifiedDashboardPage {...unifiedProps} />;
 }

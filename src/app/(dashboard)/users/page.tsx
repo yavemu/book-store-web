@@ -1,135 +1,150 @@
-"use client";
+'use client';
 
-import { SearchFilters } from "@/components/AdvancedSearchForm";
-import UserTable from "@/components/users/UserTable";
-import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
-import PageWrapper from "@/components/PageWrapper";
-import PageLoading from "@/components/ui/PageLoading";
-import { useApiRequest } from "@/hooks";
-import { usersApi, UserListParams } from "@/services/api/entities/users";
-import { ApiPaginationMeta } from "@/types/api/entities";
-import { useEffect, useState } from "react";
+import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
+import { usersApi } from '@/services/api/entities/users';
+
+const usersConfig = {
+  entityName: 'Usuario',
+  displayName: 'Gestión de Usuarios',
+  defaultPageSize: 10,
+  defaultSort: {
+    field: 'createdAt',
+    direction: 'DESC' as const
+  },
+  capabilities: {
+    crud: ['create', 'read', 'update', 'delete'],
+    search: ['auto', 'simple', 'advanced'],
+    export: true
+  },
+  columns: [
+    {
+      key: 'username',
+      label: 'Usuario',
+      sortable: true
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true
+    },
+    {
+      key: 'role',
+      label: 'Rol',
+      sortable: true,
+      render: (value: string) => value === 'admin' ? 'Administrador' : 
+                                      value === 'librarian' ? 'Bibliotecario' : 'Usuario'
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      sortable: true,
+      render: (value: boolean) => value ? 'Activo' : 'Inactivo'
+    },
+    {
+      key: 'createdAt',
+      label: 'Registro',
+      sortable: true,
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+    }
+  ],
+  searchFields: [
+    {
+      key: 'username',
+      label: 'Usuario',
+      type: 'text' as const,
+      placeholder: 'Ej: admin'
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      type: 'text' as const,
+      placeholder: 'Ej: admin@demo.com'
+    },
+    {
+      key: 'role',
+      label: 'Rol',
+      type: 'select' as const,
+      options: [
+        { value: 'admin', label: 'Administrador' },
+        { value: 'librarian', label: 'Bibliotecario' },
+        { value: 'user', label: 'Usuario' }
+      ]
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      options: [
+        { value: true, label: 'Activo' },
+        { value: false, label: 'Inactivo' }
+      ]
+    }
+  ],
+  formFields: [
+    {
+      key: 'username',
+      label: 'Usuario',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: admin'
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      type: 'email' as const,
+      required: true,
+      placeholder: 'Ej: admin@demo.com'
+    },
+    {
+      key: 'password',
+      label: 'Contraseña',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Contraseña segura...'
+    },
+    {
+      key: 'role',
+      label: 'Rol',
+      type: 'select' as const,
+      required: true,
+      options: [
+        { value: 'admin', label: 'Administrador' },
+        { value: 'librarian', label: 'Bibliotecario' },
+        { value: 'user', label: 'Usuario' }
+      ]
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      required: false,
+      placeholder: 'Activo'
+    }
+  ]
+};
+
+const customHandlers = {
+  onAfterCreate: (user: any) => {
+    console.log('✅ Usuario creado exitosamente:', user.email);
+  },
+  onAfterUpdate: (user: any) => {
+    console.log('✅ Usuario actualizado:', user.email);
+  },
+  onAfterDelete: (userId: string) => {
+    console.log('🗑️ Usuario eliminado:', userId);
+  },
+  onDataRefresh: () => {
+    console.log('🔄 Datos de usuarios actualizados');
+  }
+};
 
 export default function UsersPage() {
-  const [params, setParams] = useState<UserListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-
-  const { loading, error, data, execute } = useApiRequest({
-    apiFunction: () => usersApi.list(params),
-  });
-
-  useEffect(() => {
-    execute();
-  }, [params]);
-
-  const handlePageChange = (page: number) => setParams({ ...params, page });
-
-  const handleSearchChange = async (value: string) => {
-    setSearchTerm(value);
-
-    if (value?.trim().length >= 3) {
-      try {
-        const filterResponse = await usersApi.filter({
-          filter: value.trim(),
-          pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
-        });
-        setParams({ ...params, page: 1 });
-      } catch (error) {
-        console.error('Error filtering users:', error);
-      }
-    } else if (value.trim() === "") {
-      setParams({ ...params, page: 1 });
-    }
-  };
-
-  const handleAdvancedSearch = async (filters: SearchFilters) => {
-    setSearchFilters(filters);
-    const newParams = { ...params, page: 1 };
-
-    const hasFilters = Object.values(filters).some((value) => value && value !== "");
-
-    if (hasFilters) {
-      try {
-        const filterResponse = await usersApi.advancedFilter(
-          {
-            name: filters.name as string,
-            email: filters.email as string,
-            role: filters.role as "admin" | "user",
-            isActive: filters.isActive as boolean,
-            createdAfter: filters.startDate as string,
-            createdBefore: filters.endDate as string,
-          },
-          newParams,
-        );
-        setParams(newParams);
-      } catch (error) {
-        console.error('Error in advanced search:', error);
-      }
-    } else {
-      setParams(newParams);
-    }
-  };
-
-  const handleClearAdvancedSearch = () => {
-    setSearchFilters({});
-    setParams({ page: 1, limit: 10 });
-  };
-
-  if (loading && !data) {
-    return (
-      <PageLoading 
-        title="Gestión de Usuarios" 
-        breadcrumbs={["Usuarios"]}
-        message="Cargando usuarios del sistema..."
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <PageWrapper title="Usuarios">
-        <ApiErrorState
-          error={error}
-          canRetry={true}
-          isRetrying={loading}
-          onRetry={() => execute()}
-          onReset={() => {
-            setParams({ page: 1, limit: 10 });
-            setSearchTerm("");
-            execute();
-          }}
-          title="Error cargando usuarios"
-          description="No se pudieron cargar los usuarios del sistema."
-          showTechnicalDetails
-        />
-      </PageWrapper>
-    );
-  }
-
-  return (
-    <PageWrapper
-      title="Gestión de Usuarios"
-      breadcrumbs={["Usuarios"]}
-      showSearch
-      onSearchChange={handleSearchChange}
-      searchPlaceholder="Buscar usuarios..."
-      showCsvDownload
-      onCsvDownload={async () => {
-        const csvData = await usersApi.exportToCsv();
-        const blob = new Blob([csvData], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `usuarios_${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }}
-      csvDownloadEnabled
-    >
-      <UserTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
-    </PageWrapper>
+  const unifiedProps = createUnifiedDashboardProps(
+    usersConfig,
+    usersApi,
+    customHandlers
   );
+
+  return <UnifiedDashboardPage {...unifiedProps} />;
 }

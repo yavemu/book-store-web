@@ -1,138 +1,142 @@
-"use client";
+'use client';
 
-import { SearchFilters } from "@/components/AdvancedSearchForm";
-import PublisherTable from "@/components/publishers/PublisherTable";
-import ApiErrorState from "@/components/ErrorStates/ApiErrorState";
-import PageWrapper from "@/components/PageWrapper";
-import PageLoading from "@/components/ui/PageLoading";
-import { useApiRequest } from "@/hooks";
-import { publishingHousesApi, PublishingHouseListParams } from "@/services/api/entities/publishing-houses";
-import { ApiPaginationMeta } from "@/types/api/entities";
-import { useEffect, useState } from "react";
+import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
+import { publishingHousesApi } from '@/services/api/entities/publishing-houses';
+
+const publishersConfig = {
+  entityName: 'Editorial',
+  displayName: 'Gestión de Editoriales',
+  defaultPageSize: 10,
+  defaultSort: {
+    field: 'createdAt',
+    direction: 'DESC' as const
+  },
+  capabilities: {
+    crud: ['create', 'read', 'update', 'delete'],
+    search: ['auto', 'simple', 'advanced'],
+    export: true
+  },
+  columns: [
+    {
+      key: 'name',
+      label: 'Nombre',
+      sortable: true
+    },
+    {
+      key: 'website',
+      label: 'Website',
+      sortable: false,
+      render: (value: string) => value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "-"
+    },
+    {
+      key: 'contactEmail',
+      label: 'Email',
+      sortable: false,
+      render: (value: string) => value || "-"
+    },
+    {
+      key: 'booksCount',
+      label: 'Libros',
+      sortable: false,
+      render: (value: number) => String(value || 0)
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      sortable: true,
+      render: (value: boolean) => value ? 'Activa' : 'Inactiva'
+    }
+  ],
+  searchFields: [
+    {
+      key: 'name',
+      label: 'Nombre',
+      type: 'text' as const,
+      placeholder: 'Ej: Planeta'
+    },
+    {
+      key: 'website',
+      label: 'Website',
+      type: 'text' as const,
+      placeholder: 'Ej: www.planeta.com'
+    },
+    {
+      key: 'contactEmail',
+      label: 'Email de Contacto',
+      type: 'text' as const,
+      placeholder: 'Ej: info@planeta.com'
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      options: [
+        { value: true, label: 'Activa' },
+        { value: false, label: 'Inactiva' }
+      ]
+    }
+  ],
+  formFields: [
+    {
+      key: 'name',
+      label: 'Nombre',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: Planeta'
+    },
+    {
+      key: 'country',
+      label: 'País',
+      type: 'text' as const,
+      required: true,
+      placeholder: 'Ej: España'
+    },
+    {
+      key: 'website',
+      label: 'Website',
+      type: 'text' as const,
+      required: false,
+      placeholder: 'Ej: www.planeta.com'
+    },
+    {
+      key: 'contactEmail',
+      label: 'Email de Contacto',
+      type: 'email' as const,
+      required: false,
+      placeholder: 'Ej: info@planeta.com'
+    },
+    {
+      key: 'isActive',
+      label: 'Estado',
+      type: 'boolean' as const,
+      required: false,
+      placeholder: 'Activa'
+    }
+  ]
+};
+
+const customHandlers = {
+  onAfterCreate: (publisher: any) => {
+    console.log('✅ Editorial creada exitosamente:', publisher.name);
+  },
+  onAfterUpdate: (publisher: any) => {
+    console.log('✅ Editorial actualizada:', publisher.name);
+  },
+  onAfterDelete: (publisherId: string) => {
+    console.log('🗑️ Editorial eliminada:', publisherId);
+  },
+  onDataRefresh: () => {
+    console.log('🔄 Datos de editoriales actualizados');
+  }
+};
 
 export default function PublishersPage() {
-  const [params, setParams] = useState<PublishingHouseListParams>({ page: 1, limit: 10 });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-
-  const { loading, error, data, execute } = useApiRequest({
-    apiFunction: () => publishingHousesApi.list(params),
-  });
-
-  useEffect(() => {
-    execute();
-  }, [params]);
-
-  const handlePageChange = (page: number) => setParams({ ...params, page });
-
-  const handleSearchChange = async (value: string) => {
-    setSearchTerm(value);
-
-    if (value?.trim().length >= 3) {
-      try {
-        const searchResponse = await publishingHousesApi.search({
-          term: value.trim(),
-          page: 1,
-          sortBy: "name",
-          sortOrder: "ASC",
-        });
-        setParams({ ...params, page: 1 });
-      } catch (error) {
-        console.error('Error searching publishers:', error);
-      }
-    } else if (value.trim() === "") {
-      setParams({ ...params, page: 1 });
-    }
-  };
-
-  const handleAdvancedSearch = async (filters: SearchFilters) => {
-    setSearchFilters(filters);
-    const newParams = { ...params, page: 1 };
-
-    const hasFilters = Object.values(filters).some((value) => value && value !== "");
-
-    if (hasFilters) {
-      try {
-        const filterResponse = await publishingHousesApi.advancedFilter(
-          {
-            name: filters.name as string,
-            country: filters.country as string,
-            foundedYear: filters.foundedYear as number,
-            websiteUrl: filters.websiteUrl as string,
-            isActive: filters.isActive as boolean,
-            createdAfter: filters.startDate as string,
-            createdBefore: filters.endDate as string,
-          },
-          newParams,
-        );
-        setParams(newParams);
-      } catch (error) {
-        console.error('Error in advanced search:', error);
-      }
-    } else {
-      setParams(newParams);
-    }
-  };
-
-  const handleClearAdvancedSearch = () => {
-    setSearchFilters({});
-    setParams({ page: 1, limit: 10 });
-  };
-
-  if (loading && !data) {
-    return (
-      <PageLoading 
-        title="Gestión de Editoriales" 
-        breadcrumbs={["Editoriales"]}
-        message="Cargando editoriales del sistema..."
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <PageWrapper title="Editoriales">
-        <ApiErrorState
-          error={error}
-          canRetry={true}
-          isRetrying={loading}
-          onRetry={() => execute()}
-          onReset={() => {
-            setParams({ page: 1, limit: 10 });
-            setSearchTerm("");
-            execute();
-          }}
-          title="Error cargando editoriales"
-          description="No se pudieron cargar las editoriales del sistema."
-          showTechnicalDetails
-        />
-      </PageWrapper>
-    );
-  }
-
-  return (
-    <PageWrapper
-      title="Gestión de Editoriales"
-      breadcrumbs={["Editoriales"]}
-      showSearch
-      onSearchChange={handleSearchChange}
-      searchPlaceholder="Buscar editoriales..."
-      showCsvDownload
-      onCsvDownload={async () => {
-        const csvData = await publishingHousesApi.exportToCsv();
-        const blob = new Blob([csvData], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `editoriales_${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }}
-      csvDownloadEnabled
-    >
-      <PublisherTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
-    </PageWrapper>
+  const unifiedProps = createUnifiedDashboardProps(
+    publishersConfig,
+    publishingHousesApi,
+    customHandlers
   );
+
+  return <UnifiedDashboardPage {...unifiedProps} />;
 }

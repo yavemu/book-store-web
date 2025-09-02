@@ -11,7 +11,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/books');
+      router.push('/authors'); // Redirect to authors as default for Fase 1
     }
   }, [isAuthenticated, loading, router]);
 

@@ -142,6 +142,20 @@ export const usersApi = {
     return apiClient.post("/users/filter", params);
   },
 
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<UserListResponseDto> => {
+    const queryParams = {
+      term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'ASC' as const,
+      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+    };
+    const url = buildUrl("/users/filter", queryParams);
+    return apiClient.get(url);
+  },
+
   // Filtro avanzado de usuarios (admin y user)
   advancedFilter: (filterData: UserAdvancedFilterDto, params?: UserListParams): Promise<UserListResponseDto> => {
     const queryParams = {

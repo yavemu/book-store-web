@@ -40,12 +40,21 @@ export interface InventoryMovementSearchParams extends CommonSearchParams {
 }
 
 export interface InventoryMovementFilterParams {
-  filter: string;
   pagination: {
     page: number;
     limit: number;
     sortBy?: string;
     sortOrder?: "ASC" | "DESC";
+  };
+  filters?: {
+    movementType?: 'PURCHASE' | 'SALE' | 'DISCOUNT' | 'INCREASE' | 'OUT_OF_STOCK' | 'ARCHIVED';
+    status?: 'PENDING' | 'COMPLETED' | 'ERROR';
+    entityType?: string;
+    userId?: string;
+  };
+  search?: {
+    term?: string;
+    fields?: string[];
   };
 }
 
@@ -73,7 +82,7 @@ export interface InventoryMovementExportParams {
 export const inventoryMovementsApi = {
   // Crear nuevo movimiento de inventario
   create: (data: CreateInventoryMovementDto): Promise<InventoryMovementResponseDto> => {
-    return apiClient.post('/inventory-movements', data);
+    return apiClient.post('/inventory_movements', data);
   },
 
   // Obtener lista paginada de movimientos de inventario
@@ -85,23 +94,23 @@ export const inventoryMovementsApi = {
       sortOrder: 'DESC' as const,
       ...params,
     };
-    const url = buildUrl('/inventory-movements', defaultParams);
+    const url = buildUrl('/inventory_movements', defaultParams);
     return apiClient.get(url);
   },
 
   // Obtener movimiento por ID
   getById: (id: string): Promise<InventoryMovementResponseDto> => {
-    return apiClient.get(`/inventory-movements/${id}`);
+    return apiClient.get(`/inventory_movements/${id}`);
   },
 
   // Actualizar movimiento de inventario
   update: (id: string, data: UpdateInventoryMovementDto): Promise<InventoryMovementResponseDto> => {
-    return apiClient.put(`/inventory-movements/${id}`, data);
+    return apiClient.put(`/inventory_movements/${id}`, data);
   },
 
   // Eliminar movimiento de inventario (soft delete)
   delete: (id: string): Promise<{ message: string }> => {
-    return apiClient.delete(`/inventory-movements/${id}`);
+    return apiClient.delete(`/inventory_movements/${id}`);
   },
 
   // Buscar movimientos por término
@@ -113,13 +122,27 @@ export const inventoryMovementsApi = {
       sortOrder: 'DESC' as const,
       ...params,
     };
-    const url = buildUrl('/inventory-movements/search', defaultParams);
+    const url = buildUrl('/inventory_movements/search', defaultParams);
     return apiClient.get(url);
   },
 
   // Filtrar movimientos en tiempo real
   filter: (params: InventoryMovementFilterParams): Promise<InventoryMovementListResponseDto> => {
-    return apiClient.post('/inventory-movements/filter', params);
+    return apiClient.post('/inventory_movements/filter', params);
+  },
+
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<InventoryMovementListResponseDto> => {
+    const queryParams = {
+      term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'ASC' as const,
+      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+    };
+    const url = buildUrl('/inventory_movements/filter', queryParams);
+    return apiClient.get(url);
   },
 
   // Filtro avanzado de movimientos
@@ -132,13 +155,13 @@ export const inventoryMovementsApi = {
       ...params,
     };
 
-    const url = buildUrl("/inventory-movements/advanced-filter", queryParams);
+    const url = buildUrl("/inventory_movements/advanced-filter", queryParams);
     return apiClient.post(url, filterData);
   },
 
   // Exportar movimientos a CSV
   exportToCsv: (params?: InventoryMovementExportParams): Promise<string> => {
-    const url = buildUrl('/inventory-movements/export/csv', params);
+    const url = buildUrl('/inventory_movements/export/csv', params);
     return apiClient.get(url);
   },
 
@@ -148,7 +171,7 @@ export const inventoryMovementsApi = {
     movementsByType: Record<string, number>;
     movementsByStatus: Record<string, number>;
   }> => {
-    const url = buildUrl('/inventory-movements/stats', params);
+    const url = buildUrl('/inventory_movements/stats', params);
     return apiClient.get(url);
   },
 };

@@ -133,6 +133,20 @@ export const booksApi = {
     return apiClient.post("/book-catalog/filter", params);
   },
 
+  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<BookListResponseDto> => {
+    const queryParams = {
+      term,
+      page: params?.page || 1,
+      limit: params?.limit || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'ASC' as const,
+      offset: ((params?.page || 1) - 1) * (params?.limit || 10)
+    };
+    const url = buildUrl("/book-catalog/filter", queryParams);
+    return apiClient.get(url);
+  },
+
   // Filtro avanzado de libros
   advancedFilter: (filterData: BookAdvancedFilterDto, params?: BookListParams): Promise<BookListResponseDto> => {
     const queryParams = {

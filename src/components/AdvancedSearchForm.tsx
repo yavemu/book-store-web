@@ -4,13 +4,19 @@ import { useDebounce } from "@/hooks";
 import { useEffect, useState } from "react";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
+import { UnifiedFieldConfig, getSearchFields } from "@/types/dashboard/unified-config";
 
 export interface SearchField {
   key: string;
   label: string;
-  type: "text" | "number" | "email" | "select" | "date";
-  options?: { value: string; label: string }[];
+  type: "text" | "number" | "email" | "select" | "date" | "boolean";
+  options?: { value: any; label: string }[];
   placeholder?: string;
+  validation?: {
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+  };
 }
 
 export interface SearchFilters {
@@ -20,7 +26,8 @@ export interface SearchFilters {
 }
 
 interface AdvancedSearchFormProps {
-  fields: SearchField[];
+  fields?: SearchField[]; // Made optional for backward compatibility
+  unifiedFields?: UnifiedFieldConfig[]; // New unified config option
   onSearch: (filters: SearchFilters) => void;
   onAdvancedFilter?: (filters: SearchFilters) => void;
   onClear: () => void;
@@ -32,6 +39,7 @@ interface AdvancedSearchFormProps {
 
 export default function AdvancedSearchForm({
   fields,
+  unifiedFields,
   onSearch,
   onAdvancedFilter,
   onClear,
@@ -43,6 +51,9 @@ export default function AdvancedSearchForm({
   const [isVisible, setIsVisible] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const [isRealTimeSearch, setIsRealTimeSearch] = useState(false);
+
+  // Determine which fields to use (unified config takes precedence)
+  const searchFields = unifiedFields ? getSearchFields(unifiedFields) : fields || [];
 
   // Debounce filters for real-time search
   const debouncedFilters = useDebounce(filters, 500);
@@ -131,11 +142,11 @@ export default function AdvancedSearchForm({
 
             <div className="search-grid">
               {/* Entity-specific fields */}
-              {fields.map((field) => (
+              {searchFields.map((field) => (
                 <div key={field.key} className="search-field">
                   <label className="search-label">{field.label}</label>
 
-                  {field.type === "select" ? (
+                  {field.type === "select" || field.type === "boolean" ? (
                     <select value={filters[field.key] || ""} onChange={(e) => handleInputChange(field.key, e.target.value)} className="search-select">
                       <option value="">Todos</option>
                       {field.options?.map((option) => (
@@ -146,7 +157,7 @@ export default function AdvancedSearchForm({
                     </select>
                   ) : (
                     <Input
-                      type={field.type}
+                      type={field.type === "boolean" ? "select" : field.type}
                       value={filters[field.key] || ""}
                       onChange={(value) => handleInputChange(field.key, value)}
                       placeholder={field.placeholder || `Buscar por ${field.label.toLowerCase()}...`}
