@@ -4,18 +4,19 @@ export const auditActionSchema = z.enum([
   'CREATE',
   'UPDATE', 
   'DELETE',
+  'READ',
   'LOGIN',
   'REGISTER'
 ]);
 
 export const auditLogSchema = z.object({
-  id: z.string(),
-  performedBy: z.string().describe('ID del usuario que realizó la acción'),
-  entityId: z.string().describe('ID de la entidad afectada por la acción'),
+  id: z.string().uuid().describe('ID único del log de auditoría'),
+  performedBy: z.string().uuid().describe('ID del usuario que realizó la acción'),
+  entityId: z.string().uuid().describe('ID de la entidad afectada por la acción'),
   action: auditActionSchema,
   details: z.string().describe('Descripción detallada de la acción realizada'),
-  entityType: z.string().describe('Tipo de entidad afectada'),
-  createdAt: z.string().datetime().describe('Fecha y hora cuando se registró la auditoría'),
+  entityType: z.string().describe('Tipo de entidad afectada (User, Book, etc.)'),
+  createdAt: z.string().describe('Fecha y hora cuando se registró la auditoría'),
 });
 
 export const auditPaginationMetaSchema = z.object({

@@ -7,7 +7,7 @@ import PageWrapper from "@/components/PageWrapper";
 import PageLoading from "@/components/ui/PageLoading";
 import { useApiRequest } from "@/hooks";
 import { publishingHousesApi, PublishingHouseListParams } from "@/services/api/entities/publishing-houses";
-import { PaginationMeta } from "@/types/table";
+import { ApiPaginationMeta } from "@/types/api/entities";
 import { useEffect, useState } from "react";
 
 export default function PublishersPage() {
@@ -25,35 +25,52 @@ export default function PublishersPage() {
 
   const handlePageChange = (page: number) => setParams({ ...params, page });
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = async (value: string) => {
     setSearchTerm(value);
 
     if (value?.trim().length >= 3) {
-      publishingHousesApi.search({
-        term: value.trim(),
-        page: 1,
-        sortBy: "name",
-        sortOrder: "ASC",
-      });
+      try {
+        const searchResponse = await publishingHousesApi.search({
+          term: value.trim(),
+          page: 1,
+          sortBy: "name",
+          sortOrder: "ASC",
+        });
+        setParams({ ...params, page: 1 });
+      } catch (error) {
+        console.error('Error searching publishers:', error);
+      }
+    } else if (value.trim() === "") {
+      setParams({ ...params, page: 1 });
     }
   };
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
     const newParams = { ...params, page: 1 };
-    setParams(newParams);
 
     const hasFilters = Object.values(filters).some((value) => value && value !== "");
 
     if (hasFilters) {
-      publishingHousesApi.filter({
-        name: filters.name as string,
-        country: filters.country as string,
-        city: filters.city as string,
-        established: filters.established as number,
-        isActive: filters.isActive as boolean,
-        pagination: newParams,
-      });
+      try {
+        const filterResponse = await publishingHousesApi.advancedFilter(
+          {
+            name: filters.name as string,
+            country: filters.country as string,
+            foundedYear: filters.foundedYear as number,
+            websiteUrl: filters.websiteUrl as string,
+            isActive: filters.isActive as boolean,
+            createdAfter: filters.startDate as string,
+            createdBefore: filters.endDate as string,
+          },
+          newParams,
+        );
+        setParams(newParams);
+      } catch (error) {
+        console.error('Error in advanced search:', error);
+      }
+    } else {
+      setParams(newParams);
     }
   };
 
@@ -115,7 +132,7 @@ export default function PublishersPage() {
       }}
       csvDownloadEnabled
     >
-      <PublisherTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
+      <PublisherTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

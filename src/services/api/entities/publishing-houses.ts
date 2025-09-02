@@ -4,9 +4,8 @@ import {
   UpdatePublishingHouseDto,
   PublishingHouseResponseDto,
   PublishingHouseListResponseDto,
-  CreatePublishingHouseResponseDto,
-  UpdatePublishingHouseResponseDto,
-  DeletePublishingHouseResponseDto
+  CommonListParams,
+  CommonSearchParams
 } from '@/types/api/entities';
 
 const buildQueryString = (params: Record<string, unknown>): string => {
@@ -28,33 +27,28 @@ const buildUrl = (basePath: string, queryParams?: Record<string, unknown>): stri
   return queryString ? `${basePath}?${queryString}` : basePath;
 };
 
-export interface PublishingHouseListParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+export interface PublishingHouseListParams extends CommonListParams {}
 
-export interface PublishingHouseSearchParams {
-  term: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+export interface PublishingHouseSearchParams extends CommonSearchParams {}
 
-export interface PublishingHouseFiltersDto {
-  name?: string;
-  country?: string;
-  city?: string;
-  established?: number;
-  isActive?: boolean;
-  pagination?: {
+export interface PublishingHouseFilterParams {
+  filter: string;
+  pagination: {
     page: number;
     limit: number;
     sortBy?: string;
-    sortOrder?: 'ASC' | 'DESC';
+    sortOrder?: "ASC" | "DESC";
   };
+}
+
+export interface PublishingHouseAdvancedFilterDto {
+  name?: string;
+  country?: string;
+  foundedYear?: number;
+  websiteUrl?: string;
+  isActive?: boolean;
+  createdAfter?: string;
+  createdBefore?: string;
 }
 
 export interface PublishingHouseExportParams {
@@ -67,7 +61,7 @@ export interface PublishingHouseExportParams {
 
 export const publishingHousesApi = {
   // Crear nueva editorial (solo admin)
-  create: (data: CreatePublishingHouseDto): Promise<CreatePublishingHouseResponseDto> => {
+  create: (data: CreatePublishingHouseDto): Promise<PublishingHouseResponseDto> => {
     return apiClient.post('/publishing-houses', data);
   },
 
@@ -92,12 +86,12 @@ export const publishingHousesApi = {
   },
 
   // Actualizar editorial (solo admin)
-  update: (id: string, data: UpdatePublishingHouseDto): Promise<UpdatePublishingHouseResponseDto> => {
+  update: (id: string, data: UpdatePublishingHouseDto): Promise<PublishingHouseResponseDto> => {
     return apiClient.put(`/publishing-houses/${id}`, data);
   },
 
   // Eliminar editorial (solo admin)
-  delete: (id: string): Promise<DeletePublishingHouseResponseDto> => {
+  delete: (id: string): Promise<{ message: string }> => {
     return apiClient.delete(`/publishing-houses/${id}`);
   },
 
@@ -114,9 +108,23 @@ export const publishingHousesApi = {
     return apiClient.get(url);
   },
 
-  // Filtrar editoriales con criterios múltiples
-  filter: (filterData: PublishingHouseFiltersDto): Promise<PublishingHouseListResponseDto> => {
-    return apiClient.post('/publishing-houses/filter', filterData);
+  // Filtrar editoriales en tiempo real
+  filter: (params: PublishingHouseFilterParams): Promise<PublishingHouseListResponseDto> => {
+    return apiClient.post('/publishing-houses/filter', params);
+  },
+
+  // Filtro avanzado de editoriales
+  advancedFilter: (filterData: PublishingHouseAdvancedFilterDto, params?: PublishingHouseListParams): Promise<PublishingHouseListResponseDto> => {
+    const queryParams = {
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "DESC" as const,
+      ...params,
+    };
+
+    const url = buildUrl("/publishing-houses/advanced-filter", queryParams);
+    return apiClient.post(url, filterData);
   },
 
   // Exportar editoriales a CSV (solo admin)

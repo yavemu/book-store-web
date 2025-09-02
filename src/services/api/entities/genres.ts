@@ -1,5 +1,12 @@
 import { apiClient } from '../client';
-import { CreateBookGenreDto, UpdateBookGenreDto, BookGenreResponseDto, BookGenreListResponseDto } from "@/types/api/entities";
+import { 
+  CreateBookGenreDto, 
+  UpdateBookGenreDto, 
+  BookGenreResponseDto, 
+  BookGenreListResponseDto,
+  CommonListParams,
+  CommonSearchParams
+} from "@/types/api/entities";
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();
@@ -20,20 +27,9 @@ const buildUrl = (basePath: string, queryParams?: Record<string, unknown>): stri
   return queryString ? `${basePath}?${queryString}` : basePath;
 };
 
-export interface GenreListParams {
-  page?: number;
-  limit?: number;
-}
+export interface GenreListParams extends CommonListParams {}
 
-export interface GenreSearchParams {
-  term: string;
-  q: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-  offset?: number;
-}
+export interface GenreSearchParams extends CommonSearchParams {}
 
 export interface GenreFilterParams {
   filter: string;
@@ -49,14 +45,8 @@ export interface GenreAdvancedFilterDto {
   name?: string;
   description?: string;
   isActive?: boolean;
-  createdDateStart?: string;
-  createdDateEnd?: string;
-  pagination: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: 'ASC' | 'DESC';
-  };
+  createdAfter?: string;
+  createdBefore?: string;
 }
 
 export interface GenreExportParams {
@@ -75,7 +65,7 @@ export interface GenreAdvancedSearchParams extends GenreListParams {
 
 export const genresApi = {
   // Crear nuevo género (solo admin)
-  create: (data: CreateBookGenreDto): Promise<{ message: string; genre: BookGenreResponseDto }> => {
+  create: (data: CreateBookGenreDto): Promise<BookGenreResponseDto> => {
     return apiClient.post('/genres', data);
   },
 

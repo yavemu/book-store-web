@@ -7,7 +7,7 @@ import PageWrapper from "@/components/PageWrapper";
 import PageLoading from "@/components/ui/PageLoading";
 import { useApiRequest } from "@/hooks";
 import { usersApi, UserListParams } from "@/services/api/entities/users";
-import { PaginationMeta } from "@/types/table";
+import { ApiPaginationMeta } from "@/types/api/entities";
 import { useEffect, useState } from "react";
 
 export default function UsersPage() {
@@ -25,36 +25,49 @@ export default function UsersPage() {
 
   const handlePageChange = (page: number) => setParams({ ...params, page });
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = async (value: string) => {
     setSearchTerm(value);
 
     if (value?.trim().length >= 3) {
-      usersApi.filter({
-        filter: value.trim(),
-        pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
-      });
+      try {
+        const filterResponse = await usersApi.filter({
+          filter: value.trim(),
+          pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
+        });
+        setParams({ ...params, page: 1 });
+      } catch (error) {
+        console.error('Error filtering users:', error);
+      }
+    } else if (value.trim() === "") {
+      setParams({ ...params, page: 1 });
     }
   };
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
     const newParams = { ...params, page: 1 };
-    setParams(newParams);
 
     const hasFilters = Object.values(filters).some((value) => value && value !== "");
 
     if (hasFilters) {
-      usersApi.advancedFilter(
-        {
-          name: filters.name as string,
-          email: filters.email as string,
-          role: filters.role as "admin" | "user",
-          isActive: filters.isActive as boolean,
-          createdAfter: filters.startDate as string,
-          createdBefore: filters.endDate as string,
-        },
-        newParams,
-      );
+      try {
+        const filterResponse = await usersApi.advancedFilter(
+          {
+            name: filters.name as string,
+            email: filters.email as string,
+            role: filters.role as "admin" | "user",
+            isActive: filters.isActive as boolean,
+            createdAfter: filters.startDate as string,
+            createdBefore: filters.endDate as string,
+          },
+          newParams,
+        );
+        setParams(newParams);
+      } catch (error) {
+        console.error('Error in advanced search:', error);
+      }
+    } else {
+      setParams(newParams);
     }
   };
 
@@ -116,7 +129,7 @@ export default function UsersPage() {
       }}
       csvDownloadEnabled
     >
-      <UserTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
+      <UserTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

@@ -7,7 +7,7 @@ import PageWrapper from "@/components/PageWrapper";
 import PageLoading from "@/components/ui/PageLoading";
 import { useApiRequest } from "@/hooks";
 import { inventoryMovementsApi, InventoryMovementListParams } from "@/services/api/entities/inventory-movements";
-import { PaginationMeta } from "@/types/table";
+import { ApiPaginationMeta } from "@/types/api/entities";
 import { useEffect, useState } from "react";
 
 export default function InventoryMovementsPage() {
@@ -16,7 +16,7 @@ export default function InventoryMovementsPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const { loading, error, data, execute } = useApiRequest({
-    apiFunction: () => inventoryMovementsApi.getAll(params),
+    apiFunction: () => inventoryMovementsApi.list(params),
   });
 
   useEffect(() => {
@@ -25,31 +25,51 @@ export default function InventoryMovementsPage() {
 
   const handlePageChange = (page: number) => setParams({ ...params, page });
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = async (value: string) => {
     setSearchTerm(value);
 
     if (value?.trim().length >= 3) {
-      inventoryMovementsApi.search({
-        term: value.trim(),
-      });
+      try {
+        const searchResponse = await inventoryMovementsApi.search({
+          term: value.trim(),
+        });
+        setParams({ ...params, page: 1 });
+      } catch (error) {
+        console.error('Error searching inventory movements:', error);
+      }
+    } else if (value.trim() === "") {
+      setParams({ ...params, page: 1 });
     }
   };
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
     const newParams = { ...params, page: 1 };
-    setParams(newParams);
 
     const hasFilters = Object.values(filters).some((value) => value && value !== "");
 
     if (hasFilters) {
-      inventoryMovementsApi.search({
-        term: filters.term as string,
-        movementType: filters.movementType as 'IN' | 'OUT',
-        bookId: filters.bookId as string,
-        startDate: filters.startDate as string,
-        endDate: filters.endDate as string,
-      });
+      try {
+        const filterResponse = await inventoryMovementsApi.advancedFilter(
+          {
+            movementType: filters.movementType as 'PURCHASE' | 'SALE' | 'DISCOUNT' | 'INCREASE' | 'OUT_OF_STOCK' | 'ARCHIVED',
+            status: filters.status as 'PENDING' | 'COMPLETED' | 'ERROR',
+            entityType: filters.entityType as string,
+            userId: filters.userId as string,
+            userRole: filters.userRole as string,
+            dateFrom: filters.startDate as string,
+            dateTo: filters.endDate as string,
+            minPrice: filters.minPrice as number,
+            maxPrice: filters.maxPrice as number,
+          },
+          newParams,
+        );
+        setParams(newParams);
+      } catch (error) {
+        console.error('Error in advanced search:', error);
+      }
+    } else {
+      setParams(newParams);
     }
   };
 
@@ -111,7 +131,7 @@ export default function InventoryMovementsPage() {
       }}
       csvDownloadEnabled
     >
-      <InventoryMovementTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
+      <InventoryMovementTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

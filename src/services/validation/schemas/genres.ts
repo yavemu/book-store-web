@@ -3,11 +3,12 @@ import { z } from 'zod';
 export const createGenreSchema = z.object({
   name: z
     .string()
-    .min(1, 'El nombre del género es requerido')
+    .min(2, 'El nombre del género debe tener al menos 2 caracteres')
     .max(50, 'El nombre no puede exceder 50 caracteres')
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s&.-]+$/, 'El nombre contiene caracteres no válidos'),
   description: z
     .string()
+    .max(500, 'La descripción no puede exceder 500 caracteres')
     .optional()
     .or(z.literal('')),
 });
@@ -92,6 +93,16 @@ export const genreExportSchema = z.object({
   endDate: z.string().datetime('Fecha de fin inválida').optional(),
 });
 
+// Schema para respuesta de género
+export const genreResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const genreAdvancedSearchSchema = z.object({
   page: z.number().min(1).default(1).optional(),
   limit: z.number().min(1).max(100).default(10).optional(),
@@ -108,3 +119,4 @@ export type GenreFilterFormData = z.infer<typeof genreFilterSchema>;
 export type GenreAdvancedFilterFormData = z.infer<typeof genreAdvancedFilterSchema>;
 export type GenreExportFormData = z.infer<typeof genreExportSchema>;
 export type GenreAdvancedSearchParams = z.infer<typeof genreAdvancedSearchSchema>;
+export type GenreResponse = z.infer<typeof genreResponseSchema>;

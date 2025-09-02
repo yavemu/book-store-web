@@ -5,37 +5,41 @@ export const createBookSchema = z.object({
     .string()
     .min(1, 'El título es requerido')
     .max(255, 'El título no puede exceder 255 caracteres'),
-  isbn: z
+  isbnCode: z
     .string()
-    .min(1, 'El ISBN es requerido')
+    .min(10, 'El ISBN debe tener al menos 10 caracteres')
+    .max(13, 'El ISBN no puede exceder 13 caracteres')
     .regex(/^(?:\d{9}[\dX]|\d{13})$/, 'El ISBN debe tener formato válido (10 o 13 dígitos)'),
-  summary: z
-    .string()
-    .max(1000, 'El resumen no puede exceder 1000 caracteres')
-    .optional(),
   price: z
     .number()
     .min(0, 'El precio debe ser mayor o igual a 0')
     .max(999999.99, 'El precio no puede exceder 999,999.99'),
-  stock: z
+  stockQuantity: z
     .number()
-    .int('El stock debe ser un número entero')
-    .min(0, 'El stock debe ser mayor o igual a 0'),
+    .int('La cantidad en stock debe ser un número entero')
+    .min(0, 'La cantidad en stock debe ser mayor o igual a 0')
+    .default(0)
+    .optional(),
   isAvailable: z
     .boolean()
-    .default(true),
-  publishedDate: z
-    .string()
-    .datetime('La fecha debe tener formato válido')
+    .default(true)
     .optional(),
-  pages: z
+  publicationDate: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(Date.parse(val)), 'La fecha de publicación no es válida'),
+  pageCount: z
     .number()
     .int('El número de páginas debe ser un entero')
     .min(1, 'El libro debe tener al menos 1 página')
     .optional(),
-  language: z
+  summary: z
     .string()
-    .max(50, 'El idioma no puede exceder 50 caracteres')
+    .max(1000, 'El resumen no puede exceder 1000 caracteres')
+    .optional(),
+  coverImageUrl: z
+    .string()
+    .url('La URL de la imagen debe ser válida')
     .optional(),
   genreId: z
     .string()
@@ -43,9 +47,6 @@ export const createBookSchema = z.object({
   publisherId: z
     .string()
     .uuid('El ID de la editorial debe ser un UUID válido'),
-  authorIds: z
-    .array(z.string().uuid('Cada ID de autor debe ser un UUID válido'))
-    .min(1, 'Debe seleccionar al menos un autor')
 });
 
 export const updateBookSchema = createBookSchema.partial();
@@ -125,6 +126,39 @@ export const bookFilterSchema = z.object({
   }).optional(),
 });
 
+// Schema para respuesta de libro
+export const bookResponseSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  isbnCode: z.string(),
+  price: z.number(),
+  stockQuantity: z.number(),
+  isAvailable: z.boolean(),
+  publicationDate: z.string().optional(),
+  pageCount: z.number().optional(),
+  summary: z.string().optional(),
+  coverImageUrl: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  // Relaciones
+  genre: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.string().optional(),
+  }).optional(),
+  publisher: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    country: z.string().optional(),
+  }).optional(),
+  authors: z.array(z.object({
+    id: z.string().uuid(),
+    firstName: z.string(),
+    lastName: z.string(),
+    nationality: z.string().optional(),
+  })).optional(),
+});
+
 export const bookAdvancedSearchSchema = z.object({
   page: z.number().min(1).default(1).optional(),
   limit: z.number().min(1).max(100).default(10).optional(),
@@ -148,3 +182,4 @@ export type IsbnCheckFormData = z.infer<typeof isbnCheckSchema>;
 export type BookExportFormData = z.infer<typeof bookExportSchema>;
 export type BookCoverUploadFormData = z.infer<typeof bookCoverUploadSchema>;
 export type BookAdvancedSearchParams = z.infer<typeof bookAdvancedSearchSchema>;
+export type BookResponse = z.infer<typeof bookResponseSchema>;

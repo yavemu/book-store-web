@@ -1,8 +1,8 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { PublishingHouseResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
+import { PublishingHouseResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function PublisherTable({
   data,
@@ -11,29 +11,24 @@ export default function PublisherTable({
   onPageChange,
 }: {
   data: PublishingHouseResponseDto[];
-  meta?: PaginationMeta;
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
   const columns: TableColumn[] = [
     { key: "name", label: "Nombre" },
     {
-      key: "address",
-      label: "Dirección",
+      key: "country",
+      label: "País",
       render: (value) => value || "-",
     },
     {
-      key: "phone",
-      label: "Teléfono",
+      key: "foundedYear",
+      label: "Año Fundación",
       render: (value) => value || "-",
     },
     {
-      key: "email",
-      label: "Email",
-      render: (value) => value || "-",
-    },
-    {
-      key: "website",
+      key: "websiteUrl",
       label: "Sitio Web",
       render: (value) => value ? (
         <a 
@@ -45,6 +40,11 @@ export default function PublisherTable({
           {value}
         </a>
       ) : "-",
+    },
+    {
+      key: "description",
+      label: "Descripción",
+      render: (value) => value ? (value.length > 50 ? value.substring(0, 50) + "..." : value) : "-",
     },
     {
       key: "isActive",
@@ -62,6 +62,11 @@ export default function PublisherTable({
     {
       key: "createdAt",
       label: "Fecha Creación",
+      render: (value) => new Date(value).toLocaleString(),
+    },
+    {
+      key: "updatedAt",
+      label: "Última Actualización",
       render: (value) => new Date(value).toLocaleString(),
     },
   ];

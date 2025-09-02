@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createAuthorSchema = z.object({
-  // CAMPOS OBLIGATORIOS
+  // CAMPOS OBLIGATORIOS según API
   firstName: z
     .string()
     .min(1, "El nombre es requerido")
@@ -13,7 +13,7 @@ export const createAuthorSchema = z.object({
     .max(50, "Los apellidos no pueden exceder 50 caracteres")
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "Los apellidos solo pueden contener letras y espacios"),
   
-  // CAMPOS OPCIONALES
+  // CAMPOS OPCIONALES según API
   nationality: z
     .string()
     .max(50, "La nacionalidad no puede exceder 50 caracteres")
@@ -150,6 +150,18 @@ export const bookAuthorAssignmentSchema = z.object({
     .refine((val) => !val || val.length <= 100, 'El rol no puede exceder 100 caracteres'),
 });
 
+// Schema para respuesta de autor
+export const authorResponseSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string(),
+  lastName: z.string(),
+  nationality: z.string().optional(),
+  birthDate: z.string().optional(),
+  biography: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const authorAdvancedSearchSchema = z.object({
   page: z.number().min(1).default(1).optional(),
   limit: z.number().min(1).max(100).default(10).optional(),
@@ -171,3 +183,4 @@ export type UpdateBookAuthorAssignmentFormData = z.infer<typeof updateBookAuthor
 export type AssignmentFiltersFormData = z.infer<typeof assignmentFiltersSchema>;
 export type BookAuthorAssignmentFormData = z.infer<typeof bookAuthorAssignmentSchema>;
 export type AuthorAdvancedSearchParams = z.infer<typeof authorAdvancedSearchSchema>;
+export type AuthorResponse = z.infer<typeof authorResponseSchema>;

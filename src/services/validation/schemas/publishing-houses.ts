@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const createPublishingHouseSchema = z.object({
   name: z
     .string()
-    .min(1, 'El nombre de la editorial es requerido')
+    .min(2, 'El nombre de la editorial debe tener al menos 2 caracteres')
     .max(100, 'El nombre no puede exceder 100 caracteres')
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s&.-]+$/, 'El nombre contiene caracteres no válidos'),
   country: z
@@ -77,6 +77,19 @@ export const publishingHouseFiltersSchema = z.object({
   }).optional(),
 });
 
+// Schema para respuesta de casa editorial
+export const publishingHouseResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  country: z.string().optional(),
+  foundedYear: z.number().optional(),
+  websiteUrl: z.string().optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 // Schema para exportar casas editoriales a CSV
 export const publishingHouseExportSchema = z.object({
   name: z.string().optional(),
@@ -91,3 +104,4 @@ export type UpdatePublishingHouseFormData = z.infer<typeof updatePublishingHouse
 export type PublishingHouseSearchFormData = z.infer<typeof publishingHouseSearchSchema>;
 export type PublishingHouseFiltersFormData = z.infer<typeof publishingHouseFiltersSchema>;
 export type PublishingHouseExportFormData = z.infer<typeof publishingHouseExportSchema>;
+export type PublishingHouseResponse = z.infer<typeof publishingHouseResponseSchema>;

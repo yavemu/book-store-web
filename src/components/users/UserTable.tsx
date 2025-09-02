@@ -1,8 +1,8 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { UserResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
+import { UserResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function UserTable({
   data,
@@ -11,7 +11,7 @@ export default function UserTable({
   onPageChange,
 }: {
   data: UserResponseDto[];
-  meta?: PaginationMeta;
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
@@ -22,19 +22,6 @@ export default function UserTable({
       key: "role",
       label: "Rol",
       render: (value) => value?.name || "-",
-    },
-    {
-      key: "isActive",
-      label: "Estado",
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          value 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Activo' : 'Inactivo'}
-        </span>
-      ),
     },
     {
       key: "createdAt",

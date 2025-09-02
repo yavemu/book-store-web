@@ -1,8 +1,8 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { BookAuthorResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
+import { BookAuthorResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function AuthorTable({
   data,
@@ -11,14 +11,13 @@ export default function AuthorTable({
   onPageChange,
 }: {
   data: BookAuthorResponseDto[];
-  meta?: PaginationMeta;
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
   const columns: TableColumn[] = [
     { key: "firstName", label: "Nombre" },
     { key: "lastName", label: "Apellido" },
-    { key: "fullName", label: "Nombre Completo" },
     {
       key: "nationality",
       label: "Nacionalidad",
@@ -30,26 +29,18 @@ export default function AuthorTable({
       render: (value) => value ? new Date(value).toLocaleDateString() : "-",
     },
     {
-      key: "deathDate",
-      label: "Fecha Fallecimiento",
-      render: (value) => value ? new Date(value).toLocaleDateString() : "-",
-    },
-    {
-      key: "isActive",
-      label: "Estado",
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          value 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Activo' : 'Inactivo'}
-        </span>
-      ),
+      key: "biography",
+      label: "Biografía",
+      render: (value) => value ? (value.length > 50 ? value.substring(0, 50) + "..." : value) : "-",
     },
     {
       key: "createdAt",
       label: "Fecha Creación",
+      render: (value) => new Date(value).toLocaleString(),
+    },
+    {
+      key: "updatedAt",
+      label: "Última Actualización",
       render: (value) => new Date(value).toLocaleString(),
     },
   ];

@@ -7,7 +7,7 @@ import PageWrapper from "@/components/PageWrapper";
 import PageLoading from "@/components/ui/PageLoading";
 import { useApiRequest } from "@/hooks";
 import { genresApi, GenreListParams } from "@/services/api/entities/genres";
-import { PaginationMeta } from "@/types/table";
+import { ApiPaginationMeta } from "@/types/api/entities";
 import { useEffect, useState } from "react";
 
 export default function GenresPage() {
@@ -25,36 +25,48 @@ export default function GenresPage() {
 
   const handlePageChange = (page: number) => setParams({ ...params, page });
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = async (value: string) => {
     setSearchTerm(value);
 
     if (value?.trim().length >= 3) {
-      genresApi.filter({
-        filter: value.trim(),
-        pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
-      });
+      try {
+        const filterResponse = await genresApi.filter({
+          filter: value.trim(),
+          pagination: { ...params, page: 1, sortBy: "createdAt", sortOrder: "DESC" },
+        });
+        setParams({ ...params, page: 1 });
+      } catch (error) {
+        console.error('Error filtering genres:', error);
+      }
+    } else if (value.trim() === "") {
+      setParams({ ...params, page: 1 });
     }
   };
 
-  const handleAdvancedSearch = (filters: SearchFilters) => {
+  const handleAdvancedSearch = async (filters: SearchFilters) => {
     setSearchFilters(filters);
     const newParams = { ...params, page: 1 };
-    setParams(newParams);
 
     const hasFilters = Object.values(filters).some((value) => value && value !== "");
 
     if (hasFilters) {
-      genresApi.advancedFilter(
-        {
-          name: filters.name as string,
-          description: filters.description as string,
-          isActive: filters.isActive as boolean,
-          createdDateStart: filters.startDate as string,
-          createdDateEnd: filters.endDate as string,
-          pagination: newParams,
-        },
-        newParams,
-      );
+      try {
+        const filterResponse = await genresApi.advancedFilter(
+          {
+            name: filters.name as string,
+            description: filters.description as string,
+            isActive: filters.isActive as boolean,
+            createdAfter: filters.startDate as string,
+            createdBefore: filters.endDate as string,
+          },
+          newParams,
+        );
+        setParams(newParams);
+      } catch (error) {
+        console.error('Error in advanced search:', error);
+      }
+    } else {
+      setParams(newParams);
     }
   };
 
@@ -116,7 +128,7 @@ export default function GenresPage() {
       }}
       csvDownloadEnabled
     >
-      <GenreTable data={data?.data || []} meta={data?.meta as PaginationMeta} loading={loading} onPageChange={handlePageChange} />
+      <GenreTable data={data?.data || []} meta={data?.meta as ApiPaginationMeta} loading={loading} onPageChange={handlePageChange} />
     </PageWrapper>
   );
 }

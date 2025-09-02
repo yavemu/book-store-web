@@ -1,8 +1,8 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { BookResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
+import { BookResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function BookTable({
   data,
@@ -11,21 +11,24 @@ export default function BookTable({
   onPageChange,
 }: {
   data: BookResponseDto[];
-  meta?: PaginationMeta;
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
   const columns: TableColumn[] = [
     { key: "title", label: "Título" },
     {
-      key: "isbn",
+      key: "isbnCode",
       label: "ISBN",
       render: (value) => value || "-",
     },
     {
-      key: "author",
-      label: "Autor",
-      render: (value) => value?.fullName || "-",
+      key: "authors",
+      label: "Autores",
+      render: (value) => {
+        if (!value || !Array.isArray(value) || value.length === 0) return "-";
+        return value.map(author => `${author.firstName} ${author.lastName}`).join(", ");
+      },
     },
     {
       key: "genre",
@@ -33,7 +36,7 @@ export default function BookTable({
       render: (value) => value?.name || "-",
     },
     {
-      key: "publishingHouse",
+      key: "publisher",
       label: "Editorial",
       render: (value) => value?.name || "-",
     },
@@ -48,22 +51,22 @@ export default function BookTable({
       render: (value) => value?.toString() || "0",
     },
     {
-      key: "publicationYear",
-      label: "Año Publicación",
-      render: (value) => value || "-",
-    },
-    {
-      key: "isActive",
-      label: "Estado",
+      key: "isAvailable",
+      label: "Disponible",
       render: (value) => (
         <span className={`px-2 py-1 rounded-full text-xs ${
           value 
             ? 'bg-green-100 text-green-800' 
             : 'bg-red-100 text-red-800'
         }`}>
-          {value ? 'Activo' : 'Inactivo'}
+          {value ? 'Sí' : 'No'}
         </span>
       ),
+    },
+    {
+      key: "publicationDate",
+      label: "Fecha Publicación",
+      render: (value) => value ? new Date(value).toLocaleDateString() : "-",
     },
     {
       key: "createdAt",

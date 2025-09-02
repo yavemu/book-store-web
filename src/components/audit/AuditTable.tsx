@@ -2,6 +2,7 @@
 
 import DynamicTable from "@/components/DynamicTable";
 import { PaginationMeta, TableColumn } from "@/types/table";
+import { AuditLogResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function AuditTable({
   data,
@@ -9,18 +10,20 @@ export default function AuditTable({
   loading,
   onPageChange,
 }: {
-  data: any[];
-  meta?: PaginationMeta;
+  data: AuditLogResponseDto[];
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
   const columns: TableColumn[] = [
     { key: "action", label: "Acción" },
+    { key: "performedBy", label: "Usuario" },
     { key: "entityType", label: "Tipo Entidad" },
+    { key: "entityId", label: "ID Entidad" },
     {
       key: "details",
       label: "Detalles",
-      render: (value) => (value ? JSON.stringify(value).substring(0, 50) + "..." : "-"),
+      render: (value) => (value ? String(value).substring(0, 50) + "..." : "-"),
     },
     {
       key: "createdAt",

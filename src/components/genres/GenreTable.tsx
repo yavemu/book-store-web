@@ -1,8 +1,8 @@
 "use client";
 
 import DynamicTable from "@/components/DynamicTable";
-import { PaginationMeta, TableColumn } from "@/types/table";
-import { BookGenreResponseDto } from "@/types/api/entities";
+import { TableColumn } from "@/types/table";
+import { BookGenreResponseDto, ApiPaginationMeta } from "@/types/api/entities";
 
 export default function GenreTable({
   data,
@@ -11,7 +11,7 @@ export default function GenreTable({
   onPageChange,
 }: {
   data: BookGenreResponseDto[];
-  meta?: PaginationMeta;
+  meta?: ApiPaginationMeta;
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {

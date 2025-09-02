@@ -1,26 +1,10 @@
 import { apiClient } from '../client';
-
-export interface AuditLog {
-  id: string;
-  performedBy: string; // Updated to match API response
-  entityId: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
-  details: string;
-  entityType: string;
-  createdAt: string;
-}
-
-export interface AuditLogListResponse {
-  data: AuditLog[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
+import {
+  AuditLogResponseDto,
+  AuditLogListResponseDto,
+  CommonListParams,
+  CommonSearchParams,
+} from "@/types/api/entities";
 
 const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();
@@ -41,31 +25,20 @@ const buildUrl = (basePath: string, queryParams?: Record<string, unknown>): stri
   return queryString ? `${basePath}?${queryString}` : basePath;
 };
 
-export interface AuditListParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+export interface AuditListParams extends CommonListParams {}
 
-export interface AuditSearchParams {
-  term: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+export interface AuditSearchParams extends CommonSearchParams {}
 
 export interface AuditAdvancedSearchParams extends AuditListParams {
-  action?: string;
+  action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'READ' | 'LOGIN' | 'REGISTER';
   entityType?: string;
   entityId?: string;
-  userId?: string;
+  performedBy?: string;
   startDate?: string;
   endDate?: string;
 }
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'REGISTER';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER';
 
 export interface AuditFilterParams {
   filter: string;
@@ -78,24 +51,19 @@ export interface AuditFilterParams {
 }
 
 export interface AuditAdvancedFilterDto {
-  userId?: string;
+  performedBy?: string;
   entityType?: string;
-  action?: string;
+  action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER';
+  entityId?: string;
   startDate?: string;
   endDate?: string;
-  pagination?: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: 'ASC' | 'DESC';
-  };
 }
 
 export interface AuditExportParams {
   performedBy?: string;
   entityId?: string;
   entityType?: string;
-  action?: 'CREATE' | 'UPDATE' | 'DELETE';
+  action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER';
   details?: string;
   startDate?: string;
   endDate?: string;
@@ -103,7 +71,7 @@ export interface AuditExportParams {
 
 export const auditApi = {
   // Obtener lista paginada de todos los registros de auditoría (solo admin)
-  list: (params?: AuditListParams): Promise<AuditLogListResponse> => {
+  list: (params?: AuditListParams): Promise<AuditLogListResponseDto> => {
     const defaultParams = {
       page: 1,
       limit: 10,
@@ -118,12 +86,12 @@ export const auditApi = {
   },
 
   // Obtener registro de auditoría por ID (solo admin)
-  getById: (id: string): Promise<AuditLog> => {
+  getById: (id: string): Promise<AuditLogResponseDto> => {
     return apiClient.get(`/audit/${id}`);
   },
 
   // Buscar registros de auditoría por término en detalles (solo admin)
-  search: (params: AuditSearchParams): Promise<AuditLogListResponse> => {
+  search: (params: AuditSearchParams): Promise<AuditLogListResponseDto> => {
     const defaultParams = {
       page: 1,
       limit: 10,
@@ -138,18 +106,17 @@ export const auditApi = {
   },
 
   // Filtrar registros de auditoría en tiempo real (solo admin)
-  filter: (params: AuditFilterParams): Promise<AuditLogListResponse> => {
+  filter: (params: AuditFilterParams): Promise<AuditLogListResponseDto> => {
     return apiClient.post('/audit/filter', params);
   },
 
   // Filtro avanzado de registros de auditoría (solo admin)
-  advancedFilter: (filterData: AuditAdvancedFilterDto, params?: AuditListParams): Promise<AuditLogListResponse> => {
+  advancedFilter: (filterData: AuditAdvancedFilterDto, params?: AuditListParams): Promise<AuditLogListResponseDto> => {
     const queryParams = {
       page: 1,
       limit: 10,
       sortBy: 'createdAt',
       sortOrder: 'DESC' as const,
-      offset: undefined,
       ...params,
     };
 

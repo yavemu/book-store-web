@@ -3,14 +3,14 @@ import { z } from 'zod';
 export const createUserSchema = z.object({
   username: z
     .string()
-    .min(1, 'El nombre de usuario es requerido')
+    .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
     .max(50, 'El nombre de usuario no puede exceder 50 caracteres')
     .regex(/^[a-zA-Z0-9_-]+$/, 'El nombre de usuario solo puede contener letras, números, guiones y guiones bajos'),
   email: z
     .string()
     .min(1, 'El email es requerido')
     .email('El formato del email no es válido')
-    .max(100, 'El email no puede exceder 100 caracteres'),
+    .max(255, 'El email no puede exceder 255 caracteres'),
   password: z
     .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
@@ -132,6 +132,18 @@ export const userExportSchema = z.object({
   updatedDateTo: z.string().optional(),
 });
 
+// Schema para respuesta de usuario
+export const userResponseSchema = z.object({
+  id: z.string().uuid(),
+  username: z.string(),
+  email: z.string().email(),
+  role: z.object({
+    name: z.string(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const userAdvancedSearchSchema = z.object({
   page: z.number().min(1).default(1).optional(),
   limit: z.number().min(1).max(100).default(10).optional(),
@@ -151,3 +163,4 @@ export type UserFilterFormData = z.infer<typeof userFilterSchema>;
 export type UserAdvancedFilterFormData = z.infer<typeof userAdvancedFilterSchema>;
 export type UserExportFormData = z.infer<typeof userExportSchema>;
 export type UserAdvancedSearchParams = z.infer<typeof userAdvancedSearchSchema>;
+export type UserResponse = z.infer<typeof userResponseSchema>;
