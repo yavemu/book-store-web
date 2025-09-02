@@ -1,6 +1,6 @@
 'use client';
 
-import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { usersApi } from '@/services/api/entities/users';
 
@@ -137,5 +137,5 @@ export default function UsersPage() {
     form: () => import('@/components/users/UserForm').then(mod => mod.default)
   };
 
-  return <UnifiedDashboardPage {...unifiedProps} customComponents={customComponents} />;
+  return <InlineDashboardPage {...unifiedProps} customComponents={customComponents} />;
 }

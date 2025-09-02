@@ -25,5 +25,5 @@ export * from "./usePaginationMeta";
 // Legacy hooks (deprecated but maintained for compatibility)
 export * from "./useSearchApi";
 export * from "./useQuickSearch";
-export * from "./useInventoryMovements"; // Legacy version
+// export * from "./useInventoryMovements"; // Legacy version - DISABLED due to conflict with inventory/useInventoryMovements
 export * from "./useAdvancedSearch";

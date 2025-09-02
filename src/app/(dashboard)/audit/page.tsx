@@ -1,6 +1,6 @@
 'use client';
 
-import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { auditApi } from '@/services/api/entities/audit';
 
@@ -110,5 +110,5 @@ export default function AuditPage() {
     customHandlers
   );
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  return <InlineDashboardPage {...unifiedProps} />;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { inventoryMovementsApi } from '@/services/api/entities/inventory-movements';
 
@@ -118,5 +118,5 @@ export default function InventoryMovementsPage() {
     customHandlers
   );
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  return <InlineDashboardPage {...unifiedProps} />;
 }

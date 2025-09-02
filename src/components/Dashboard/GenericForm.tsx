@@ -24,6 +24,7 @@ interface GenericFormProps {
   fields: FormField[];
   isEditing?: boolean;
   loading?: boolean;
+  inline?: boolean; // New prop to render without modal
 }
 
 export default function GenericForm({
@@ -34,7 +35,8 @@ export default function GenericForm({
   entityName,
   fields,
   isEditing = false,
-  loading = false
+  loading = false,
+  inline = false
 }: GenericFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [fileData, setFileData] = useState<Record<string, File | null>>({});
@@ -55,6 +57,7 @@ export default function GenericForm({
           }
           return acc;
         }, {} as Record<string, any>);
+        
         setFormData(initialData);
       } else {
         // Clear form for creation
@@ -62,6 +65,7 @@ export default function GenericForm({
           acc[field.key] = field.type === 'boolean' ? false : '';
           return acc;
         }, {} as Record<string, any>);
+        
         setFormData(initialData);
       }
       setErrors({});
@@ -70,10 +74,17 @@ export default function GenericForm({
   }, [isOpen, isEditing, entity, fields]);
 
   const handleInputChange = useCallback((key: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setFormData(prev => {
+      // Only update if value actually changed
+      if (prev[key] === value) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [key]: value
+      };
+    });
     
     // Clear error for this field
     setErrors(prev => {
@@ -231,23 +242,24 @@ export default function GenericForm({
     }
   }, [formData, errors, handleInputChange, handleFileChange]);
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`${isEditing ? 'Editar' : 'Crear'} ${entityName}`}
-      size="lg"
-    >
-      <form onSubmit={handleSubmit} className="generic-form">
-        {errors._general && (
-          <div className="form-error-general">
-            {errors._general}
-          </div>
-        )}
-        
-        <div className="form-fields">
-          {fields.map(field => (
-            <div key={field.key} className="form-field">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="generic-form">
+      {errors._general && (
+        <div className="form-error-general">
+          {errors._general}
+        </div>
+      )}
+      
+      <div className={inline ? "form-fields form-fields-inline" : "form-fields"}>
+        {fields.map(field => {
+          // Determine if field should span full width
+          const isFullWidth = field.type === 'textarea' || field.type === 'file';
+          const fieldClass = inline 
+            ? `form-field form-field-inline ${isFullWidth ? 'full-width' : ''}`.trim()
+            : "form-field";
+            
+          return (
+            <div key={field.key} className={fieldClass}>
               <label className="form-label">
                 {field.label}
                 {field.required && <span className="required">*</span>}
@@ -261,29 +273,44 @@ export default function GenericForm({
                 </span>
               )}
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+      
+      <div className="form-actions">
+        <Button
+          type="button"
+          onClick={onClose}
+          variant="secondary"
+          disabled={saving || loading}
+        >
+          Cancelar
+        </Button>
         
-        <div className="form-actions">
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="secondary"
-            disabled={saving || loading}
-          >
-            Cancelar
-          </Button>
-          
-          <Button
-            type="submit"
-            variant="primary"
-            loading={saving || loading}
-            disabled={saving || loading}
-          >
-            {saving ? 'Guardando...' : isEditing ? 'Actualizar' : 'Crear'}
-          </Button>
-        </div>
-      </form>
+        <Button
+          type="submit"
+          variant="primary"
+          loading={saving || loading}
+          disabled={saving || loading}
+        >
+          {saving ? 'Guardando...' : isEditing ? 'Actualizar' : 'Crear'}
+        </Button>
+      </div>
+    </form>
+  );
+
+  if (inline) {
+    return formContent;
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`${isEditing ? 'Editar' : 'Crear'} ${entityName}`}
+      size="lg"
+    >
+      {formContent}
     </Modal>
   );
 }

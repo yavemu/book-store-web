@@ -1,6 +1,6 @@
 'use client';
 
-import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { genresApi } from '@/services/api/entities/genres';
 
@@ -111,5 +111,5 @@ export default function GenresPage() {
     customHandlers
   );
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  return <InlineDashboardPage {...unifiedProps} />;
 }

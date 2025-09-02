@@ -4177,3 +4177,73 @@ label {
     justify-content: center;
   }
 }
+
+/* ================================
+   INLINE FORM STYLES - 2 COLUMNS
+   ================================ */
+
+/* Container for inline forms with 2-column layout */
+.form-fields-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Individual form field in inline mode */
+.form-field-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Full width fields that should span both columns */
+.form-field-inline.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Responsive design for inline forms */
+@media (max-width: 768px) {
+  .form-fields-inline {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-field-inline.full-width {
+    grid-column: 1;
+  }
+}
+
+/* Compact form styling for inline mode */
+.generic-form {
+  max-width: none;
+}
+
+.form-field-inline .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.form-field-inline .form-input,
+.form-field-inline .form-textarea,
+.form-field-inline .form-select {
+  padding: 0.625rem;
+  font-size: 0.875rem;
+}
+
+.form-field-inline .form-error {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Textarea fields should span full width */
+.form-field-inline:has(.form-textarea) {
+  grid-column: 1 / -1;
+}
+
+/* File input fields should span full width */
+.form-field-inline:has(.form-file) {
+  grid-column: 1 / -1;
+}

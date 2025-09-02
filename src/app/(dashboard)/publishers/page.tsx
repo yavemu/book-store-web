@@ -1,6 +1,6 @@
 'use client';
 
-import UnifiedDashboardPage from '@/components/Dashboard/UnifiedDashboardPage';
+import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { publishingHousesApi } from '@/services/api/entities/publishing-houses';
 
@@ -129,5 +129,5 @@ export default function PublishersPage() {
     customHandlers
   );
 
-  return <UnifiedDashboardPage {...unifiedProps} />;
+  return <InlineDashboardPage {...unifiedProps} />;
 }

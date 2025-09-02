@@ -1,7 +1,7 @@
 "use client";
 
 import { createUnifiedDashboardProps } from "@/adapters/dashboardConfigAdapter";
-import UnifiedDashboardPage from "@/components/Dashboard/UnifiedDashboardPage";
+import InlineDashboardPage from "@/components/Dashboard/InlineDashboardPage";
 import { booksApi } from "@/services/api/entities/books";
 
 const booksConfig = {
@@ -201,5 +201,5 @@ export default function BooksPage() {
     form: () => import('@/components/books/BookForm').then(mod => mod.default)
   };
 
-  return <UnifiedDashboardPage {...unifiedProps} customComponents={customComponents} />;
+  return <InlineDashboardPage {...unifiedProps} customComponents={customComponents} />;
 }
