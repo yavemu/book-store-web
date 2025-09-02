@@ -212,6 +212,6 @@ export const booksApi = {
   uploadCover: (bookId: string, file: File): Promise<{ coverImageUrl: string }> => {
     const formData = new FormData();
     formData.append("cover", file);
-    return apiClient.post(`/book-catalog/${bookId}/cover`, formData);
+    return apiClient.post(`/book-catalog/${bookId}/upload-cover`, formData);
   },
 };

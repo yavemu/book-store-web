@@ -147,8 +147,11 @@ export default function GenericForm({
     setSaving(true);
     
     try {
-      // Combine form data and file data
-      const submitData = { ...formData, files: fileData };
+      // Only include files if there are file fields in the form
+      const hasFileFields = fields.some(field => field.type === 'file');
+      const submitData = hasFileFields 
+        ? { ...formData, files: fileData }
+        : formData;
       await onSave(submitData);
       onClose();
     } catch (error: any) {
