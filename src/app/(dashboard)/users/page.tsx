@@ -3,6 +3,7 @@
 import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { usersApi } from '@/services/api/entities/users';
+import type { UserResponseDto } from '@/types/api/entities';
 
 const usersConfig = {
   entityName: 'Usuario',
@@ -31,27 +32,26 @@ const usersConfig = {
       width: '250px'
     },
     {
-      key: 'role',
+      key: 'role.name',
       label: 'Rol',
       sortable: true,
       width: '120px',
       align: 'center' as const,
-      render: (value: string) => value === 'admin' ? 'Administrador' : 
-                                      value === 'librarian' ? 'Bibliotecario' : 'Usuario'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      sortable: true,
-      width: '100px',
-      align: 'center' as const,
-      render: (value: boolean) => value ? 'Activo' : 'Inactivo'
+      render: (value: string) => value === 'admin' ? 'Administrador' : 'Usuario'
     },
     {
       key: 'createdAt',
-      label: 'Registro',
+      label: 'Fecha de Registro',
       sortable: true,
-      width: '120px',
+      width: '150px',
+      align: 'center' as const,
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+    },
+    {
+      key: 'updatedAt',
+      label: 'Última Actualización',
+      sortable: true,
+      width: '150px',
       align: 'center' as const,
       render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     }
@@ -111,10 +111,10 @@ const usersConfig = {
 };
 
 const customHandlers = {
-  onAfterCreate: (user: any) => {
+  onAfterCreate: (user: UserResponseDto) => {
     console.log('✅ Usuario creado exitosamente:', user.email);
   },
-  onAfterUpdate: (user: any) => {
+  onAfterUpdate: (user: UserResponseDto) => {
     console.log('✅ Usuario actualizado:', user.email);
   },
   onAfterDelete: (userId: string) => {

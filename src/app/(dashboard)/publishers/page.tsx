@@ -3,6 +3,7 @@
 import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { publishingHousesApi } from '@/services/api/entities/publishing-houses';
+import type { PublishingHouseResponseDto } from '@/types/api/entities';
 
 const publishersConfig = {
   entityName: 'Editorial',

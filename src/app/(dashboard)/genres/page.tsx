@@ -3,6 +3,7 @@
 import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { genresApi } from '@/services/api/entities/genres';
+import type { BookGenreResponseDto } from '@/types/api/entities';
 
 const genresConfig = {
   entityName: 'Género',
@@ -32,20 +33,20 @@ const genresConfig = {
       render: (value: string) => value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '-'
     },
     {
-      key: 'booksCount',
-      label: 'Libros',
-      sortable: false,
-      width: '80px',
+      key: 'createdAt',
+      label: 'Fecha de Creación',
+      sortable: true,
+      width: '150px',
       align: 'center' as const,
-      render: (value: number) => String(value || 0)
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     },
     {
-      key: 'isActive',
-      label: 'Estado',
+      key: 'updatedAt',
+      label: 'Última Actualización',
       sortable: true,
-      width: '100px',
+      width: '150px',
       align: 'center' as const,
-      render: (value: boolean) => value ? 'Activo' : 'Inactivo'
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     }
   ],
   searchFields: [
@@ -60,15 +61,6 @@ const genresConfig = {
       label: 'Descripción',
       type: 'text' as const,
       placeholder: 'Ej: Novelas de ficción'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      options: [
-        { value: true, label: 'Activo' },
-        { value: false, label: 'Inactivo' }
-      ]
     }
   ],
   formFields: [
@@ -90,10 +82,10 @@ const genresConfig = {
 };
 
 const customHandlers = {
-  onAfterCreate: (genre: any) => {
+  onAfterCreate: (genre: BookGenreResponseDto) => {
     console.log('✅ Género creado exitosamente:', genre.name);
   },
-  onAfterUpdate: (genre: any) => {
+  onAfterUpdate: (genre: BookGenreResponseDto) => {
     console.log('✅ Género actualizado:', genre.name);
   },
   onAfterDelete: (genreId: string) => {

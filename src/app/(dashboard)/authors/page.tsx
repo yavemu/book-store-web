@@ -3,6 +3,7 @@
 import InlineDashboardPage from '@/components/Dashboard/InlineDashboardPage';
 import { createUnifiedDashboardProps } from '@/adapters/dashboardConfigAdapter';
 import { authorsApi } from '@/services/api/entities/authors';
+import type { BookAuthorResponseDto } from '@/types/api/entities';
 
 const authorsConfig = {
   entityName: 'Autor',
@@ -19,26 +20,16 @@ const authorsConfig = {
   },
   columns: [
     {
-      key: 'name',
+      key: 'firstName',
       label: 'Nombre',
       sortable: true,
-      width: '250px',
-      render: (value: string, record: any) => {
-        // Si viene como nombre completo, lo usamos directamente
-        // Si vienen firstName y lastName separados, los combinamos
-        let fullName = value;
-        if (!fullName) {
-          fullName = record?.firstName && record?.lastName 
-            ? `${record.firstName} ${record.lastName}` 
-            : record?.firstName || record?.lastName || '-';
-        }
-        
-        // Truncar texto largo y mostrar tooltip
-        if (fullName && fullName.length > 30) {
-          return `${fullName.substring(0, 30)}...`;
-        }
-        return fullName || '-';
-      }
+      width: '150px'
+    },
+    {
+      key: 'lastName',
+      label: 'Apellido',
+      sortable: true,
+      width: '150px'
     },
     {
       key: 'nationality',
@@ -53,60 +44,51 @@ const authorsConfig = {
       width: '150px',
       render: (value: string) => {
         if (!value) return '-';
-        // Manejar diferentes formatos de fecha
         const date = new Date(value);
         return isNaN(date.getTime()) ? value : date.toLocaleDateString();
       }
     },
     {
-      key: 'booksCount',
-      label: 'Libros',
-      sortable: false,
-      width: '80px',
+      key: 'createdAt',
+      label: 'Fecha de Registro',
+      sortable: true,
+      width: '150px',
       align: 'center' as const,
-      render: (value: number) => String(value || 0)
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     },
     {
-      key: 'isActive',
-      label: 'Estado',
+      key: 'updatedAt',
+      label: 'Última Actualización',
       sortable: true,
-      width: '100px',
+      width: '150px',
       align: 'center' as const,
-      render: (value: boolean) => value ? 'Activo' : 'Inactivo'
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     }
   ],
   searchFields: [
     {
-      key: 'name',
+      key: 'firstName',
       label: 'Nombre',
       type: 'text' as const,
-      placeholder: 'Ej: Gabriel García Márquez (mín. 3 caracteres)'
+      placeholder: 'Ej: Gabriel (mín. 3 caracteres)'
+    },
+    {
+      key: 'lastName',
+      label: 'Apellido',
+      type: 'text' as const,
+      placeholder: 'Ej: García Márquez (mín. 3 caracteres)'
     },
     {
       key: 'nationality',
       label: 'Nacionalidad',
       type: 'text' as const,
-      placeholder: 'Ej: Colombiana (mín. 3 caracteres)'
+      placeholder: 'Ej: Colombiana'
     },
     {
-      key: 'birthDate',
-      label: 'Fecha de Nacimiento',
-      type: 'date' as const
-    },
-    {
-      key: 'booksCount',
-      label: 'Libros',
+      key: 'birthYear',
+      label: 'Año de Nacimiento',
       type: 'number' as const,
-      placeholder: 'Ej: 5'
-    },
-    {
-      key: 'isActive',
-      label: 'Estado',
-      type: 'boolean' as const,
-      options: [
-        { value: true, label: 'Activo' },
-        { value: false, label: 'Inactivo' }
-      ]
+      placeholder: 'Ej: 1927'
     }
   ],
   formFields: [
@@ -148,10 +130,10 @@ const authorsConfig = {
 };
 
 const customHandlers = {
-  onAfterCreate: (author: any) => {
+  onAfterCreate: (author: BookAuthorResponseDto) => {
     console.log('✅ Autor creado exitosamente:', author.firstName, author.lastName);
   },
-  onAfterUpdate: (author: any) => {
+  onAfterUpdate: (author: BookAuthorResponseDto) => {
     console.log('✅ Autor actualizado:', author.firstName, author.lastName);
   },
   onAfterDelete: (authorId: string) => {

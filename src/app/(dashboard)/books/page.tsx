@@ -2,7 +2,8 @@
 
 import { createUnifiedDashboardProps } from "@/adapters/dashboardConfigAdapter";
 import InlineDashboardPage from "@/components/Dashboard/InlineDashboardPage";
-import { booksApi } from "@/services/api/entities/books";
+import { bookCatalogApi } from "@/services/api/entities/book-catalog";
+import type { BookCatalogResponseDto } from '@/types/api/entities';
 
 const booksConfig = {
   entityName: "Libro",
@@ -25,17 +26,10 @@ const booksConfig = {
       width: "300px",
     },
     {
-      key: "isbn",
+      key: "isbnCode",
       label: "ISBN",
       sortable: true,
       width: "150px",
-    },
-    {
-      key: "publishedDate",
-      label: "Fecha Publicación",
-      sortable: true,
-      width: "140px",
-      render: (value: string) => (value ? new Date(value).toLocaleDateString() : "-"),
     },
     {
       key: "price",
@@ -43,10 +37,10 @@ const booksConfig = {
       sortable: true,
       width: "100px",
       align: "right" as const,
-      render: (value: number) => (value ? `$${value}` : "-"),
+      render: (value: number) => (value ? `$${value.toFixed(2)}` : "-"),
     },
     {
-      key: "stock",
+      key: "stockQuantity",
       label: "Stock",
       sortable: true,
       width: "80px",
@@ -54,12 +48,27 @@ const booksConfig = {
       render: (value: number) => String(value || 0),
     },
     {
-      key: "isActive",
-      label: "Estado",
+      key: "isAvailable",
+      label: "Disponible",
       sortable: true,
       width: "100px",
       align: "center" as const,
-      render: (value: boolean) => (value ? "Activo" : "Inactivo"),
+      render: (value: boolean) => (value ? "Sí" : "No"),
+    },
+    {
+      key: "publicationDate",
+      label: "Fecha Publicación",
+      sortable: true,
+      width: "140px",
+      render: (value: string) => (value ? new Date(value).toLocaleDateString() : "-"),
+    },
+    {
+      key: "pageCount",
+      label: "Páginas",
+      sortable: true,
+      width: "80px",
+      align: "center" as const,
+      render: (value: number) => value ? String(value) : "-",
     },
   ],
   searchFields: [
@@ -70,29 +79,32 @@ const booksConfig = {
       placeholder: "Ej: Cien años de soledad",
     },
     {
-      key: "isbn",
+      key: "isbnCode",
       label: "ISBN",
       type: "text" as const,
       placeholder: "Ej: 978-3-16-148410-0",
     },
     {
-      key: "publishedDate",
-      label: "Fecha de Publicación",
-      type: "date" as const,
+      key: "genreId",
+      label: "Género",
+      type: "select" as const,
+      options: [], // Se llenará dinámicamente
+      placeholder: "Seleccionar género",
     },
     {
-      key: "price",
-      label: "Precio",
-      type: "number" as const,
-      placeholder: "Ej: 25.99",
+      key: "publisherId",
+      label: "Editorial",
+      type: "select" as const,
+      options: [], // Se llenará dinámicamente
+      placeholder: "Seleccionar editorial",
     },
     {
-      key: "isActive",
-      label: "Estado",
+      key: "isAvailable",
+      label: "Disponible",
       type: "boolean" as const,
       options: [
-        { value: true, label: "Activo" },
-        { value: false, label: "Inactivo" },
+        { value: true, label: "Disponible" },
+        { value: false, label: "No disponible" },
       ],
     },
   ],
@@ -162,13 +174,6 @@ const booksConfig = {
       placeholder: "Descripción del libro...",
     },
     {
-      key: "coverImage",
-      label: "Imagen de Portada",
-      type: "file" as const,
-      required: false,
-      accept: "image/*",
-    },
-    {
       key: "isAvailable",
       label: "Disponible",
       type: "boolean" as const,
@@ -179,10 +184,10 @@ const booksConfig = {
 };
 
 const customHandlers = {
-  onAfterCreate: (book: any) => {
+  onAfterCreate: (book: BookCatalogResponseDto) => {
     console.log("✅ Libro creado exitosamente:", book.title);
   },
-  onAfterUpdate: (book: any) => {
+  onAfterUpdate: (book: BookCatalogResponseDto) => {
     console.log("✅ Libro actualizado:", book.title);
   },
   onAfterDelete: (bookId: string) => {
@@ -194,7 +199,7 @@ const customHandlers = {
 };
 
 export default function BooksPage() {
-  const unifiedProps = createUnifiedDashboardProps(booksConfig, booksApi, customHandlers);
+  const unifiedProps = createUnifiedDashboardProps(booksConfig, bookCatalogApi, customHandlers);
 
   return <InlineDashboardPage {...unifiedProps} />;
 }
