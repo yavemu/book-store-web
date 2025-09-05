@@ -61,30 +61,20 @@ export const updateAuthorSchema = z.object({
     .refine((val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val), "La nacionalidad solo puede contener letras y espacios"),
 });
 
-export const authorSearchSchema = z.object({
+// Schema para búsqueda exacta POST /search - NO incluye 'term'
+export const authorExactSearchSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  nationality: z.string().optional(),
+  birthYear: z.number().optional(),
+});
+
+// Schema para filtro rápido GET /filter?term - SÍ incluye 'term'
+export const authorQuickFilterSchema = z.object({
   term: z
     .string()
-    .min(1, 'El término de búsqueda es requerido')
+    .min(3, 'El término de búsqueda debe tener al menos 3 caracteres')
     .max(100, 'El término de búsqueda no puede exceder 100 caracteres'),
-  page: z
-    .number()
-    .min(1, 'La página debe ser mayor a 0')
-    .optional()
-    .default(1),
-  limit: z
-    .number()
-    .min(1, 'El límite debe ser mayor a 0')
-    .max(100, 'El límite no puede exceder 100')
-    .optional()
-    .default(10),
-  sortBy: z
-    .string()
-    .optional()
-    .default('createdAt'),
-  sortOrder: z
-    .enum(['ASC', 'DESC'])
-    .optional()
-    .default('DESC'),
 });
 
 // Schema para filtros de autores
@@ -175,7 +165,8 @@ export const authorAdvancedSearchSchema = z.object({
 
 export type CreateAuthorFormData = z.infer<typeof createAuthorSchema>;
 export type UpdateAuthorFormData = z.infer<typeof updateAuthorSchema>;
-export type AuthorSearchFormData = z.infer<typeof authorSearchSchema>;
+export type AuthorExactSearchFormData = z.infer<typeof authorExactSearchSchema>;
+export type AuthorQuickFilterFormData = z.infer<typeof authorQuickFilterSchema>;
 export type BookAuthorFiltersFormData = z.infer<typeof bookAuthorFiltersSchema>;
 export type BookAuthorExportFormData = z.infer<typeof bookAuthorExportSchema>;
 export type CreateBookAuthorAssignmentFormData = z.infer<typeof createBookAuthorAssignmentSchema>;

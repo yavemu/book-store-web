@@ -32,8 +32,7 @@ export interface AuditSearchParams extends CommonSearchParams {}
 export interface AuditAdvancedSearchParams extends AuditListParams {
   action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'READ' | 'LOGIN' | 'REGISTER';
   entityType?: string;
-  entityId?: string;
-  performedBy?: string;
+  userId?: string; // Cambiar de performedBy a userId
   startDate?: string;
   endDate?: string;
 }
@@ -49,10 +48,9 @@ export interface AuditFilterParams {
 }
 
 export interface AuditAdvancedFilterDto {
-  performedBy?: string;
+  userId?: string; // Cambiar de performedBy a userId
   entityType?: string;
   action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'read' | 'LOGIN' | 'REGISTER';
-  entityId?: string;
   startDate?: string;
   endDate?: string;
 }

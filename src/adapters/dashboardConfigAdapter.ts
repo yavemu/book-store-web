@@ -4,6 +4,7 @@ import { DashboardEntityConfig } from '@/types/dashboard/entities';
 
 // Unified configuration interface
 export interface UnifiedDashboardConfig {
+  entity: string; // Identificador de la entidad para el hook useDashboard
   entityName: string;
   displayName: string;
   defaultPageSize?: number;
@@ -39,6 +40,20 @@ export function adaptDashboardConfig(oldConfig: any): UnifiedDashboardConfig {
   // Handle different config structures
   const entityName = oldConfig.entityName || oldConfig.entity || 'Entity';
   const displayName = oldConfig.displayName || oldConfig.entityNamePlural || oldConfig.title || entityName + 's';
+  
+  // Determinar identificador de entidad para búsquedas
+  let entity = 'generic';
+  if (entityName.toLowerCase().includes('autor') || displayName.toLowerCase().includes('autor')) {
+    entity = 'authors';
+  } else if (entityName.toLowerCase().includes('usuario') || displayName.toLowerCase().includes('usuario')) {
+    entity = 'users';
+  } else if (entityName.toLowerCase().includes('libro') || displayName.toLowerCase().includes('libro')) {
+    entity = 'books';
+  } else if (entityName.toLowerCase().includes('género') || displayName.toLowerCase().includes('género')) {
+    entity = 'genres';
+  } else if (entityName.toLowerCase().includes('editorial') || displayName.toLowerCase().includes('editorial')) {
+    entity = 'publishing-houses';
+  }
   
   // Extract capabilities from different formats
   const capabilities = {
@@ -102,6 +117,7 @@ export function adaptDashboardConfig(oldConfig: any): UnifiedDashboardConfig {
   }
 
   return {
+    entity,
     entityName,
     displayName,
     defaultPageSize,

@@ -192,11 +192,17 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     updateState({ searchLoading: true });
     
     try {
+      // Limpiar estado de búsquedas anteriores
+      updateState({ 
+        searchParams: {},
+        error: null 
+      });
+      
       let response;
       
       // ALWAYS prioritize quickFilter for auto-search (uses GET /filter?term)
       if (apiService.quickFilter) {
-        response = await apiService.quickFilter(term, {
+        response = await apiService.quickFilter(term.trim(), {
           page: 1,
           limit: state.pageSize
         });
@@ -214,7 +220,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         meta: response?.meta,
         isSearchMode: true,
         currentPage: 1,
-        searchParams: { autoFilter: term },
+        searchParams: { autoFilter: term.trim() },
         searchLoading: false
       });
       
@@ -233,26 +239,61 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     updateState({ searchLoading: true });
     
     try {
+      // Limpiar estado de búsquedas anteriores
+      updateState({ 
+        searchParams: {},
+        error: null 
+      });
+      
       // Usar el endpoint POST /search para búsqueda normal
       let response;
       
       if (apiService.search) {
-        // Usar search endpoint POST /search
-        response = await apiService.search({
-          term,
-          page,
-          limit: state.pageSize,
-          ...(config.table?.defaultSort && {
-            sortBy: config.table.defaultSort.field,
-            sortOrder: config.table.defaultSort.direction
-          })
-        });
+        // Para search (POST), no enviar 'term' sino crear búsqueda específica por campos
+        // Convertir el término de búsqueda en campos específicos según la entidad
+        let searchPayload: any = {};
+        
+        if (config.entity === 'authors') {
+          // Para autores: buscar en firstName y lastName
+          searchPayload = {
+            firstName: term.trim(),
+            lastName: term.trim(),
+          };
+        } else if (config.entity === 'users') {
+          // Para usuarios: buscar en username, email, firstName, lastName
+          searchPayload = {
+            username: term.trim(),
+            email: term.trim(),
+            firstName: term.trim(),
+            lastName: term.trim(),
+          };
+        } else if (config.entity === 'books' || config.entity === 'book-catalog') {
+          // Para libros: buscar en title, isbnCode
+          searchPayload = {
+            title: term.trim(),
+            isbnCode: term.trim(),
+          };
+        } else if (config.entity === 'genres') {
+          // Para géneros: buscar en name
+          searchPayload = {
+            name: term.trim(),
+          };
+        } else if (config.entity === 'publishing-houses') {
+          // Para editoriales: buscar en name
+          searchPayload = {
+            name: term.trim(),
+          };
+        } else {
+          // Fallback genérico
+          searchPayload = {
+            name: term.trim(),
+          };
+        }
+        
+        response = await apiService.search(searchPayload);
       } else {
-        // Fallback a quickFilter si search no está disponible
-        response = await apiService.quickFilter(term, {
-          page,
-          limit: state.pageSize
-        });
+        // No fallback - search debe ser independiente
+        throw new Error('Search endpoint not available for this entity');
       }
       
       // Actualizar estado con los datos recibidos de la API
@@ -261,7 +302,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         meta: response?.meta,
         isSearchMode: true,
         currentPage: page,
-        searchParams: { search: term, fuzzy },
+        searchParams: { search: term.trim(), fuzzy },
         searchLoading: false
       });
       
@@ -274,58 +315,62 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     }
   }, [config, apiService, state.pageSize]);
 
-  const handleAdvancedFilter = useCallback(async (filters: Record<string, any>, page = 1) => {
+  const handleAdvancedFilter = useCallback(async (filters: Record<string, any>, page = 1, useExactSearch = false) => {
     if (!config.capabilities.search.includes('advanced' as SearchCapability)) return;
 
     updateState({ searchLoading: true });
     
     try {
+      // Limpiar estado de búsquedas anteriores
+      updateState({ 
+        searchParams: {},
+        error: null 
+      });
+      
       let response;
       
-      if (apiService.advancedFilter) {
+      // Limpiar filtros - solo incluir campos válidos, excluyendo propiedades de búsquedas anteriores
+      const cleanFilters: Record<string, any> = {};
+      Object.entries(filters).forEach(([key, value]) => {
+        // Excluir propiedades que son específicas de otros tipos de búsqueda
+        if (key !== 'term' && key !== 'autoFilter' && key !== 'quickFilter' && key !== 'search' && key !== 'fuzzy') {
+          if (value !== undefined && value !== null && value !== '') {
+            cleanFilters[key] = value;
+          }
+        }
+      });
+      
+      // Decide which endpoint to use based on useExactSearch flag
+      if (useExactSearch && apiService.search) {
+        // Use /search endpoint for exact search
+        response = await apiService.search(cleanFilters);
+      } else if (apiService.advancedFilter) {
         // Use advanced filter endpoint POST /advanced-filter
-        response = await apiService.advancedFilter({
-          ...filters,
-          pagination: { 
-            page, 
-            limit: state.pageSize,
-            ...(config.table?.defaultSort && {
-              sortBy: config.table.defaultSort.field,
-              sortOrder: config.table.defaultSort.direction
-            })
-          }
-        });
+        // Check if the API expects embedded pagination (authors, book-author-assignments pattern)
+        // or separate parameters (books, genres, publishing-houses, inventory-movements pattern)
+        const paginationParams = { 
+          page, 
+          limit: state.pageSize,
+          ...(config.table?.defaultSort && {
+            sortBy: config.table.defaultSort.field,
+            sortOrder: config.table.defaultSort.direction
+          })
+        };
+        
+        // For services that expect embedded pagination (authors, book-author-assignments)
+        if (config.entity === 'authors' || config.entity === 'book-author-assignments') {
+          response = await apiService.advancedFilter({
+            ...cleanFilters,
+            pagination: paginationParams
+          });
+        } else {
+          // For services that expect separate parameters (books, genres, publishing-houses, inventory-movements)
+          response = await apiService.advancedFilter(cleanFilters, paginationParams);
+        }
       } else {
-        // No advancedFilter available, try alternative approaches
-        console.warn('advancedFilter not available for this service, trying alternatives...');
-        
-        if (apiService.quickFilter && Object.keys(filters).length === 1) {
-          // If only one filter and quickFilter is available, use it for simple term search
-          const filterTerm = Object.values(filters)[0];
-          if (typeof filterTerm === 'string') {
-            response = await apiService.quickFilter(filterTerm, { page, limit: state.pageSize });
-          }
-        }
-        
-        if (!response && apiService.search) {
-          // Fallback to search with first filter value as term
-          const searchTerm = Object.values(filters).find(v => typeof v === 'string' && v.trim().length > 0);
-          if (searchTerm) {
-            response = await apiService.search({
-              term: searchTerm,
-              page,
-              limit: state.pageSize,
-              ...(config.table?.defaultSort && {
-                sortBy: config.table.defaultSort.field,
-                sortOrder: config.table.defaultSort.direction
-              })
-            });
-          }
-        }
-        
-        if (!response) {
-          throw new Error('No suitable filter method available for advanced filters');
-        }
+        // No fallback - search/advancedFilter debe ser independiente
+        const endpointType = useExactSearch ? 'search' : 'advanced filter';
+        throw new Error(`${endpointType} endpoint not available for this entity`);
       }
       
       // Actualizar estado con los datos recibidos de la API
@@ -334,7 +379,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         meta: response?.meta,
         isSearchMode: true,
         currentPage: page,
-        searchParams: { advancedFilter: filters },
+        searchParams: { advancedFilter: cleanFilters },
         searchLoading: false
       });
       
@@ -354,25 +399,23 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     updateState({ searchLoading: true });
     
     try {
+      // Limpiar estado de búsquedas anteriores
+      updateState({ 
+        searchParams: {},
+        error: null 
+      });
+      
       let response;
       
       if (apiService.quickFilter) {
         // Use quickFilter which calls GET /filter?term=...
-        response = await apiService.quickFilter(term, {
+        response = await apiService.quickFilter(term.trim(), {
           page,
           limit: state.pageSize
         });
       } else {
-        // Fallback to regular search
-        response = await apiService.search({
-          term,
-          page,
-          limit: state.pageSize,
-          ...(config.table?.defaultSort && {
-            sortBy: config.table.defaultSort.field,
-            sortOrder: config.table.defaultSort.direction
-          })
-        });
+        // No fallback - quickFilter debe ser independiente
+        throw new Error('Quick filter endpoint not available for this entity');
       }
       
       // Actualizar estado con los datos recibidos de la API
@@ -381,7 +424,7 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
         meta: response?.meta,
         isSearchMode: true,
         currentPage: page,
-        searchParams: { quickFilter: term },
+        searchParams: { quickFilter: term.trim() },
         searchLoading: false
       });
       
@@ -398,9 +441,14 @@ export function useDashboard<TEntity = any, TCreateDto = any, TUpdateDto = any>(
     updateState({
       isSearchMode: false,
       currentPage: 1,
-      searchParams: {}
+      searchParams: {},
+      error: null,
+      searchLoading: false
     });
-  }, []);
+    
+    // Recargar datos originales
+    execute();
+  }, [execute]);
 
   // Pagination Handlers
   const handlePageChange = useCallback((page: number) => {

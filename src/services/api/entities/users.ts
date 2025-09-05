@@ -50,21 +50,15 @@ export interface UserAdvancedSearchParams extends UserListParams {
 }
 
 export interface UserSearchParams {
-  term: string;
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  roleId?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
-}
-
-export interface UserFilterParams {
-  filter: string;
-  pagination: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: "ASC" | "DESC";
-  };
 }
 
 export interface UserAdvancedFilterDto {
@@ -122,9 +116,9 @@ export const usersApi = {
     return apiClient.delete(`/users/${id}`);
   },
 
-  // Buscar usuarios por término (admin y user)
+  // Buscar usuarios por término - POST /search (búsqueda exacta)
   search: (params: UserSearchParams): Promise<UserListResponseDto> => {
-    const { term, page = 1, limit = 10, sortBy = "createdAt", sortOrder = "DESC", ...bodyParams } = params;
+    const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "DESC", ...searchData } = params;
     
     const queryParams = {
       page,
@@ -133,41 +127,38 @@ export const usersApi = {
       sortOrder
     };
 
-    const searchBody = {
-      term,
-      ...bodyParams
-    };
-
     const url = buildUrl("/users/search", queryParams);
-    return apiClient.post(url, searchBody);
+    return apiClient.post(url, searchData);
   },
 
-  // Filtrar usuarios en tiempo real (admin y user)
-  filter: (params: UserFilterParams): Promise<UserListResponseDto> => {
-    return apiClient.post("/users/filter", params);
-  },
 
-  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  // Filtro rápido para búsqueda en tiempo real - GET /filter
   quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<UserListResponseDto> => {
+    if (term.length < 3) {
+      throw new Error('Filter term must be at least 3 characters long');
+    }
+
     const queryParams = {
       term,
       page: params?.page || 1,
-      limit: params?.limit || 10,
+      limit: Math.min(params?.limit || 10, 50),
       sortBy: 'createdAt',
-      sortOrder: 'ASC' as const
+      sortOrder: 'DESC' as const,
     };
+
     const url = buildUrl("/users/filter", queryParams);
     return apiClient.get(url);
   },
 
-  // Filtro avanzado de usuarios (admin y user)
-  advancedFilter: (filterData: UserAdvancedFilterDto, params?: UserListParams): Promise<UserListResponseDto> => {
+  // Filtro avanzado con múltiples criterios - POST /advanced-filter
+  advancedFilter: (params: UserAdvancedFilterDto & { pagination?: UserListParams }): Promise<UserListResponseDto> => {
+    const { pagination, ...filterData } = params;
+    
     const queryParams = {
-      page: 1,
-      limit: 10,
-      sortBy: "createdAt",
-      sortOrder: "DESC" as const,
-      ...params,
+      page: pagination?.page || 1,
+      limit: pagination?.limit || 10,
+      sortBy: pagination?.sortBy || 'createdAt',
+      sortOrder: pagination?.sortOrder || 'DESC',
     };
 
     const url = buildUrl("/users/advanced-filter", queryParams);

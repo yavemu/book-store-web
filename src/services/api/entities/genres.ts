@@ -125,7 +125,7 @@ export const genresApi = {
       page: params?.page || 1,
       limit: params?.limit || 10,
       sortBy: 'createdAt',
-      sortOrder: 'ASC' as const,
+      sortOrder: 'DESC' as const,
     };
     const url = buildUrl('/genres/filter', queryParams);
     return apiClient.get(url);

@@ -66,8 +66,8 @@ const auditConfig = {
       ]
     },
     {
-      key: 'entity',
-      label: 'Entidad',
+      key: 'entityType',
+      label: 'Tipo de Entidad',
       type: 'select' as const,
       options: [
         { value: 'USER', label: 'Usuario' },
@@ -78,20 +78,19 @@ const auditConfig = {
       ]
     },
     {
-      key: 'username',
-      label: 'Usuario',
+      key: 'userId',
+      label: 'ID de Usuario',
       type: 'text' as const,
-      placeholder: 'Ej: admin'
+      placeholder: 'Ej: uuid del usuario'
     },
     {
-      key: 'ipAddress',
-      label: 'Dirección IP',
-      type: 'text' as const,
-      placeholder: 'Ej: 192.168.1.1'
+      key: 'startDate',
+      label: 'Fecha Inicio',
+      type: 'date' as const
     },
     {
-      key: 'createdAt',
-      label: 'Fecha',
+      key: 'endDate',
+      label: 'Fecha Fin',
       type: 'date' as const
     }
   ]

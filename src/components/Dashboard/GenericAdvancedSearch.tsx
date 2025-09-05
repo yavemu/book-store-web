@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
+import React, { useEffect, useState } from "react";
 
 export interface SearchFieldConfig {
   key: string;
@@ -42,7 +42,7 @@ export default function GenericAdvancedSearch({
 }: GenericAdvancedSearchProps) {
   const [showAdvancedForm, setShowAdvancedForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [fuzzySearchEnabled, setFuzzySearchEnabled] = useState(false);
+  const [useAdvancedFilter, setUseAdvancedFilter] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<GenericSearchFilters>(() => {
     const initialFilters: GenericSearchFilters = {};
     searchFields.forEach(field => {
@@ -65,16 +65,11 @@ export default function GenericAdvancedSearch({
     }
   };
 
-  const handleQuickFilter = () => {
-    if (searchTerm.trim().length >= 3 && onQuickFilter) {
-      onQuickFilter(searchTerm.trim());
-    }
-  };
 
   // Check if advanced-filter conditions are met
   const checkAdvancedFilterConditions = () => {
     // Condition 1: "buscar por coincidencias" checkbox must be active
-    if (!fuzzySearchEnabled) return false;
+    if (!useAdvancedFilter) return false;
     
     // Condition 2: At least one field must have 3+ characters
     const hasValidField = Object.entries(advancedFilters).some(([key, value]) => {
@@ -117,7 +112,7 @@ export default function GenericAdvancedSearch({
     }
     
     setSearchTerm("");
-    setFuzzySearchEnabled(false);
+    setUseAdvancedFilter(false);
     const clearedFilters: GenericSearchFilters = {};
     searchFields.forEach(field => {
       if (field.type === 'boolean' || field.type === 'number') {
@@ -135,10 +130,10 @@ export default function GenericAdvancedSearch({
   const debounceRef = React.useRef<NodeJS.Timeout>();
   const searchTermDebounceRef = React.useRef<NodeJS.Timeout>();
 
-  // Effect to clean up timeouts when fuzzySearchEnabled changes
+  // Effect to clean up timeouts when useAdvancedFilter changes
   useEffect(() => {
-    if (!fuzzySearchEnabled) {
-      // Clear any pending auto-searches when fuzzy search is disabled
+    if (!useAdvancedFilter) {
+      // Clear any pending auto-searches when advanced filter is disabled
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
@@ -146,7 +141,7 @@ export default function GenericAdvancedSearch({
         clearTimeout(searchTermDebounceRef.current);
       }
     }
-  }, [fuzzySearchEnabled]);
+  }, [useAdvancedFilter]);
 
   const handleAdvancedFilterChange = (field: string, value: any) => {
     setAdvancedFilters(prev => ({
@@ -159,8 +154,8 @@ export default function GenericAdvancedSearch({
       clearTimeout(debounceRef.current);
     }
     
-    // Auto-trigger only if fuzzySearchEnabled is true
-    if (fuzzySearchEnabled) {
+    // Auto-trigger only if useAdvancedFilter is true
+    if (useAdvancedFilter) {
       // Include the new value being set
       const updatedFilters = { ...advancedFilters, [field]: value };
       
@@ -193,8 +188,14 @@ export default function GenericAdvancedSearch({
     }
   };
 
-  // Quick search validation
-  const canMainSearch = searchTerm.trim().length >= 3;
+  // Search validation - check if any advanced filter has valid content
+  const canMainSearch = Object.entries(advancedFilters).some(([key, value]) => {
+    const field = searchFields.find(f => f.key === key);
+    if (field?.type === 'number' || field?.type === 'boolean') {
+      return value !== undefined && value !== '';
+    }
+    return typeof value === 'string' && value.trim().length >= 3;
+  });
   
   // Advanced filter validation - must meet all 3 conditions
   const canAdvancedSearch = checkAdvancedFilterConditions();
@@ -294,54 +295,6 @@ export default function GenericAdvancedSearch({
           <form onSubmit={handleAdvancedSubmit} className="advanced-search-form">
             {/* Search Fields Grid */}
             <div className="search-fields-grid">
-              <div className="search-field-group">
-                <label className="field-label">Término de búsqueda</label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setSearchTerm(newValue);
-                    
-                    // Auto-trigger if fuzzySearchEnabled and has 3+ characters
-                    if (fuzzySearchEnabled && newValue.trim().length >= 3) {
-                      // Clear previous debounce
-                      if (searchTermDebounceRef.current) {
-                        clearTimeout(searchTermDebounceRef.current);
-                      }
-                      
-                      // Auto-trigger advanced filter with debounce (POST /advanced-filter)
-                      searchTermDebounceRef.current = setTimeout(() => {
-                        // Call advancefilter with the search term as a filter
-                        onAdvancedFilter({ name: newValue.trim() }, true);
-                      }, 500);
-                    }
-                  }}
-                  placeholder={`Ej: Gabriel García (mín. 3 caracteres)`}
-                  className="search-input"
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Fuzzy Search Checkbox - Enables automatic advanced filtering */}
-              <div className="search-field-group">
-                <label className="field-label">
-                  <input
-                    type="checkbox"
-                    checked={fuzzySearchEnabled}
-                    onChange={(e) => setFuzzySearchEnabled(e.target.checked)}
-                    disabled={loading}
-                    className="mr-2"
-                  />
-                  🔄 Buscar por coincidencias automáticamente
-                </label>
-                <small className="text-gray-600">
-                  {fuzzySearchEnabled 
-                    ? "✅ Búsqueda automática activada - Se ejecuta al escribir en cualquier campo (≥3 caracteres)"
-                    : "⏸️ Búsqueda manual - Use el botón 'Buscar' para ejecutar"
-                  }
-                </small>
-              </div>
 
               {searchFields.map(field => (
                 <div key={field.key} className="search-field-group">
@@ -366,36 +319,57 @@ export default function GenericAdvancedSearch({
               </div>
               
               <div className="search-actions-right">
-                {/* Botón Buscar - Activo por defecto, se desactiva si fuzzySearch está habilitado */}
+                {/* Search Mode Selector */}
+                <div className="search-mode-selector">
+                  <label className="field-label checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={useAdvancedFilter}
+                      onChange={(e) => setUseAdvancedFilter(e.target.checked)}
+                      disabled={loading}
+                      className="mr-2"
+                    />
+                    🔄 Búsqueda por coincidencias
+                  </label>
+                  <small className="text-gray-600">
+                    {useAdvancedFilter 
+                      ? "✅ Modo automático activado - Se ejecuta al escribir (≥3 caracteres)"
+                      : "⏸️ Modo manual - Use el botón 'Buscar'"
+                    }
+                  </small>
+                </div>
+
+                {/* Botón Buscar - Activo cuando no está en modo avanzado */}
                 <Button
                   type="button"
                   variant="primary"
-                  disabled={fuzzySearchEnabled || loading}
+                  disabled={useAdvancedFilter || loading || !canMainSearch}
                   loading={loading}
-                  onClick={() => onSearch(searchTerm.trim(), false)}
+                  onClick={() => {
+                    // Create search payload from advanced filters
+                    const cleanFilters = {};
+                    Object.entries(advancedFilters).forEach(([key, value]) => {
+                      const field = searchFields.find(f => f.key === key);
+                      if (field?.type === 'number' || field?.type === 'boolean') {
+                        if (value !== undefined && value !== '') cleanFilters[key] = value;
+                      } else if (typeof value === 'string' && value.trim().length >= 3) {
+                        cleanFilters[key] = value.trim();
+                      }
+                    });
+                    
+                    if (Object.keys(cleanFilters).length > 0) {
+                      // Use exact search (false = use /search endpoint)
+                      onAdvancedFilter(cleanFilters, false);
+                    }
+                  }}
                   size="sm"
-                  title={fuzzySearchEnabled ? "Desactiva 'Buscar por coincidencias' para usar búsqueda normal" : "Búsqueda normal (usa POST /search)"}
+                  title={useAdvancedFilter ? "Desactiva 'Búsqueda por coincidencias' para usar búsqueda exacta" : "Búsqueda exacta (usa POST /search)"}
                 >
                   🔍 Buscar
                 </Button>
-
-                {/* Botón Filtro Rápido - Usa GET /filter?term */}
-                {onQuickFilter && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={loading}
-                    loading={loading}
-                    onClick={handleQuickFilter}
-                    size="sm"
-                    title="Filtro rápido (usa GET /filter?term)"
-                  >
-                    ⚡ Filtro Rápido
-                  </Button>
-                )}
                 
-                {/* Indicador de estado cuando fuzzySearch está activo */}
-                {fuzzySearchEnabled && (
+                {/* Indicador de estado cuando advanced filter está activo */}
+                {useAdvancedFilter && (
                   <div className="auto-search-indicator">
                     <span className="text-sm text-blue-600">
                       🔄 Búsqueda automática activada

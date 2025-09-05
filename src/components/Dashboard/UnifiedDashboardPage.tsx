@@ -227,10 +227,12 @@ export default function UnifiedDashboardPage<TEntity = any>({
       )}
 
       {/* Active Filters Display */}
-      {state.isSearchMode && (
+      {state.isSearchMode && state.data && (
         <ActiveFiltersDisplay
-          filters={state.searchParams}
-          onClearFilter={(key) => {
+          filters={state.searchParams || {}}
+          searchFields={config.searchFields || []}
+          tableColumns={config.columns || []}
+          onRemoveFilter={(key) => {
             handleClearAll(); // Simplified - just clear all for now
           }}
           onClearAll={handleClearAll}

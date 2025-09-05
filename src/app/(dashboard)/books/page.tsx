@@ -37,7 +37,7 @@ const booksConfig = {
       sortable: true,
       width: "100px",
       align: "right" as const,
-      render: (value: number) => (value ? `$${value.toFixed(2)}` : "-"),
+      render: (value: number) => (value ? `$${value}` : "-"),
     },
     {
       key: "stockQuantity",
@@ -68,7 +68,7 @@ const booksConfig = {
       sortable: true,
       width: "80px",
       align: "center" as const,
-      render: (value: number) => value ? String(value) : "-",
+      render: (value: number) => (value ? String(value) : "-"),
     },
   ],
   searchFields: [
@@ -132,7 +132,7 @@ const booksConfig = {
       placeholder: "Seleccionar género",
     },
     {
-      key: "publisherId", 
+      key: "publisherId",
       label: "Editorial",
       type: "select" as const,
       required: true,

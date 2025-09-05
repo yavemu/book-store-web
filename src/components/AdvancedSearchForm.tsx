@@ -1,10 +1,10 @@
 'use client';
 
 import { useDebounce } from "@/hooks";
+import { UnifiedFieldConfig, getSearchFields } from "@/types/dashboard/unified-config";
 import { useEffect, useState } from "react";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
-import { UnifiedFieldConfig, getSearchFields } from "@/types/dashboard/unified-config";
 
 export interface SearchField {
   key: string;
@@ -193,8 +193,8 @@ export default function AdvancedSearchForm({
                   onChange={(e) => setIsRealTimeSearch(e.target.checked)}
                   className="search-checkbox"
                 />
-                <span className="checkbox-text">Buscar por coincidencia (tiempo real)</span>
               </label>
+              <span className="checkbox-text">Buscar por coincidencia (tiempo real)</span>
               {isRealTimeSearch && isFiltering && <span className="filtering-status">🔄 Filtrando...</span>}
             </div>
 

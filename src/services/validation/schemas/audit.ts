@@ -87,10 +87,18 @@ export const auditExportSchema = z.object({
 export const auditAdvancedSearchSchema = auditListParamsSchema.extend({
   action: z.string().optional(),
   entityType: z.string().optional(),
-  entityId: z.string().optional(),
-  userId: z.string().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  userId: z.string().uuid().optional(),
+  startDate: z.string().optional(), // Cambiar a date string simple
+  endDate: z.string().optional(),   // Cambiar a date string simple
+});
+
+// Schema específico para búsqueda exacta de auditoría (POST /search)
+export const auditExactSearchSchema = z.object({
+  action: z.string().optional(),
+  entityType: z.string().optional(),
+  userId: z.string().uuid().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export type AuditAction = z.infer<typeof auditActionSchema>;
@@ -102,3 +110,4 @@ export type AuditFilterParams = z.infer<typeof auditFilterSchema>;
 export type AuditAdvancedFilterParams = z.infer<typeof auditAdvancedFilterSchema>;
 export type AuditExportParams = z.infer<typeof auditExportSchema>;
 export type AuditAdvancedSearchParams = z.infer<typeof auditAdvancedSearchSchema>;
+export type AuditExactSearchParams = z.infer<typeof auditExactSearchSchema>;

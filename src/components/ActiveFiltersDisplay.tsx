@@ -13,17 +13,49 @@ interface ActiveFiltersDisplayProps {
 
 export default function ActiveFiltersDisplay({
   filters,
-  searchFields,
-  tableColumns,
+  searchFields = [],
+  tableColumns = [],
   onRemoveFilter,
   onClearAll
 }: ActiveFiltersDisplayProps) {
-  const activeFilters = Object.entries(filters).filter(([_, value]) => 
+  // Debug logging removed - component working correctly
+
+  // Handle different filter structures from useDashboard
+  let processedFilters = filters;
+  
+  // If filters contain search metadata, extract the actual filter values
+  if (filters && typeof filters === 'object') {
+    if (filters.autoFilter) {
+      processedFilters = { 'Búsqueda Rápida': filters.autoFilter };
+    } else if (filters.quickFilter) {
+      processedFilters = { 'Búsqueda Rápida': filters.quickFilter };
+    } else if (filters.search) {
+      processedFilters = { 'Búsqueda': filters.search };
+    } else if (filters.advancedFilter) {
+      processedFilters = filters.advancedFilter;
+    }
+  } else {
+    processedFilters = {};
+  }
+
+  const activeFilters = Object.entries(processedFilters || {}).filter(([_, value]) => 
     value !== undefined && value !== null && value !== ''
   );
 
   if (activeFilters.length === 0) {
     return null;
+  }
+
+  // Defensive checks - continue even if arrays are invalid
+  const safeTableColumns = Array.isArray(tableColumns) ? tableColumns : [];
+  const safeSearchFields = Array.isArray(searchFields) ? searchFields : [];
+  
+  if (!Array.isArray(tableColumns)) {
+    console.warn('ActiveFiltersDisplay: tableColumns is not an array, using empty array:', tableColumns, 'Type:', typeof tableColumns);
+  }
+
+  if (!Array.isArray(searchFields)) {
+    console.warn('ActiveFiltersDisplay: searchFields is not an array, using empty array:', searchFields, 'Type:', typeof searchFields);
   }
 
   // Create a mapping of columns with their filters
@@ -35,7 +67,7 @@ export default function ActiveFiltersDisplay({
   const getFieldLabel = (key: string) => {
     if (key === 'startDate') return 'Desde';
     if (key === 'endDate') return 'Hasta';
-    const field = searchFields.find(f => f.key === key);
+    const field = safeSearchFields.find(f => f && f.key === key);
     return field?.label || key;
   };
 
@@ -49,6 +81,9 @@ export default function ActiveFiltersDisplay({
   // Separate date filters from column filters
   const dateFilters = activeFilters.filter(([key]) => key === 'startDate' || key === 'endDate');
   const columnFilters = activeFilters.filter(([key]) => key !== 'startDate' && key !== 'endDate');
+  
+  // Show simplified view if no table columns available or if it's a simple search
+  const showSimplifiedView = safeTableColumns.length === 0 || activeFilters.some(([key]) => key === 'Búsqueda Rápida' || key === 'Búsqueda');
 
   return (
     <div className="active-filters-display">
@@ -66,10 +101,10 @@ export default function ActiveFiltersDisplay({
       </div>
 
       {/* Column-aligned filters */}
-      {columnFilters.length > 0 && (
+      {!showSimplifiedView && columnFilters.length > 0 && safeTableColumns.length > 0 && (
         <div className="filters-table">
           <div className="filters-table-header">
-            {tableColumns.map((column) => (
+            {safeTableColumns.map((column) => (
               <div key={column.key} className="filter-column-header">
                 {column.label}
               </div>
@@ -80,7 +115,7 @@ export default function ActiveFiltersDisplay({
           </div>
           
           <div className="filters-table-row">
-            {tableColumns.map((column) => {
+            {safeTableColumns.map((column) => {
               const filterValue = getColumnFilter(column.key);
               return (
                 <div key={column.key} className="filter-column-cell">
@@ -147,7 +182,7 @@ export default function ActiveFiltersDisplay({
       )}
 
       {/* Compact filter tags for overflow or additional filters */}
-      {activeFilters.length > 0 && (
+      {(showSimplifiedView || activeFilters.length > 0) && (
         <div className="filters-tags-compact">
           {activeFilters.map(([key, value]) => (
             <div key={key} className="filter-tag-compact">

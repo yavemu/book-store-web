@@ -127,7 +127,10 @@ export default function InlineDashboardPage<TEntity = any>({
   };
 
   const handleAdvancedSearch = (filters: any, fuzzySearch?: boolean) => {
-    handleAdvancedFilter(filters);
+    // fuzzySearch = false means use exact search (/search endpoint)
+    // fuzzySearch = true means use fuzzy search (/advanced-filter endpoint)
+    const useExactSearch = fuzzySearch === false;
+    handleAdvancedFilter(filters, 1, useExactSearch);
   };
 
   const handlePaginationChange = (page: number) => {
@@ -205,10 +208,12 @@ export default function InlineDashboardPage<TEntity = any>({
       )}
 
       {/* Active Filters Display */}
-      {state.isSearchMode && (
+      {state.isSearchMode && state.data && (
         <ActiveFiltersDisplay
-          filters={state.searchParams}
-          onClearFilter={(key) => {
+          filters={state.searchParams || {}}
+          searchFields={config.searchFields || []}
+          tableColumns={config.columns || []}
+          onRemoveFilter={(key) => {
             handleClearAll();
           }}
           onClearAll={handleClearAll}
