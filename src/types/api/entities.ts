@@ -40,6 +40,61 @@ export interface ApiError {
   path?: string;
 }
 
+// Standard response DTOs used across the API
+export interface UnauthorizedResponseDto {
+  statusCode: 401;
+  message: string;
+  error: string;
+}
+
+export interface BadRequestResponseDto {
+  statusCode: 400;
+  message: string | string[];
+  error: string;
+}
+
+export interface NotFoundResponseDto {
+  statusCode: 404;
+  message: string;
+  error: string;
+}
+
+export interface ConflictResponseDto {
+  statusCode: 409;
+  message: string;
+  error: string;
+}
+
+export interface ForbiddenResponseDto {
+  statusCode: 403;
+  message: string;
+  error: string;
+}
+
+export interface InternalServerErrorResponseDto {
+  statusCode: 500;
+  message: string;
+  error: string;
+}
+
+// Generic success response
+export interface SuccessResponseDto {
+  success: boolean;
+  message: string;
+}
+
+// CSV Export response
+export interface AuditCsvExportResponseDto {
+  filename: string;
+  content: string;
+}
+
+// Generic audit responses
+export interface GetAuditLogResponseDto {
+  data: AuditLogResponseDto;
+  message?: string;
+}
+
 // ========================================
 // AUDIT LOG TYPES
 // ========================================
@@ -86,6 +141,23 @@ export interface UpdateUserDto {
 }
 
 export interface UserListResponseDto extends ApiListResponse<UserResponseDto> {}
+
+export interface CreateUserResponseDto {
+  success: boolean;
+  message: string;
+  data: UserResponseDto;
+}
+
+export interface UpdateUserResponseDto {
+  success: boolean;
+  message: string;
+  data: UserResponseDto;
+}
+
+export interface DeleteUserResponseDto {
+  success: boolean;
+  message: string;
+}
 
 export interface LoginResponseDto {
   access_token: string;
@@ -253,6 +325,74 @@ export interface UpdateBookDto {
 }
 
 export interface BookListResponseDto extends ApiListResponse<BookResponseDto> {}
+
+// ========================================
+// BOOK CATALOG TYPES
+// ========================================
+
+export interface BookCatalogResponseDto {
+  id: string;
+  title: string;
+  isbnCode: string;
+  price: number;
+  isAvailable: boolean;
+  stockQuantity: number;
+  coverImageUrl?: string;
+  publicationDate?: string;
+  pageCount?: number;
+  summary?: string;
+  genreId: string;
+  publisherId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBookCatalogDto {
+  title: string;
+  isbnCode: string;
+  price: number;
+  isAvailable?: boolean;
+  stockQuantity?: number;
+  coverImageUrl?: string;
+  publicationDate?: string;
+  pageCount?: number;
+  summary?: string;
+  genreId: string;
+  publisherId: string;
+}
+
+export interface UpdateBookCatalogDto {
+  title?: string;
+  isbnCode?: string;
+  price?: number;
+  isAvailable?: boolean;
+  stockQuantity?: number;
+  coverImageUrl?: string;
+  publicationDate?: string;
+  pageCount?: number;
+  summary?: string;
+  genreId?: string;
+  publisherId?: string;
+}
+
+export interface BookCatalogListResponseDto extends ApiListResponse<BookCatalogResponseDto> {}
+
+export interface CreateBookCatalogResponseDto {
+  success: boolean;
+  message: string;
+  data: BookCatalogResponseDto;
+}
+
+export interface UpdateBookCatalogResponseDto {
+  success: boolean;
+  message: string;
+  data: BookCatalogResponseDto;
+}
+
+export interface DeleteBookCatalogResponseDto {
+  success: boolean;
+  message: string;
+}
 
 // ========================================
 // BOOK-AUTHOR ASSIGNMENT TYPES

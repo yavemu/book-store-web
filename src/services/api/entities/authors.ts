@@ -4,10 +4,6 @@ import {
   UpdateBookAuthorDto,
   BookAuthorResponseDto,
   BookAuthorListResponseDto,
-  CreateBookAuthorAssignmentDto,
-  UpdateBookAuthorAssignmentDto,
-  BookAuthorAssignmentResponseDto,
-  BookAuthorAssignmentListResponseDto,
   CommonListParams,
   CommonSearchParams,
 } from "@/types/api/entities";
@@ -33,32 +29,18 @@ const buildUrl = (basePath: string, queryParams?: Record<string, unknown>): stri
 
 export interface AuthorListParams extends CommonListParams {}
 
-export interface AuthorSearchParams extends CommonSearchParams {}
+export interface AuthorSearchParams extends CommonSearchParams {
+  term: string;
+}
 
-export interface AuthorAdvancedSearchParams extends AuthorListParams {
+export interface AuthorAdvancedFiltersDto {
   firstName?: string;
   lastName?: string;
   nationality?: string;
-  birthDate?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface AuthorFilterParams {
-  filter: string;
-  pagination: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: "ASC" | "DESC";
-  };
-}
-
-export interface BookAuthorFiltersDto {
-  name?: string;
-  nationality?: string;
   birthYear?: number;
   isActive?: boolean;
+  createdAfter?: string;
+  createdBefore?: string;
   pagination?: {
     page: number;
     limit: number;
@@ -67,23 +49,13 @@ export interface BookAuthorFiltersDto {
   };
 }
 
-export interface BookAuthorExportParams {
-  name?: string;
+export interface AuthorExportParams {
+  firstName?: string;
+  lastName?: string;
   nationality?: string;
+  birthYear?: number;
   startDate?: string;
   endDate?: string;
-}
-
-export interface AssignmentFiltersDto {
-  bookId?: string;
-  authorId?: string;
-  assignmentDate?: string;
-  pagination?: {
-    page: number;
-    limit: number;
-    sortBy?: string;
-    sortOrder?: 'ASC' | 'DESC';
-  };
 }
 
 export const authorsApi = {
@@ -157,115 +129,42 @@ export const authorsApi = {
     return apiClient.post(url, searchData);
   },
 
-  // Filtrar autores con criterios múltiples - Using POST for complex filters
-  filter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
-    return apiClient.post('/book-authors/filter', filterData);
-  },
-
-  // Filtro avanzado con criterios múltiples (coincidencias)
-  advancedFilter: (filterData: BookAuthorFiltersDto): Promise<BookAuthorListResponseDto> => {
-    return apiClient.post('/book-authors/advanced-filter', filterData);
-  },
-
-  // Búsqueda rápida para dashboards - usando filter endpoint GET con query params
+  // Filtro rápido para búsqueda en tiempo real - GET /filter
   quickFilter: (term: string, params?: { page?: number; limit?: number }): Promise<BookAuthorListResponseDto> => {
+    if (term.length < 3) {
+      throw new Error('Filter term must be at least 3 characters long');
+    }
+
     const queryParams = {
       term,
       page: params?.page || 1,
-      limit: params?.limit || 10,
+      limit: Math.min(params?.limit || 10, 50),
       sortBy: 'createdAt',
-      sortOrder: 'ASC' as const,
+      sortOrder: 'DESC' as const,
     };
+
     const url = buildUrl('/book-authors/filter', queryParams);
     return apiClient.get(url);
   },
 
-  // Exportar autores a CSV (solo admin)
-  exportToCsv: (params?: BookAuthorExportParams): Promise<string> => {
-    const url = buildUrl('/book-authors/export/csv', params);
-    return apiClient.get(url);
-  },
-};
-
-export interface BookAuthorAssignmentListParams extends CommonListParams {}
-
-// API para gestión de asignaciones autor-libro
-export const bookAuthorAssignmentsApi = {
-  // Crear asignación autor-libro
-  create: (data: CreateBookAuthorAssignmentDto): Promise<BookAuthorAssignmentResponseDto> => {
-    return apiClient.post('/book-author-assignments', data);
-  },
-
-  // Listar todas las asignaciones
-  list: (params?: BookAuthorAssignmentListParams): Promise<BookAuthorAssignmentListResponseDto> => {
-    const defaultParams = {
-      page: 1,
-      limit: 10,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const,
-      ...params,
-    };
-
-    const url = buildUrl('/book-author-assignments', defaultParams);
-    return apiClient.get(url);
-  },
-
-  // Buscar asignaciones por término
-  search: (params: { term: string; page?: number; limit?: number }): Promise<BookAuthorAssignmentListResponseDto> => {
-    const { page = 1, limit = 10, term, ...searchData } = params;
+  // Filtro avanzado con múltiples criterios - POST /advanced-filter
+  advancedFilter: (params: AuthorAdvancedFiltersDto): Promise<BookAuthorListResponseDto> => {
+    const { pagination, ...filterData } = params;
     
     const queryParams = {
-      page,
-      limit,
-      sortBy: 'createdAt',
-      sortOrder: 'DESC' as const
+      page: pagination?.page || 1,
+      limit: pagination?.limit || 10,
+      sortBy: pagination?.sortBy || 'createdAt',
+      sortOrder: pagination?.sortOrder || 'DESC',
     };
 
-    const searchBody = {
-      term,
-      ...searchData
-    };
-
-    const url = buildUrl('/book-author-assignments/search', queryParams);
-    return apiClient.post(url, searchBody);
+    const url = buildUrl('/book-authors/advanced-filter', queryParams);
+    return apiClient.post(url, filterData);
   },
 
-  // Filtrar asignaciones con criterios múltiples
-  filter: (filterData: AssignmentFiltersDto): Promise<BookAuthorAssignmentListResponseDto> => {
-    return apiClient.post('/book-author-assignments/filter', filterData);
-  },
-
-  // Exportar asignaciones a CSV (solo admin)
-  exportToCsv: (): Promise<string> => {
-    return apiClient.get('/book-author-assignments/export/csv');
-  },
-
-  // Verificar si existe asignación específica
-  checkAssignment: (bookId: string, authorId: string): Promise<{ exists: boolean }> => {
-    return apiClient.get(`/book-author-assignments/check/${bookId}/${authorId}`);
-  },
-
-  // Obtener asignación por ID
-  getById: (assignmentId: string): Promise<BookAuthorAssignmentResponseDto> => {
-    return apiClient.get(`/book-author-assignments/${assignmentId}`);
-  },
-
-  // Actualizar asignación autor-libro
-  update: (assignmentId: string, data: UpdateBookAuthorAssignmentDto): Promise<BookAuthorAssignmentResponseDto> => {
-    return apiClient.put(`/book-author-assignments/${assignmentId}`, data);
-  },
-
-  // Eliminar asignación autor-libro
-  delete: (assignmentId: string): Promise<{ message: string }> => {
-    return apiClient.delete(`/book-author-assignments/${assignmentId}`);
-  },
-
-  // Alias para compatibilidad
-  assign: (data: CreateBookAuthorAssignmentDto): Promise<BookAuthorAssignmentResponseDto> => {
-    return apiClient.post('/book-author-assignments', data);
-  },
-
-  remove: (assignmentId: string): Promise<{ message: string }> => {
-    return apiClient.delete(`/book-author-assignments/${assignmentId}`);
+  // Exportar autores a CSV (solo admin)
+  exportToCsv: (params?: AuthorExportParams): Promise<string> => {
+    const url = buildUrl('/book-authors/export/csv', params);
+    return apiClient.get(url);
   },
 };

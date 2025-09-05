@@ -1,4 +1,14 @@
-import { LoginDto, LoginResponseDto, RegisterResponseDto, RegisterUserDto, UserProfileResponseDto } from "@/types/auth";
+import { 
+  LoginDto, 
+  LoginResponseDto, 
+  RegisterResponseDto, 
+  RegisterUserDto, 
+  UserProfileResponseDto,
+  UpdateProfileDto,
+  ChangePasswordDto,
+  PasswordResetRequestDto,
+  PasswordResetConfirmDto
+} from "@/types/auth";
 import { apiClient } from "../client";
 
 class AuthService {
@@ -64,6 +74,42 @@ class AuthService {
   async getProfile(): Promise<UserProfileResponseDto> {
     try {
       const response = await apiClient.get<UserProfileResponseDto>("/auth/me");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(updateData: UpdateProfileDto): Promise<UserProfileResponseDto> {
+    try {
+      const response = await apiClient.put<UserProfileResponseDto>("/auth/me", updateData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async changePassword(passwordData: ChangePasswordDto): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await apiClient.put<{ success: boolean; message: string }>("/auth/change-password", passwordData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async requestPasswordReset(requestData: PasswordResetRequestDto): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await apiClient.post<{ success: boolean; message: string }>("/auth/reset-password", requestData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async confirmPasswordReset(confirmData: PasswordResetConfirmDto): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await apiClient.post<{ success: boolean; message: string }>("/auth/reset-password/confirm", confirmData);
       return response;
     } catch (error) {
       throw error;

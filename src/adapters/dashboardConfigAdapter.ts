@@ -41,7 +41,7 @@ export function adaptDashboardConfig(oldConfig: any): UnifiedDashboardConfig {
   const displayName = oldConfig.displayName || oldConfig.entityNamePlural || oldConfig.title || entityName + 's';
   
   // Extract capabilities from different formats
-  let capabilities = {
+  const capabilities = {
     crud: ['create', 'read', 'update', 'delete'],
     search: ['simple', 'advanced'],
     export: false
